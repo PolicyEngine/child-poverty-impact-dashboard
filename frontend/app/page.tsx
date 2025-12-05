@@ -9,8 +9,9 @@ export default function HomePage() {
           Child Poverty Impact Dashboard
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-          Model and compare policy reforms to reduce child poverty across all 50 US states and DC.
-          Analyze the impacts of CTC expansions, EITC reforms, SNAP changes, and more.
+          Enter your household details and see how policy reforms could affect your family.
+          Model CTC expansions, EITC reforms, SNAP changes, and state-specific programs
+          across all 50 US states and DC.
         </p>
         <div className="flex justify-center gap-4">
           <Link href="/analyze" className="btn btn-primary text-lg px-8 py-3">
@@ -104,7 +105,7 @@ export default function HomePage() {
             <div className="stat-label">Deep Poverty Rate</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">15</div>
+            <div className="stat-value">24</div>
             <div className="stat-label">States with State CTCs</div>
           </div>
         </div>

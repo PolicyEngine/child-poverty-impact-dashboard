@@ -5,7 +5,7 @@ FastAPI application for the Child Poverty Impact Dashboard.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import reforms, analysis, states
+from app.api.routes import reforms, analysis, states, household
 from app.core.config import settings
 
 app = FastAPI(
@@ -14,6 +14,8 @@ app = FastAPI(
     API for analyzing child poverty impacts of policy reforms across US states.
 
     ## Features
+    - Enter household details and see personalized impacts
+    - View state-specific reform options based on existing programs
     - Model CTC, EITC, SNAP, UBI, and state-specific reforms
     - Calculate poverty impacts, fiscal costs, and distributional effects
     - Compare reforms across all 50 states and DC
@@ -36,6 +38,7 @@ app.add_middleware(
 app.include_router(reforms.router, prefix="/api/reforms", tags=["reforms"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["analysis"])
 app.include_router(states.router, prefix="/api/states", tags=["states"])
+app.include_router(household.router, prefix="/api/household", tags=["household"])
 
 
 @app.get("/")
