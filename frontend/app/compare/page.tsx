@@ -119,7 +119,7 @@ export default function ComparePage() {
                   onClick={() => toggleState(state.state_code)}
                   className={`p-2 text-sm rounded border transition-colors ${
                     selectedStates.includes(state.state_code)
-                      ? 'bg-policyengine-blue text-white border-policyengine-blue'
+                      ? 'bg-pe-teal-500 text-white border-pe-teal-500'
                       : state.has_state_ctc
                       ? 'bg-green-50 border-green-200 hover:bg-green-100'
                       : 'bg-blue-50 border-blue-200 hover:bg-blue-100'

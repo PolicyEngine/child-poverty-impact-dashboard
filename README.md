@@ -41,39 +41,60 @@ child-poverty-impact-dashboard/
 
 ## Installation
 
-### Backend
+### Quick Start (Recommended)
 ```bash
-cd backend
-pip install -e ".[dev]"
-uvicorn app.main:app --reload
+make install    # Install all dependencies
+make dev        # Start both backend and frontend
 ```
 
-### Frontend
+### Manual Installation
+
+#### Backend
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install -e ".[dev]"
+uv pip install -r backend/requirements.txt
+```
+
+#### Frontend
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install
 ```
 
-### Calculation Package
+### Available Make Commands
 ```bash
-pip install -e ".[dev]"
+make install          # Install all dependencies (backend + frontend)
+make install-backend  # Install backend only
+make install-frontend # Install frontend only
+make dev              # Run full stack
+make dev-backend      # Run backend only (port 8000)
+make dev-frontend     # Run frontend only (port 3000)
+make test             # Run tests
+make format           # Format code
+make clean            # Remove all build artifacts
 ```
 
 ## Development
 
 ### Running Tests
 ```bash
-pytest tests/
+make test
 ```
 
 ### Running the Full Stack
 ```bash
+make dev
+```
+
+Or manually in separate terminals:
+```bash
 # Terminal 1 - Backend
-cd backend && uvicorn app.main:app --reload --port 8000
+make dev-backend
 
 # Terminal 2 - Frontend
-cd frontend && npm run dev
+make dev-frontend
 ```
 
 ## Data Sources
