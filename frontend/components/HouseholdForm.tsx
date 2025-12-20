@@ -220,7 +220,7 @@ export default function HouseholdForm({
           <button
             type="button"
             onClick={addChild}
-            className="btn btn-teal text-sm"
+            className="btn btn-primary btn-sm"
           >
             + Add Child
           </button>

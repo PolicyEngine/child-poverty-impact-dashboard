@@ -16,8 +16,8 @@ export default function HouseholdResultsDisplay({
   if (isLoading) {
     return (
       <div className="card text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-policyengine-blue mx-auto mb-4"></div>
-        <p className="text-gray-600">Calculating household benefits...</p>
+        <div className="loading-spinner w-12 h-12 mx-auto mb-4"></div>
+        <p className="text-pe-gray-500">Calculating household benefits...</p>
       </div>
     );
   }

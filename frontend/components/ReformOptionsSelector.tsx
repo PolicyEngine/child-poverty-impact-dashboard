@@ -37,8 +37,8 @@ export default function ReformOptionsSelector({
   if (isLoading) {
     return (
       <div className="card text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-policyengine-blue mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading reform options for {stateCode}...</p>
+        <div className="loading-spinner w-8 h-8 mx-auto mb-4"></div>
+        <p className="text-pe-gray-500">Loading reform options for {stateCode}...</p>
       </div>
     );
   }
@@ -124,8 +124,8 @@ export default function ReformOptionsSelector({
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-policyengine-blue text-policyengine-blue'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-pe-teal-500 text-pe-teal-600'
+                  : 'border-transparent text-pe-gray-500 hover:text-pe-gray-700'
               }`}
             >
               {tab.label}
@@ -174,10 +174,10 @@ function ReformOptionCard({
   return (
     <div
       onClick={onToggle}
-      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+      className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
         isSelected
-          ? 'border-policyengine-blue bg-blue-50'
-          : 'border-gray-200 hover:border-gray-300'
+          ? 'border-pe-teal-500 bg-pe-teal-50'
+          : 'border-pe-gray-200 hover:border-pe-gray-300 hover:shadow-sm'
       }`}
     >
       <div className="flex items-start justify-between">
@@ -203,10 +203,10 @@ function ReformOptionCard({
           )}
         </div>
         <div
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
             isSelected
-              ? 'bg-policyengine-blue border-policyengine-blue'
-              : 'border-gray-300'
+              ? 'bg-pe-teal-500 border-pe-teal-500'
+              : 'border-pe-gray-300'
           }`}
         >
           {isSelected && <span className="text-white text-sm">✓</span>}

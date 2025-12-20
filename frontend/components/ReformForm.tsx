@@ -178,7 +178,7 @@ export default function ReformForm({
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-colors ${
                 activeTab === tab.id
-                  ? 'text-policyengine-blue border-b-2 border-policyengine-blue'
+                  ? 'text-pe-teal-500 border-b-2 border-pe-teal-500'
                   : 'text-gray-500 hover:text-gray-700'
               } ${tab.enabled ? 'bg-green-50' : ''}`}
             >

@@ -153,10 +153,10 @@ export default function AboutPage() {
       <div className="card">
         <h2 className="section-title">Credits</h2>
         <p className="text-gray-700">
-          This dashboard is built by <a href="https://policyengine.org" className="text-policyengine-blue hover:underline">PolicyEngine</a>,
+          This dashboard is built by <a href="https://policyengine.org" className="text-pe-teal-500 hover:underline">PolicyEngine</a>,
           a nonprofit organization that builds open-source tools to analyze public policy.
           The underlying microsimulation model, PolicyEngine US, is available on{' '}
-          <a href="https://github.com/PolicyEngine/policyengine-us" className="text-policyengine-blue hover:underline">GitHub</a>.
+          <a href="https://github.com/PolicyEngine/policyengine-us" className="text-pe-teal-500 hover:underline">GitHub</a>.
         </p>
       </div>
     </div>
