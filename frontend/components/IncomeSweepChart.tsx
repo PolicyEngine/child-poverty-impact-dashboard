@@ -263,7 +263,7 @@ export default function IncomeSweepChart({
         );
 
       default:
-        return null;
+        return <></>;
     }
   };
 
