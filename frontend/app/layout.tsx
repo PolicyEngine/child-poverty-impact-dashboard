@@ -14,7 +14,7 @@ export default function RootLayout({
 
   const navItems = [
     { href: '/', label: 'Home' },
-    { href: '/analyze', label: 'Analyze' },
+    { href: '/report', label: 'Report' },
     { href: '/compare', label: 'Compare States' },
     { href: '/about', label: 'About' },
   ];
@@ -65,10 +65,10 @@ export default function RootLayout({
                 {/* CTA Button */}
                 <div className="flex items-center gap-4">
                   <Link
-                    href="/analyze"
+                    href="/report"
                     className="btn btn-primary btn-sm hidden sm:inline-flex"
                   >
-                    Start Analysis
+                    Build Report
                   </Link>
 
                   {/* Mobile Menu Button */}
@@ -121,8 +121,8 @@ export default function RootLayout({
                   <h4 className="font-semibold text-pe-gray-800 mb-3">Dashboard</h4>
                   <ul className="space-y-2">
                     <li>
-                      <Link href="/analyze" className="text-sm text-pe-gray-500 hover:text-pe-teal-600 transition-colors">
-                        Household Analysis
+                      <Link href="/report" className="text-sm text-pe-gray-500 hover:text-pe-teal-600 transition-colors">
+                        Build Report
                       </Link>
                     </li>
                     <li>
