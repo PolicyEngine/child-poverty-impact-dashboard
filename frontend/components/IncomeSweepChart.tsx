@@ -15,8 +15,7 @@ import {
   ComposedChart,
   Bar,
 } from 'recharts';
-import { colors } from '@policyengine/design-system/tokens';
-import { chartColors } from '@policyengine/design-system/charts';
+import { colors, chartColors } from '@/lib/colors';
 import type { IncomeSweepDataPoint } from '@/lib/household-types';
 
 interface IncomeSweepChartProps {

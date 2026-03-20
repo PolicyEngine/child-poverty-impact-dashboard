@@ -12,8 +12,7 @@ import {
   Cell,
 } from 'recharts';
 import { useStates, useStateComparison } from '@/hooks/useAnalysis';
-import { colors } from '@policyengine/design-system/tokens';
-import { chartColors } from '@policyengine/design-system/charts';
+import { colors, chartColors } from '@/lib/colors';
 import type { ReformRequest, StateInfo } from '@/lib/types';
 import type { StateComparisonResponse } from '@/lib/api';
 

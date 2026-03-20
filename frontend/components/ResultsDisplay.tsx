@@ -13,8 +13,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { colors } from '@policyengine/design-system/tokens';
-import { chartColors } from '@policyengine/design-system/charts';
+import { colors, chartColors } from '@/lib/colors';
 import type { AnalysisResponse } from '@/lib/types';
 
 interface ResultsDisplayProps {
