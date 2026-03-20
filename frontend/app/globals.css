@@ -1,17 +1,128 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "@policyengine/design-system/tokens.css";
 
-/* PolicyEngine Design System Variables */
+/* ===== Tailwind 4 Theme (migrated from tailwind.config.js) ===== */
+@theme {
+  /* PolicyEngine Design System Colors — mapped from design-system tokens */
+  --color-pe-teal-50: var(--pe-color-primary-50);
+  --color-pe-teal-100: var(--pe-color-primary-100);
+  --color-pe-teal-200: var(--pe-color-primary-200);
+  --color-pe-teal-300: var(--pe-color-primary-300);
+  --color-pe-teal-400: var(--pe-color-primary-400);
+  --color-pe-teal-500: var(--pe-color-primary-500);
+  --color-pe-teal-600: var(--pe-color-primary-600);
+  --color-pe-teal-700: var(--pe-color-primary-700);
+  --color-pe-teal-800: var(--pe-color-primary-800);
+  --color-pe-teal-900: var(--pe-color-primary-900);
+
+  --color-pe-gray-50: var(--pe-color-gray-50);
+  --color-pe-gray-100: var(--pe-color-gray-100);
+  --color-pe-gray-200: var(--pe-color-gray-200);
+  --color-pe-gray-300: var(--pe-color-gray-300);
+  --color-pe-gray-400: var(--pe-color-gray-400);
+  --color-pe-gray-500: var(--pe-color-gray-500);
+  --color-pe-gray-600: var(--pe-color-gray-600);
+  --color-pe-gray-700: var(--pe-color-gray-700);
+  --color-pe-gray-800: var(--pe-color-gray-800);
+  --color-pe-gray-900: var(--pe-color-gray-900);
+
+  --color-pe-success: var(--pe-color-success);
+  --color-pe-error: var(--pe-color-error);
+  --color-pe-warning: var(--pe-color-warning);
+
+  /* Font family */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Custom font sizes */
+  --font-size-display-xl: 4.5rem;
+  --font-size-display-xl--line-height: 1;
+  --font-size-display-xl--letter-spacing: -0.02em;
+
+  --font-size-display-lg: 3.75rem;
+  --font-size-display-lg--line-height: 1.1;
+  --font-size-display-lg--letter-spacing: -0.02em;
+
+  --font-size-display: 3rem;
+  --font-size-display--line-height: 1.1;
+  --font-size-display--letter-spacing: -0.01em;
+
+  /* Custom box shadows */
+  --shadow-glow: 0 0 40px -10px rgba(49, 151, 149, 0.3);
+  --shadow-glow-lg: 0 0 60px -15px rgba(49, 151, 149, 0.4);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 12px 28px rgba(0, 0, 0, 0.1);
+  --shadow-stat: 0 2px 8px rgba(49, 151, 149, 0.12), 0 8px 24px rgba(49, 151, 149, 0.08);
+
+  /* Custom animations */
+  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-fade-in-up: fadeInUp 0.6s ease-out forwards;
+  --animate-fade-in-down: fadeInDown 0.5s ease-out forwards;
+  --animate-scale-in: scaleIn 0.4s ease-out forwards;
+  --animate-slide-in-right: slideInRight 0.5s ease-out forwards;
+  --animate-slide-in-left: slideInLeft 0.5s ease-out forwards;
+  --animate-number-increment: numberPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-pulse-soft: pulseSoft 3s infinite ease-in-out;
+  --animate-float: float 6s ease-in-out infinite;
+
+  /* Custom easing */
+  --ease-bounce-in: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInRight {
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  0% { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes numberPop {
+  0% { opacity: 0; transform: scale(0.5); }
+  60% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* PolicyEngine Design System Variables — mapped from design-system tokens */
 :root {
-  --pe-teal-500: #319795;
-  --pe-teal-300: #4FD1C5;
-  --pe-teal-600: #2C7A7B;
-  --pe-teal-700: #285E61;
-  --pe-gray-700: #344054;
-  --pe-gray-500: #6B7280;
-  --pe-success: #22C55E;
-  --pe-error: #EF4444;
+  --pe-teal-500: var(--pe-color-primary-500);
+  --pe-teal-300: var(--pe-color-primary-300);
+  --pe-teal-600: var(--pe-color-primary-600);
+  --pe-teal-700: var(--pe-color-primary-700);
+  --pe-gray-700: var(--pe-color-gray-700);
+  --pe-gray-500: var(--pe-color-gray-500);
+  --pe-success: var(--pe-color-success);
+  --pe-error: var(--pe-color-error);
 
   /* Animation timings */
   --transition-fast: 150ms;
@@ -317,7 +428,7 @@
   /* Smooth scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.pe.gray.300') transparent;
+    scrollbar-color: var(--color-pe-gray-300) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -330,12 +441,12 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: theme('colors.pe.gray.300');
+    background: var(--color-pe-gray-300);
     border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.pe.gray.400');
+    background: var(--color-pe-gray-400);
   }
 
   /* Number formatting for stats */

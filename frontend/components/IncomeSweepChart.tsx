@@ -15,6 +15,8 @@ import {
   ComposedChart,
   Bar,
 } from 'recharts';
+import { colors } from '@policyengine/design-system/tokens';
+import { chartColors } from '@policyengine/design-system/charts';
 import type { IncomeSweepDataPoint } from '@/lib/household-types';
 
 interface IncomeSweepChartProps {
@@ -84,7 +86,7 @@ export default function IncomeSweepChart({
               type="monotone"
               dataKey="net_income"
               name="Baseline Net Income"
-              stroke="#2563eb"
+              stroke={chartColors.primary}
               strokeWidth={2}
               dot={false}
             />
@@ -93,7 +95,7 @@ export default function IncomeSweepChart({
                 type="monotone"
                 dataKey="reform_net_income"
                 name="Reform Net Income"
-                stroke="#16a34a"
+                stroke={chartColors.positive}
                 strokeWidth={2}
                 dot={false}
               />
@@ -103,7 +105,7 @@ export default function IncomeSweepChart({
               type="monotone"
               dataKey="income"
               name="Gross Income"
-              stroke="#9ca3af"
+              stroke={chartColors.secondary}
               strokeDasharray="5 5"
               strokeWidth={1}
               dot={false}
@@ -134,40 +136,40 @@ export default function IncomeSweepChart({
               dataKey="snap_benefits"
               name="SNAP"
               stackId="1"
-              stroke="#f59e0b"
-              fill="#fcd34d"
+              stroke={colors.primary[700]}
+              fill={colors.primary[300]}
             />
             <Area
               type="monotone"
               dataKey="federal_eitc"
               name="Federal EITC"
               stackId="1"
-              stroke="#10b981"
-              fill="#6ee7b7"
+              stroke={colors.primary[500]}
+              fill={colors.primary[200]}
             />
             <Area
               type="monotone"
               dataKey="state_eitc"
               name="State EITC"
               stackId="1"
-              stroke="#059669"
-              fill="#34d399"
+              stroke={colors.primary[600]}
+              fill={colors.primary[100]}
             />
             <Area
               type="monotone"
               dataKey="federal_ctc"
               name="Federal CTC"
               stackId="1"
-              stroke="#3b82f6"
-              fill="#93c5fd"
+              stroke={colors.blue[500]}
+              fill={colors.blue[200]}
             />
             <Area
               type="monotone"
               dataKey="state_ctc"
               name="State CTC"
               stackId="1"
-              stroke="#1d4ed8"
-              fill="#60a5fa"
+              stroke={colors.blue[700]}
+              fill={colors.blue[300]}
             />
           </AreaChart>
         );
@@ -195,7 +197,7 @@ export default function IncomeSweepChart({
               type="monotone"
               dataKey="effective_tax_rate"
               name="Baseline Tax Rate"
-              stroke="#2563eb"
+              stroke={chartColors.primary}
               strokeWidth={2}
               dot={false}
             />
@@ -204,7 +206,7 @@ export default function IncomeSweepChart({
                 type="monotone"
                 dataKey="reform_effective_tax_rate"
                 name="Reform Tax Rate"
-                stroke="#16a34a"
+                stroke={chartColors.positive}
                 strokeWidth={2}
                 dot={false}
               />
@@ -213,7 +215,7 @@ export default function IncomeSweepChart({
             <Line
               type="monotone"
               dataKey={() => 0}
-              stroke="#9ca3af"
+              stroke={chartColors.secondary}
               strokeDasharray="3 3"
               strokeWidth={1}
               dot={false}
@@ -240,12 +242,12 @@ export default function IncomeSweepChart({
               labelFormatter={(label) => `Income: ${formatCurrency(label as number)}`}
             />
             <Legend />
-            <Bar dataKey="total_benefits" name="Total Benefits" fill="#3b82f6" opacity={0.7} />
+            <Bar dataKey="total_benefits" name="Total Benefits" fill={colors.blue[500]} opacity={0.7} />
             <Line
               type="monotone"
               dataKey="net_income"
               name="Net Income"
-              stroke="#1d4ed8"
+              stroke={chartColors.primary}
               strokeWidth={2}
               dot={false}
             />
@@ -254,7 +256,7 @@ export default function IncomeSweepChart({
                 type="monotone"
                 dataKey="reform_net_income"
                 name="Reform Net Income"
-                stroke="#16a34a"
+                stroke={chartColors.positive}
                 strokeWidth={2}
                 dot={false}
               />
@@ -263,7 +265,7 @@ export default function IncomeSweepChart({
         );
 
       default:
-        return null;
+        return <></>;
     }
   };
 
