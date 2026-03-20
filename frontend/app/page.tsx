@@ -195,7 +195,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-3 gap-6">
             <div className="stat-card group">
               <div className="stat-value-lg">
                 <AnimatedStat value="12.4" suffix="%" delay={200} />
@@ -223,16 +223,6 @@ export default function HomePage() {
               <div className="stat-label">Deep Poverty Rate</div>
               <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="text-xs text-pe-gray-400">Below 50% of poverty line</span>
-              </div>
-            </div>
-
-            <div className="stat-card group">
-              <div className="stat-value-lg">
-                <AnimatedStat value="24" delay={800} />
-              </div>
-              <div className="stat-label">States with CTCs</div>
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs text-pe-gray-400">State-level child tax credits</span>
               </div>
             </div>
           </div>

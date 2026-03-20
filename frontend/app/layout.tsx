@@ -39,31 +39,11 @@ export default function RootLayout({
               <div className="flex items-center justify-between h-16">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-3 group">
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pe-teal-400 to-pe-teal-600 flex items-center justify-center shadow-lg shadow-pe-teal-500/20 group-hover:shadow-pe-teal-500/30 transition-shadow">
-                      <svg
-                        className="w-5 h-5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-lg font-bold text-pe-gray-800 tracking-tight">
-                      Child Poverty
-                    </span>
-                    <span className="text-xs font-medium text-pe-teal-600 -mt-0.5">
-                      Impact Dashboard
-                    </span>
-                  </div>
+                  <img
+                    src="/assets/logos/policyengine/teal.svg"
+                    alt="PolicyEngine"
+                    className="h-8 w-auto"
+                  />
                 </Link>
 
                 {/* Navigation */}
@@ -124,22 +104,11 @@ export default function RootLayout({
                 {/* Brand Column */}
                 <div className="md:col-span-2">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pe-teal-400 to-pe-teal-600 flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="font-semibold text-pe-gray-800">Child Poverty Impact Dashboard</span>
+                    <img
+                      src="/assets/logos/policyengine/teal.svg"
+                      alt="PolicyEngine"
+                      className="h-6 w-auto"
+                    />
                   </div>
                   <p className="text-sm text-pe-gray-500 max-w-sm">
                     Powered by PolicyEngine microsimulation. Model policy reforms
