@@ -153,17 +153,30 @@ class ReformConfig:
     @classmethod
     def from_dict(cls, data: dict) -> "ReformConfig":
         """Create configuration from dictionary."""
-        # Handle nested dataclasses
+        # Handle nested dataclasses with enum conversion
         if "ctc" in data and isinstance(data["ctc"], dict):
-            data["ctc"] = CTCConfig(**data["ctc"])
+            ctc_data = data["ctc"].copy()
+            if "age_eligibility" in ctc_data and isinstance(ctc_data["age_eligibility"], str):
+                ctc_data["age_eligibility"] = AgeEligibility(ctc_data["age_eligibility"])
+            if "income_basis" in ctc_data and isinstance(ctc_data["income_basis"], str):
+                ctc_data["income_basis"] = IncomeBasis(ctc_data["income_basis"])
+            if "phaseout_structure" in ctc_data and isinstance(ctc_data["phaseout_structure"], str):
+                ctc_data["phaseout_structure"] = PhaseoutStructure(ctc_data["phaseout_structure"])
+            data["ctc"] = CTCConfig(**ctc_data)
         if "eitc" in data and isinstance(data["eitc"], dict):
             data["eitc"] = EITCConfig(**data["eitc"])
         if "dependent_exemption" in data and isinstance(data["dependent_exemption"], dict):
             data["dependent_exemption"] = DependentExemptionConfig(**data["dependent_exemption"])
         if "ubi" in data and isinstance(data["ubi"], dict):
-            data["ubi"] = UBIConfig(**data["ubi"])
+            ubi_data = data["ubi"].copy()
+            if "age_eligibility" in ubi_data and isinstance(ubi_data["age_eligibility"], str):
+                ubi_data["age_eligibility"] = AgeEligibility(ubi_data["age_eligibility"])
+            data["ubi"] = UBIConfig(**ubi_data)
         if "snap" in data and isinstance(data["snap"], dict):
             data["snap"] = SNAPConfig(**data["snap"])
         if "state_ctc" in data and isinstance(data["state_ctc"], dict):
-            data["state_ctc"] = StateCTCConfig(**data["state_ctc"])
+            state_ctc_data = data["state_ctc"].copy()
+            if "age_eligibility" in state_ctc_data and isinstance(state_ctc_data["age_eligibility"], str):
+                state_ctc_data["age_eligibility"] = AgeEligibility(state_ctc_data["age_eligibility"])
+            data["state_ctc"] = StateCTCConfig(**state_ctc_data)
         return cls(**data)

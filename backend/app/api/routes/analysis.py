@@ -19,8 +19,12 @@ from app.api.models.responses import (
     DecileImpactResponse,
 )
 from app.core.config import settings
+from modal_app.client import get_modal_client
 
 router = APIRouter()
+
+# Get Modal client
+modal_client = get_modal_client(enabled=settings.MODAL_ENABLED)
 
 
 def convert_reform_request_to_config(reform: ReformRequest):
@@ -123,24 +127,27 @@ def convert_reform_request_to_config(reform: ReformRequest):
 async def run_full_analysis(reform: ReformRequest):
     """
     Run a complete policy analysis including poverty, fiscal, and distributional impacts.
+
+    Uses Modal for serverless compute when enabled, otherwise falls back to local execution.
     """
     try:
-        from cpid_calc.calculations.impact import calculate_poverty_impact
-        from cpid_calc.calculations.fiscal import calculate_fiscal_cost
-        from cpid_calc.calculations.distributional import calculate_distributional_impact
-
         config = convert_reform_request_to_config(reform)
 
-        # Run all analyses
-        poverty = calculate_poverty_impact(config, config.states or None, config.year)
-        fiscal = calculate_fiscal_cost(config, config.states or None, config.year)
-        distributional = calculate_distributional_impact(config, config.states or None, config.year)
+        # Run analysis via Modal (or local fallback)
+        results = await modal_client.run_population_analysis(
+            reform_config_dict=config.to_dict(),
+            states=config.states or [],
+            year=config.year,
+        )
 
-        # Build response
-        poverty_response = PovertyImpactResponse(**poverty.to_dict())
-        fiscal_response = FiscalCostResponse(**fiscal.to_dict())
+        # Build response from results
+        poverty_dict = results["poverty"]
+        fiscal_dict = results["fiscal"]
+        dist_dict = results["distributional"]
 
-        dist_dict = distributional.to_dict()
+        poverty_response = PovertyImpactResponse(**poverty_dict)
+        fiscal_response = FiscalCostResponse(**fiscal_dict)
+
         dist_response = DistributionalResponse(
             decile_impacts=[DecileImpactResponse(**d) for d in dist_dict["decile_impacts"]],
             average_gain_all=dist_dict["average_gain_all"],
@@ -185,11 +192,16 @@ async def run_full_analysis(reform: ReformRequest):
 async def run_poverty_analysis(reform: ReformRequest):
     """Run poverty impact analysis only."""
     try:
-        from cpid_calc.calculations.impact import calculate_poverty_impact
-
         config = convert_reform_request_to_config(reform)
-        poverty = calculate_poverty_impact(config, config.states or None, config.year)
-        return PovertyImpactResponse(**poverty.to_dict())
+
+        # Run full analysis via Modal and extract poverty results
+        results = await modal_client.run_population_analysis(
+            reform_config_dict=config.to_dict(),
+            states=config.states or [],
+            year=config.year,
+        )
+
+        return PovertyImpactResponse(**results["poverty"])
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Poverty analysis failed: {str(e)}")
@@ -199,11 +211,16 @@ async def run_poverty_analysis(reform: ReformRequest):
 async def run_fiscal_analysis(reform: ReformRequest):
     """Run fiscal cost analysis only."""
     try:
-        from cpid_calc.calculations.fiscal import calculate_fiscal_cost
-
         config = convert_reform_request_to_config(reform)
-        fiscal = calculate_fiscal_cost(config, config.states or None, config.year)
-        return FiscalCostResponse(**fiscal.to_dict())
+
+        # Run full analysis via Modal and extract fiscal results
+        results = await modal_client.run_population_analysis(
+            reform_config_dict=config.to_dict(),
+            states=config.states or [],
+            year=config.year,
+        )
+
+        return FiscalCostResponse(**results["fiscal"])
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fiscal analysis failed: {str(e)}")
@@ -213,12 +230,16 @@ async def run_fiscal_analysis(reform: ReformRequest):
 async def run_distributional_analysis(reform: ReformRequest):
     """Run distributional impact analysis only."""
     try:
-        from cpid_calc.calculations.distributional import calculate_distributional_impact
-
         config = convert_reform_request_to_config(reform)
-        distributional = calculate_distributional_impact(config, config.states or None, config.year)
 
-        dist_dict = distributional.to_dict()
+        # Run full analysis via Modal and extract distributional results
+        results = await modal_client.run_population_analysis(
+            reform_config_dict=config.to_dict(),
+            states=config.states or [],
+            year=config.year,
+        )
+
+        dist_dict = results["distributional"]
         return DistributionalResponse(
             decile_impacts=[DecileImpactResponse(**d) for d in dist_dict["decile_impacts"]],
             average_gain_all=dist_dict["average_gain_all"],

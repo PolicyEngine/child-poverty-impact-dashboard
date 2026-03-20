@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     CACHE_ENABLED: bool = True
     CACHE_TTL_SECONDS: int = 3600  # 1 hour
 
+    # Modal settings
+    MODAL_ENABLED: bool = True  # Set to False for local development without Modal
+    MODAL_ENVIRONMENT: str = "dev"  # "dev" or "prod"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

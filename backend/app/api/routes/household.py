@@ -6,7 +6,13 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from app.core.config import settings
+from modal_app.client import get_modal_client
+
 router = APIRouter()
+
+# Get Modal client
+modal_client = get_modal_client(enabled=settings.MODAL_ENABLED)
 
 
 # Request models
@@ -257,31 +263,34 @@ async def get_reform_options(state_code: str):
 async def calculate_baseline(household: HouseholdRequest):
     """Calculate baseline (current law) for a household."""
     try:
-        from cpid_calc.household.simulation import run_household_simulation
-
         config = _convert_household_request(household)
-        results = run_household_simulation(config)
+
+        # Run simulation via Modal (or local fallback)
+        results_dict = await modal_client.run_household_baseline(
+            household_config_dict=config.to_dict(),
+            year=config.year,
+        )
 
         return HouseholdResultsResponse(
-            year=results.year,
-            state=results.state,
-            gross_income=results.gross_income,
-            adjusted_gross_income=results.adjusted_gross_income,
-            federal_income_tax=results.federal_income_tax,
-            state_income_tax=results.state_income_tax,
-            payroll_tax=results.payroll_tax,
-            net_income=results.net_income,
-            federal_ctc=results.federal_ctc,
-            federal_eitc=results.federal_eitc,
-            state_ctc=results.state_ctc,
-            state_eitc=results.state_eitc,
-            snap_benefits=results.snap_benefits,
-            total_benefits=results.total_benefits,
-            in_poverty=results.in_poverty,
-            in_deep_poverty=results.in_deep_poverty,
-            poverty_gap=results.poverty_gap,
-            effective_tax_rate=results.effective_tax_rate * 100,
-            total_child_benefits=results.total_child_benefits,
+            year=results_dict["year"],
+            state=results_dict["state"],
+            gross_income=results_dict["gross_income"],
+            adjusted_gross_income=results_dict["adjusted_gross_income"],
+            federal_income_tax=results_dict["federal_income_tax"],
+            state_income_tax=results_dict["state_income_tax"],
+            payroll_tax=results_dict["payroll_tax"],
+            net_income=results_dict["net_income"],
+            federal_ctc=results_dict["federal_ctc"],
+            federal_eitc=results_dict["federal_eitc"],
+            state_ctc=results_dict["state_ctc"],
+            state_eitc=results_dict["state_eitc"],
+            snap_benefits=results_dict["snap_benefits"],
+            total_benefits=results_dict["total_benefits"],
+            in_poverty=results_dict["in_poverty"],
+            in_deep_poverty=results_dict["in_deep_poverty"],
+            poverty_gap=results_dict["poverty_gap"],
+            effective_tax_rate=results_dict["effective_tax_rate"],
+            total_child_benefits=results_dict["total_child_benefits"],
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
@@ -291,7 +300,6 @@ async def calculate_baseline(household: HouseholdRequest):
 async def calculate_impact(request: ReformSelectionRequest):
     """Calculate impact of selected reforms on a household."""
     try:
-        from cpid_calc.household.simulation import calculate_household_impact
         from cpid_calc.reforms.state_aware import (
             get_reform_options_for_state,
             build_reform_from_options,
@@ -320,41 +328,45 @@ async def calculate_impact(request: ReformSelectionRequest):
             config.year
         )
 
-        # Calculate impact
-        impact = calculate_household_impact(config, reform_config)
+        # Calculate impact via Modal (or local fallback)
+        impact_dict = await modal_client.run_household_impact(
+            household_config_dict=config.to_dict(),
+            reform_config_dict=reform_config.to_dict(),
+            year=config.year,
+        )
 
         # Convert to response
-        def results_to_response(r):
+        def dict_to_response(d):
             return HouseholdResultsResponse(
-                year=r.year,
-                state=r.state,
-                gross_income=r.gross_income,
-                adjusted_gross_income=r.adjusted_gross_income,
-                federal_income_tax=r.federal_income_tax,
-                state_income_tax=r.state_income_tax,
-                payroll_tax=r.payroll_tax,
-                net_income=r.net_income,
-                federal_ctc=r.federal_ctc,
-                federal_eitc=r.federal_eitc,
-                state_ctc=r.state_ctc,
-                state_eitc=r.state_eitc,
-                snap_benefits=r.snap_benefits,
-                total_benefits=r.total_benefits,
-                in_poverty=r.in_poverty,
-                in_deep_poverty=r.in_deep_poverty,
-                poverty_gap=r.poverty_gap,
-                effective_tax_rate=r.effective_tax_rate * 100,
-                total_child_benefits=r.total_child_benefits,
+                year=d["year"],
+                state=d["state"],
+                gross_income=d["gross_income"],
+                adjusted_gross_income=d["adjusted_gross_income"],
+                federal_income_tax=d["federal_income_tax"],
+                state_income_tax=d["state_income_tax"],
+                payroll_tax=d["payroll_tax"],
+                net_income=d["net_income"],
+                federal_ctc=d["federal_ctc"],
+                federal_eitc=d["federal_eitc"],
+                state_ctc=d["state_ctc"],
+                state_eitc=d["state_eitc"],
+                snap_benefits=d["snap_benefits"],
+                total_benefits=d["total_benefits"],
+                in_poverty=d["in_poverty"],
+                in_deep_poverty=d["in_deep_poverty"],
+                poverty_gap=d["poverty_gap"],
+                effective_tax_rate=d["effective_tax_rate"],
+                total_child_benefits=d["total_child_benefits"],
             )
 
         return HouseholdImpactResponse(
-            baseline=results_to_response(impact.baseline),
-            reform=results_to_response(impact.reform),
-            net_income_change=impact.net_income_change,
-            percent_income_change=impact.percent_income_change,
-            ctc_change=impact.ctc_change,
-            eitc_change=impact.eitc_change,
-            poverty_status_change=impact.poverty_status_change,
+            baseline=dict_to_response(impact_dict["baseline"]),
+            reform=dict_to_response(impact_dict["reform"]),
+            net_income_change=impact_dict["net_income_change"],
+            percent_income_change=impact_dict["percent_income_change"],
+            ctc_change=impact_dict["ctc_change"],
+            eitc_change=impact_dict["eitc_change"],
+            poverty_status_change=impact_dict["poverty_status_change"],
         )
 
     except HTTPException:
@@ -364,7 +376,7 @@ async def calculate_impact(request: ReformSelectionRequest):
 
 
 @router.post("/income-sweep")
-async def run_income_sweep(
+async def run_income_sweep_endpoint(
     household: HouseholdRequest,
     reform_option_ids: List[str] = None,
     min_income: float = 0,
@@ -373,7 +385,6 @@ async def run_income_sweep(
 ):
     """Run analysis across income levels to show benefit phase-outs."""
     try:
-        from cpid_calc.household.simulation import run_income_sweep
         from cpid_calc.reforms.state_aware import (
             get_reform_options_for_state,
             build_reform_from_options,
@@ -381,7 +392,7 @@ async def run_income_sweep(
 
         config = _convert_household_request(household)
 
-        reform_config = None
+        reform_config_dict = None
         if reform_option_ids:
             all_options = get_reform_options_for_state(config.state)
             selected = [
@@ -394,28 +405,35 @@ async def run_income_sweep(
                     config.state,
                     config.year
                 )
+                reform_config_dict = reform_config.to_dict()
 
         income_range = [min_income + i * step for i in range(int((max_income - min_income) / step) + 1)]
 
-        results = run_income_sweep(config, reform_config, income_range)
+        # Run via Modal (or local fallback)
+        results = await modal_client.run_income_sweep(
+            household_config_dict=config.to_dict(),
+            reform_config_dict=reform_config_dict,
+            income_range=income_range,
+            year=config.year,
+        )
 
         return {
             "state": config.state,
             "year": config.year,
             "data_points": [
                 {
-                    "income": income,
-                    "net_income": r.net_income,
-                    "federal_ctc": r.federal_ctc,
-                    "state_ctc": r.state_ctc,
-                    "federal_eitc": r.federal_eitc,
-                    "state_eitc": r.state_eitc,
-                    "snap_benefits": r.snap_benefits,
-                    "total_benefits": r.total_benefits,
-                    "effective_tax_rate": r.effective_tax_rate * 100,
-                    "in_poverty": r.in_poverty,
+                    "income": r["income"],
+                    "net_income": r["results"]["net_income"],
+                    "federal_ctc": r["results"]["federal_ctc"],
+                    "state_ctc": r["results"]["state_ctc"],
+                    "federal_eitc": r["results"]["federal_eitc"],
+                    "state_eitc": r["results"]["state_eitc"],
+                    "snap_benefits": r["results"]["snap_benefits"],
+                    "total_benefits": r["results"]["total_benefits"],
+                    "effective_tax_rate": r["results"]["effective_tax_rate"],
+                    "in_poverty": r["results"]["in_poverty"],
                 }
-                for income, r in results
+                for r in results
             ]
         }
 

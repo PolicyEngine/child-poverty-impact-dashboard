@@ -6,7 +6,7 @@ children, income, and state of residence.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from enum import Enum
 
 
@@ -231,10 +231,16 @@ class HouseholdConfig:
                 for a in data["adults"]
             ]
         if "children" in data:
-            data["children"] = [
-                ChildConfig(**c) if isinstance(c, dict) else c
-                for c in data["children"]
-            ]
+            children = []
+            for c in data["children"]:
+                if isinstance(c, dict):
+                    c_data = c.copy()
+                    if "childcare_type" in c_data and isinstance(c_data["childcare_type"], str):
+                        c_data["childcare_type"] = ChildcareType(c_data["childcare_type"])
+                    children.append(ChildConfig(**c_data))
+                else:
+                    children.append(c)
+            data["children"] = children
         if "income" in data and isinstance(data["income"], dict):
             data["income"] = IncomeConfig(**data["income"])
         if "filing_status" in data and isinstance(data["filing_status"], str):
