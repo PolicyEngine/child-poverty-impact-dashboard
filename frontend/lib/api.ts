@@ -14,6 +14,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 300000, // 5 minute timeout for long-running PolicyEngine calculations
 });
 
 // Reform endpoints
@@ -60,6 +61,19 @@ export async function runDistributionalAnalysis(
   reform: ReformRequest
 ): Promise<DistributionalResponse> {
   const response = await api.post('/analysis/distributional', reform);
+  return response.data;
+}
+
+export async function runAnalysisFromOptions(
+  state: string,
+  year: number,
+  reformOptionIds: string[]
+): Promise<AnalysisResponse> {
+  const response = await api.post('/analysis/from-options', {
+    state,
+    year,
+    reform_option_ids: reformOptionIds,
+  });
   return response.data;
 }
 

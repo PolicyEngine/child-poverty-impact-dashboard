@@ -67,6 +67,17 @@ export interface HouseholdImpact {
   poverty_status_change: 'lifted' | 'fell_into' | 'unchanged';
 }
 
+export interface AdjustableParameter {
+  name: string;
+  label: string;
+  min_value: number;
+  max_value: number;
+  default_value: number;
+  step: number;
+  unit: string;
+  description: string;
+}
+
 export interface ReformOption {
   id: string;
   name: string;
@@ -76,6 +87,8 @@ export interface ReformOption {
   is_enhancement: boolean;
   estimated_household_impact?: number;
   customizable_params: string[];
+  is_configurable?: boolean;
+  adjustable_params?: AdjustableParameter[];
 }
 
 export interface StateReformOptions {

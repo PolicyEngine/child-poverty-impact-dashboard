@@ -10,6 +10,7 @@ import type {
   StateReformOptions,
   StatePrograms,
 } from '@/lib/household-types';
+import type { ParameterValues } from '@/components/ReformOptionsSelector';
 import { US_STATES } from '@/lib/household-types';
 import {
   getStatePrograms,
@@ -24,13 +25,17 @@ interface ReportConfig {
   populationType: PopulationType;
   household: HouseholdInput | null;
   selectedReforms: string[];
+  parameterValues: ParameterValues;
   year: number;
 }
+
+// Available years for analysis
+const AVAILABLE_YEARS = [2023, 2024, 2025, 2026, 2027, 2028];
 
 const STEPS: { key: Step; label: string; icon: React.ReactNode }[] = [
   {
     key: 'state',
-    label: 'State',
+    label: 'Location',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -75,6 +80,7 @@ export default function ReportBuilderPage() {
     populationType: 'household',
     household: null,
     selectedReforms: [],
+    parameterValues: {},
     year: 2025,
   });
 
@@ -117,11 +123,6 @@ export default function ReportBuilderPage() {
 
   const currentStepIndex = STEPS.findIndex(s => s.key === step);
 
-  const handleStateSelect = (stateCode: string) => {
-    setConfig(c => ({ ...c, state: stateCode }));
-    setStep('population');
-  };
-
   const handlePopulationSelect = (type: PopulationType, household?: HouseholdInput) => {
     setConfig(c => ({ ...c, populationType: type, household: household || null }));
     setStep('reform');
@@ -129,6 +130,19 @@ export default function ReportBuilderPage() {
 
   const handleReformChange = (selectedReforms: string[]) => {
     setConfig(c => ({ ...c, selectedReforms }));
+  };
+
+  const handleParameterChange = (optionId: string, paramName: string, value: number) => {
+    setConfig(c => ({
+      ...c,
+      parameterValues: {
+        ...c.parameterValues,
+        [optionId]: {
+          ...(c.parameterValues[optionId] || {}),
+          [paramName]: value,
+        },
+      },
+    }));
   };
 
   const handleRunReport = async () => {
@@ -212,29 +226,70 @@ export default function ReportBuilderPage() {
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
-          {/* Step 1: State Selection */}
+          {/* Step 1: State & Year Selection */}
           {step === 'state' && (
-            <div className="card">
-              <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Select a State</h2>
-              <p className="text-pe-gray-500 mb-6">
-                Choose the state to analyze reform impacts for.
-              </p>
+            <div className="space-y-6">
+              {/* State Selection */}
+              <div className="card">
+                <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Select a State</h2>
+                <p className="text-pe-gray-500 mb-6">
+                  Choose the state to analyze reform impacts for.
+                </p>
 
-              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                {Object.entries(US_STATES).map(([code, name]) => (
-                  <button
-                    key={code}
-                    onClick={() => handleStateSelect(code)}
-                    title={name}
-                    className={`p-3 rounded-lg border text-center transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
-                      config.state === code
-                        ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
-                        : 'border-pe-gray-200 text-pe-gray-700'
-                    }`}
-                  >
-                    <span className="font-semibold text-sm">{code}</span>
-                  </button>
-                ))}
+                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                  {Object.entries(US_STATES).map(([code, name]) => (
+                    <button
+                      key={code}
+                      onClick={() => setConfig(c => ({ ...c, state: code }))}
+                      title={name}
+                      className={`p-3 rounded-lg border text-center transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                        config.state === code
+                          ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
+                          : 'border-pe-gray-200 text-pe-gray-700'
+                      }`}
+                    >
+                      <span className="font-semibold text-sm">{code}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Year Selection */}
+              <div className="card">
+                <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Select Analysis Year</h2>
+                <p className="text-pe-gray-500 mb-6">
+                  Choose the tax year for the policy analysis.
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  {AVAILABLE_YEARS.map((year) => (
+                    <button
+                      key={year}
+                      onClick={() => setConfig(c => ({ ...c, year }))}
+                      className={`px-6 py-3 rounded-lg border text-center transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                        config.year === year
+                          ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
+                          : 'border-pe-gray-200 text-pe-gray-700'
+                      }`}
+                    >
+                      <span className="font-semibold">{year}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Continue Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => config.state && setStep('population')}
+                  disabled={!config.state}
+                  className="btn btn-primary"
+                >
+                  Continue
+                  <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
           )}
@@ -310,10 +365,12 @@ export default function ReportBuilderPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-pe-teal-800">Statewide Analysis for {config.state ? US_STATES[config.state] : 'Selected State'}</h4>
+                      <h4 className="font-semibold text-pe-teal-800">
+                        Statewide Analysis for {config.state ? US_STATES[config.state] : 'Selected State'} ({config.year})
+                      </h4>
                       <p className="text-sm text-pe-teal-700 mt-1">
                         This will run a microsimulation using the Enhanced CPS dataset to estimate
-                        poverty reduction, fiscal costs, and distributional impacts.
+                        poverty reduction, fiscal costs, and distributional impacts for tax year {config.year}.
                       </p>
                       <button
                         onClick={() => handlePopulationSelect('statewide')}
@@ -342,6 +399,8 @@ export default function ReportBuilderPage() {
                 reformOptions={reformOptions || undefined}
                 selectedOptions={config.selectedReforms}
                 onSelectionChange={handleReformChange}
+                parameterValues={config.parameterValues}
+                onParameterChange={handleParameterChange}
                 isLoading={loadingState}
               />
 
@@ -376,7 +435,7 @@ export default function ReportBuilderPage() {
                 <h2 className="text-xl font-semibold text-pe-gray-800 mb-6">Review Your Report</h2>
 
                 <div className="space-y-4">
-                  {/* State */}
+                  {/* State & Year */}
                   <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-pe-teal-100 flex items-center justify-center">
@@ -385,9 +444,9 @@ export default function ReportBuilderPage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm text-pe-gray-500">State</p>
+                        <p className="text-sm text-pe-gray-500">Location & Year</p>
                         <p className="font-semibold text-pe-gray-800">
-                          {config.state ? US_STATES[config.state] : 'Not selected'}
+                          {config.state ? US_STATES[config.state] : 'Not selected'}, {config.year}
                         </p>
                       </div>
                     </div>

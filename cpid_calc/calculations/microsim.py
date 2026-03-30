@@ -30,20 +30,45 @@ STATE_FIPS = {
 FIPS_TO_STATE = {v: k for k, v in STATE_FIPS.items()}
 
 
+def get_state_dataset(state_code: str) -> str:
+    """
+    Get the Hugging Face dataset path for a specific state.
+
+    Args:
+        state_code: Two-letter state code (e.g., "NY", "CA", "DC")
+
+    Returns:
+        Dataset path in format "hf://policyengine/policyengine-us-data/states/{STATE}.h5"
+    """
+    state = state_code.upper()
+    if state not in STATE_FIPS:
+        raise ValueError(f"Unknown state code: {state_code}")
+    return f"hf://policyengine/policyengine-us-data/states/{state}.h5"
+
+
 def run_microsimulation(
     config: ReformConfig,
-    dataset: str = "enhanced_cps_2024",
+    dataset: Optional[str] = None,
+    state: Optional[str] = None,
 ) -> Tuple[Microsimulation, Microsimulation]:
     """
     Run a microsimulation comparing baseline to reform.
 
     Args:
         config: ReformConfig with policy parameters
-        dataset: Dataset to use for simulation
+        dataset: Dataset to use for simulation (overrides state if provided)
+        state: State code to use state-specific dataset (e.g., "NY", "CA")
 
     Returns:
         Tuple of (baseline_sim, reform_sim)
     """
+    # Determine dataset to use
+    if dataset is None:
+        if state:
+            dataset = get_state_dataset(state)
+        else:
+            dataset = "enhanced_cps_2024"
+
     # Create the reform
     reform = create_reform(config)
 
@@ -51,7 +76,11 @@ def run_microsimulation(
     baseline = Microsimulation(dataset=dataset)
 
     # Run reform simulation
-    reform_sim = Microsimulation(reform=reform, dataset=dataset)
+    # If reform is None (no actual parameter changes), reform_sim equals baseline
+    if reform is not None:
+        reform_sim = Microsimulation(reform=reform, dataset=dataset)
+    else:
+        reform_sim = Microsimulation(dataset=dataset)
 
     return baseline, reform_sim
 
@@ -84,6 +113,7 @@ def get_child_filter(
     sim: Microsimulation,
     max_age: int = 17,
     min_age: int = 0,
+    year: int = 2025,
 ) -> np.ndarray:
     """
     Get a boolean filter for children of specific ages.
@@ -92,17 +122,19 @@ def get_child_filter(
         sim: Microsimulation object
         max_age: Maximum age (inclusive)
         min_age: Minimum age (inclusive)
+        year: Year for age calculation
 
     Returns:
         Boolean array for filtering
     """
-    age = sim.calculate("age")
+    age = sim.calculate("age", period=year)
     return (age >= min_age) & (age <= max_age)
 
 
 def get_young_child_filter(
     sim: Microsimulation,
     max_age: int = 3,
+    year: int = 2025,
 ) -> np.ndarray:
     """
     Get a boolean filter for young children (0-3).
@@ -110,11 +142,12 @@ def get_young_child_filter(
     Args:
         sim: Microsimulation object
         max_age: Maximum age for "young child" (default 3)
+        year: Year for age calculation
 
     Returns:
         Boolean array for filtering
     """
-    return get_child_filter(sim, max_age=max_age, min_age=0)
+    return get_child_filter(sim, max_age=max_age, min_age=0, year=year)
 
 
 def get_household_weight(
@@ -155,6 +188,13 @@ def get_person_weight(
     return sim.calculate("person_weight")
 
 
+def _to_numpy(arr) -> np.ndarray:
+    """Convert MicroSeries or other array-like to numpy array."""
+    if hasattr(arr, 'values'):
+        return np.array(arr.values)
+    return np.asarray(arr)
+
+
 def calculate_weighted_sum(
     values: np.ndarray,
     weights: np.ndarray,
@@ -164,16 +204,19 @@ def calculate_weighted_sum(
     Calculate weighted sum with optional filtering.
 
     Args:
-        values: Array of values
-        weights: Array of weights
+        values: Array of values (or MicroSeries)
+        weights: Array of weights (or MicroSeries)
         filter_mask: Optional boolean filter
 
     Returns:
         Weighted sum
     """
+    v = _to_numpy(values)
+    w = _to_numpy(weights)
     if filter_mask is not None:
-        return float(np.sum(values[filter_mask] * weights[filter_mask]))
-    return float(np.sum(values * weights))
+        f = _to_numpy(filter_mask)
+        return float(np.sum(v[f] * w[f]))
+    return float(np.sum(v * w))
 
 
 def calculate_weighted_mean(
@@ -185,19 +228,20 @@ def calculate_weighted_mean(
     Calculate weighted mean with optional filtering.
 
     Args:
-        values: Array of values
-        weights: Array of weights
+        values: Array of values (or MicroSeries)
+        weights: Array of weights (or MicroSeries)
         filter_mask: Optional boolean filter
 
     Returns:
         Weighted mean
     """
+    v = _to_numpy(values)
+    w = _to_numpy(weights)
+
     if filter_mask is not None:
-        v = values[filter_mask]
-        w = weights[filter_mask]
-    else:
-        v = values
-        w = weights
+        f = _to_numpy(filter_mask)
+        v = v[f]
+        w = w[f]
 
     total_weight = np.sum(w)
     if total_weight == 0:

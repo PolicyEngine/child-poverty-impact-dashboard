@@ -4,8 +4,69 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { calculateImpact, calculateBaseline } from '@/lib/household-api';
+import { runAnalysisFromOptions } from '@/lib/api';
 import type { HouseholdInput, HouseholdImpact, HouseholdResults } from '@/lib/household-types';
+import type { AnalysisResponse } from '@/lib/types';
 import { US_STATES } from '@/lib/household-types';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Cell,
+  Legend,
+} from 'recharts';
+
+// PolicyEngine color scheme (from keep-your-pay-act)
+const COLORS = {
+  primary: '#319795',       // primary-500 (teal)
+  primaryDark: '#285E61',   // primary-700
+  primaryLight: '#31979599', // primary-500 @ 60%
+  positive: '#319795',      // primary-500
+  negative: '#4B5563',      // gray-600
+  gainMore5: '#285E61',     // primary-700
+  gainLess5: '#31979599',   // primary-500 @ 60%
+  noChange: '#E2E8F0',      // gray-200
+  loseLess5: '#9CA3AF',     // gray-400
+  loseMore5: '#4B5563',     // gray-600
+  baseline: '#6B7280',      // gray-500
+  reform: '#319795',        // primary-500
+};
+
+// Formatting helper functions (PolicyEngine style)
+const formatCurrency = (value: number): string => {
+  return `$${Math.abs(value).toLocaleString()}`;
+};
+
+const formatCurrencyWithSign = (value: number): string => {
+  const sign = value >= 0 ? '+' : '-';
+  return `${sign}$${Math.abs(value).toLocaleString()}`;
+};
+
+const formatBillions = (value: number): string => {
+  const absValue = Math.abs(value);
+  if (absValue >= 1000) {
+    return `$${(value / 1000).toFixed(2)}T`;
+  } else if (absValue >= 1) {
+    return `$${value.toFixed(2)}B`;
+  } else if (absValue >= 0.001) {
+    return `$${(value * 1000).toFixed(0)}M`;
+  }
+  return `$${value.toFixed(2)}B`;
+};
+
+const formatPercent = (value: number): string => {
+  return `${value.toFixed(1)}%`;
+};
+
+const formatPercentWithSign = (value: number): string => {
+  const sign = value >= 0 ? '+' : '';
+  return `${sign}${value.toFixed(1)}%`;
+};
 
 // Tab types
 type TabKey = 'overview' | 'poverty' | 'fiscal' | 'distributional';
@@ -74,6 +135,9 @@ export default function ReportResultsPage() {
   const [householdResults, setHouseholdResults] = useState<HouseholdImpact | null>(null);
   const [baselineResults, setBaselineResults] = useState<HouseholdResults | null>(null);
 
+  // Results for statewide analysis
+  const [statewideResults, setStatewideResults] = useState<AnalysisResponse | null>(null);
+
   // Load config from sessionStorage and run analysis
   useEffect(() => {
     const loadAndAnalyze = async () => {
@@ -96,14 +160,21 @@ export default function ReportResultsPage() {
           ]);
           setBaselineResults(baseline);
           setHouseholdResults(impact);
+        } else if (parsedConfig.populationType === 'statewide' && parsedConfig.state) {
+          // Run statewide analysis
+          const results = await runAnalysisFromOptions(
+            parsedConfig.state,
+            parsedConfig.year,
+            parsedConfig.selectedReforms
+          );
+          setStatewideResults(results);
         } else {
-          // Statewide analysis - for now show placeholder
-          // TODO: Implement statewide analysis endpoint
-          setError('Statewide analysis coming soon. Please try household analysis.');
+          setError('Invalid report configuration. Please start a new report.');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error running analysis:', err);
-        setError('Failed to run analysis. Please try again.');
+        const errorMessage = err?.response?.data?.detail || err?.message || 'Unknown error';
+        setError(`Failed to run analysis: ${errorMessage}`);
       } finally {
         setIsLoading(false);
       }
@@ -120,7 +191,13 @@ export default function ReportResultsPage() {
     return <ErrorState error={error} />;
   }
 
-  if (!config || !householdResults) {
+  // Check if we have valid results based on population type
+  const hasResults = config && (
+    (config.populationType === 'household' && householdResults) ||
+    (config.populationType === 'statewide' && statewideResults)
+  );
+
+  if (!hasResults) {
     return <ErrorState error="No results available" />;
   }
 
@@ -131,7 +208,13 @@ export default function ReportResultsPage() {
         <div className="max-w-6xl mx-auto px-6 py-6">
           <div className="flex items-start justify-between">
             <div>
-              <Link href="/report" className="text-pe-gray-500 hover:text-pe-teal-600 text-sm mb-2 inline-flex items-center gap-1">
+              <Link
+                href="/report"
+                className="text-pe-gray-500 text-sm mb-2 inline-flex items-center gap-1 transition-colors"
+                style={{ ['--hover-color' as string]: COLORS.primary }}
+                onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+              >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -141,7 +224,7 @@ export default function ReportResultsPage() {
                 Report Results
               </h1>
               <p className="text-pe-gray-500 mt-1">
-                {config.state ? US_STATES[config.state] : 'Analysis'} &bull; {config.selectedReforms.length} reform(s) selected
+                {config!.state ? US_STATES[config!.state] : 'Analysis'} &bull; {config!.populationType === 'statewide' ? 'Statewide' : 'Household'} &bull; {config!.selectedReforms.length} reform(s)
               </p>
             </div>
             <button
@@ -165,11 +248,23 @@ export default function ReportResultsPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium transition-all ${
-                  activeTab === tab.key
-                    ? 'border-pe-teal-500 text-pe-teal-600'
-                    : 'border-transparent text-pe-gray-500 hover:text-pe-gray-700 hover:border-pe-gray-300'
-                }`}
+                className="flex items-center gap-2 px-4 py-4 border-b-2 font-medium transition-all"
+                style={{
+                  borderColor: activeTab === tab.key ? COLORS.primary : 'transparent',
+                  color: activeTab === tab.key ? COLORS.primary : '#6B7280',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== tab.key) {
+                    e.currentTarget.style.color = '#374151';
+                    e.currentTarget.style.borderColor = '#D1D5DB';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== tab.key) {
+                    e.currentTarget.style.color = '#6B7280';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }
+                }}
               >
                 {tab.icon}
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -181,31 +276,61 @@ export default function ReportResultsPage() {
 
       {/* Tab Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {activeTab === 'overview' && (
-          <OverviewTab
-            config={config}
-            results={householdResults}
-            baseline={baselineResults}
-          />
-        )}
-        {activeTab === 'poverty' && (
-          <PovertyTab
-            config={config}
-            results={householdResults}
-          />
-        )}
-        {activeTab === 'fiscal' && (
-          <FiscalTab
-            config={config}
-            results={householdResults}
-          />
-        )}
-        {activeTab === 'distributional' && (
-          <DistributionalTab
-            config={config}
-            results={householdResults}
-          />
-        )}
+        {config!.populationType === 'household' && householdResults ? (
+          // Household Results
+          <>
+            {activeTab === 'overview' && (
+              <HouseholdOverviewTab
+                config={config!}
+                results={householdResults}
+                baseline={baselineResults}
+              />
+            )}
+            {activeTab === 'poverty' && (
+              <HouseholdPovertyTab
+                config={config!}
+                results={householdResults}
+              />
+            )}
+            {activeTab === 'fiscal' && (
+              <HouseholdFiscalTab
+                config={config!}
+                results={householdResults}
+              />
+            )}
+            {activeTab === 'distributional' && (
+              <HouseholdDistributionalTab config={config!} />
+            )}
+          </>
+        ) : statewideResults ? (
+          // Statewide Results
+          <>
+            {activeTab === 'overview' && (
+              <StatewideOverviewTab
+                config={config!}
+                results={statewideResults}
+              />
+            )}
+            {activeTab === 'poverty' && (
+              <StatewidePovertyTab
+                config={config!}
+                results={statewideResults}
+              />
+            )}
+            {activeTab === 'fiscal' && (
+              <StatewideFiscalTab
+                config={config!}
+                results={statewideResults}
+              />
+            )}
+            {activeTab === 'distributional' && (
+              <StatewideDistributionalTab
+                config={config!}
+                results={statewideResults}
+              />
+            )}
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -217,11 +342,18 @@ function LoadingState() {
     <div className="min-h-screen bg-pe-gray-50/30 flex items-center justify-center">
       <div className="text-center">
         <div className="relative w-20 h-20 mx-auto mb-6">
-          <div className="absolute inset-0 rounded-full border-4 border-pe-teal-100"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-pe-teal-500 border-t-transparent animate-spin"></div>
+          <div
+            className="absolute inset-0 rounded-full border-4"
+            style={{ borderColor: `${COLORS.primary}30` }}
+          ></div>
+          <div
+            className="absolute inset-0 rounded-full border-4 border-t-transparent animate-spin"
+            style={{ borderColor: COLORS.primary, borderTopColor: 'transparent' }}
+          ></div>
         </div>
         <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Running Analysis</h2>
-        <p className="text-pe-gray-500">Calculating policy impacts...</p>
+        <p className="text-pe-gray-500">Calculating policy impacts via PolicyEngine...</p>
+        <p className="text-sm text-pe-gray-400 mt-2">This may take 1-2 minutes for statewide analysis</p>
       </div>
     </div>
   );
@@ -243,7 +375,8 @@ function ErrorState({ error }: { error: string }) {
         <p className="text-pe-gray-500 mb-6">{error}</p>
         <button
           onClick={() => router.push('/report')}
-          className="btn btn-primary"
+          className="px-6 py-3 rounded-lg font-medium text-white transition-all hover:opacity-90"
+          style={{ backgroundColor: COLORS.primary }}
         >
           Start New Report
         </button>
@@ -252,8 +385,11 @@ function ErrorState({ error }: { error: string }) {
   );
 }
 
-// Overview Tab
-function OverviewTab({
+// ============================================================================
+// HOUSEHOLD ANALYSIS COMPONENTS
+// ============================================================================
+
+function HouseholdOverviewTab({
   config,
   results,
   baseline
@@ -277,9 +413,7 @@ function OverviewTab({
           <div>
             <h2 className="text-lg font-semibold text-pe-gray-800">Analysis Complete</h2>
             <p className="text-pe-gray-600 mt-1">
-              {config.populationType === 'household'
-                ? `Household analysis for ${config.state ? US_STATES[config.state] : 'selected state'}`
-                : `Statewide microsimulation for ${config.state ? US_STATES[config.state] : 'selected state'}`}
+              Household analysis for {config.state ? US_STATES[config.state] : 'selected state'}
             </p>
           </div>
         </div>
@@ -344,8 +478,7 @@ function OverviewTab({
   );
 }
 
-// Poverty Tab
-function PovertyTab({
+function HouseholdPovertyTab({
   config,
   results
 }: {
@@ -361,26 +494,8 @@ function PovertyTab({
         <div className="card">
           <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Baseline Poverty Status</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-              <span className="text-pe-gray-600">In Poverty</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                baseline.in_poverty
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {baseline.in_poverty ? 'Yes' : 'No'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-              <span className="text-pe-gray-600">In Deep Poverty</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                baseline.in_deep_poverty
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {baseline.in_deep_poverty ? 'Yes' : 'No'}
-              </span>
-            </div>
+            <StatusRow label="In Poverty" value={baseline.in_poverty} />
+            <StatusRow label="In Deep Poverty" value={baseline.in_deep_poverty} />
             <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
               <span className="text-pe-gray-600">Poverty Gap</span>
               <span className="font-semibold text-pe-gray-800">
@@ -393,26 +508,8 @@ function PovertyTab({
         <div className="card">
           <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Reform Poverty Status</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-              <span className="text-pe-gray-600">In Poverty</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                reform.in_poverty
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {reform.in_poverty ? 'Yes' : 'No'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-              <span className="text-pe-gray-600">In Deep Poverty</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                reform.in_deep_poverty
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {reform.in_deep_poverty ? 'Yes' : 'No'}
-              </span>
-            </div>
+            <StatusRow label="In Poverty" value={reform.in_poverty} />
+            <StatusRow label="In Deep Poverty" value={reform.in_deep_poverty} />
             <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
               <span className="text-pe-gray-600">Poverty Gap</span>
               <span className="font-semibold text-pe-gray-800">
@@ -432,9 +529,7 @@ function PovertyTab({
         }`}>
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              poverty_status_change === 'lifted'
-                ? 'bg-green-100'
-                : 'bg-red-100'
+              poverty_status_change === 'lifted' ? 'bg-green-100' : 'bg-red-100'
             }`}>
               {poverty_status_change === 'lifted' ? (
                 <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -447,14 +542,8 @@ function PovertyTab({
               )}
             </div>
             <div>
-              <h3 className={`font-semibold ${
-                poverty_status_change === 'lifted'
-                  ? 'text-green-800'
-                  : 'text-red-800'
-              }`}>
-                {poverty_status_change === 'lifted'
-                  ? 'Household Lifted Out of Poverty'
-                  : 'Household Fell Into Poverty'}
+              <h3 className={`font-semibold ${poverty_status_change === 'lifted' ? 'text-green-800' : 'text-red-800'}`}>
+                {poverty_status_change === 'lifted' ? 'Household Lifted Out of Poverty' : 'Household Fell Into Poverty'}
               </h3>
               <p className={poverty_status_change === 'lifted' ? 'text-green-700' : 'text-red-700'}>
                 {poverty_status_change === 'lifted'
@@ -465,31 +554,11 @@ function PovertyTab({
           </div>
         </div>
       )}
-
-      {/* Income Details */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Income Analysis</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div className="p-4 bg-pe-gray-50 rounded-lg text-center">
-            <p className="text-sm text-pe-gray-500 mb-1">Gross Income</p>
-            <p className="text-2xl font-bold text-pe-gray-800">${baseline.gross_income.toLocaleString()}</p>
-          </div>
-          <div className="p-4 bg-pe-gray-50 rounded-lg text-center">
-            <p className="text-sm text-pe-gray-500 mb-1">Baseline Net Income</p>
-            <p className="text-2xl font-bold text-pe-gray-800">${baseline.net_income.toLocaleString()}</p>
-          </div>
-          <div className="p-4 bg-pe-teal-50 rounded-lg text-center">
-            <p className="text-sm text-pe-teal-600 mb-1">Reform Net Income</p>
-            <p className="text-2xl font-bold text-pe-teal-700">${reform.net_income.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
 
-// Fiscal Tab
-function FiscalTab({
+function HouseholdFiscalTab({
   config,
   results
 }: {
@@ -504,12 +573,6 @@ function FiscalTab({
     { name: 'Federal EITC', baseline: baseline.federal_eitc, reform: reform.federal_eitc },
     { name: 'State EITC', baseline: baseline.state_eitc, reform: reform.state_eitc },
     { name: 'SNAP Benefits', baseline: baseline.snap_benefits, reform: reform.snap_benefits },
-  ];
-
-  const taxChanges = [
-    { name: 'Federal Income Tax', baseline: baseline.federal_income_tax, reform: reform.federal_income_tax },
-    { name: 'State Income Tax', baseline: baseline.state_income_tax, reform: reform.state_income_tax },
-    { name: 'Payroll Tax', baseline: baseline.payroll_tax, reform: reform.payroll_tax },
   ];
 
   return (
@@ -564,49 +627,478 @@ function FiscalTab({
           })}
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Tax Breakdown */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Tax Breakdown</h3>
-        <div className="space-y-3">
-          {taxChanges.map((item) => {
-            const change = item.reform - item.baseline;
-            return (
-              <div key={item.name} className="flex items-center justify-between py-3 border-b border-pe-gray-100 last:border-0">
-                <span className="text-pe-gray-600">{item.name}</span>
-                <div className="flex items-center gap-6">
-                  <span className="text-pe-gray-500 text-sm w-24 text-right">
-                    ${item.baseline.toLocaleString()}
-                  </span>
-                  <span className="text-pe-gray-400">&rarr;</span>
-                  <span className="font-medium text-pe-gray-800 w-24 text-right">
-                    ${item.reform.toLocaleString()}
-                  </span>
-                  <span className={`w-24 text-right font-semibold ${
-                    change < 0 ? 'text-green-600' : change > 0 ? 'text-red-600' : 'text-pe-gray-400'
-                  }`}>
-                    {change > 0 ? '+' : ''}{change !== 0 ? `$${Math.abs(change).toLocaleString()}` : '-'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+function HouseholdDistributionalTab({ config }: { config: ReportConfig }) {
+  return (
+    <div className="card bg-pe-gray-50">
+      <div className="text-center py-12">
+        <div className="w-16 h-16 rounded-full bg-pe-gray-100 flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-pe-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">
+          Distributional Analysis
+        </h3>
+        <p className="text-pe-gray-500 max-w-md mx-auto">
+          Distributional analysis shows how policy impacts vary across income groups.
+          This analysis is available for statewide population simulations.
+        </p>
+        <Link href="/report" className="btn btn-primary mt-6">
+          Run Statewide Analysis
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// STATEWIDE ANALYSIS COMPONENTS
+// ============================================================================
+
+function StatewideOverviewTab({
+  config,
+  results
+}: {
+  config: ReportConfig;
+  results: AnalysisResponse;
+}) {
+  const { poverty_impact, fiscal_cost, distributional_impact } = results;
+
+  // Budget chart data
+  const budgetData = [
+    {
+      name: 'Net Cost',
+      value: fiscal_cost.total_cost_billions,
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Header */}
+      <div className="card" style={{ borderLeft: `4px solid ${COLORS.primary}` }}>
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
+            <svg className="w-6 h-6" style={{ color: COLORS.primary }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-pe-gray-800">Statewide Analysis Complete</h2>
+            <p className="text-pe-gray-600 mt-1">
+              {results.reform_name} • {config.state ? US_STATES[config.state] : 'State'} • {config.year}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Effective Tax Rate */}
-      <div className="card bg-pe-gray-50">
+      {/* Key Metrics Grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.primary}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">State Revenue Impact</p>
+          <p className="text-2xl font-bold" style={{ color: fiscal_cost.state_cost_billions > 0 ? COLORS.negative : COLORS.positive }}>
+            {fiscal_cost.state_cost_billions > 0 ? '-' : '+'}{formatBillions(Math.abs(fiscal_cost.state_cost_billions))}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Annual state cost</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.primary}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Child Poverty Change</p>
+          <p className="text-2xl font-bold" style={{ color: poverty_impact.child_poverty_percent_change < 0 ? COLORS.positive : COLORS.negative }}>
+            {formatPercentWithSign(poverty_impact.child_poverty_percent_change)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Relative reduction</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.positive}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Children Lifted</p>
+          <p className="text-2xl font-bold" style={{ color: COLORS.positive }}>
+            {poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Out of poverty</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.primary}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Households Gaining</p>
+          <p className="text-2xl font-bold" style={{ color: COLORS.positive }}>
+            {formatPercent(distributional_impact.percent_gaining)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Of all households</p>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Key Statistics</h3>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium" style={{ color: COLORS.primary }}>Poverty Reduction</h4>
+            <div className="flex justify-between py-2 border-b border-pe-gray-100">
+              <span className="text-pe-gray-600">Child poverty rate change</span>
+              <span className="font-medium" style={{ color: COLORS.positive }}>
+                {poverty_impact.child_poverty_change_pp.toFixed(2)}pp
+              </span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-pe-gray-100">
+              <span className="text-pe-gray-600">Young child poverty change</span>
+              <span className="font-medium" style={{ color: COLORS.positive }}>
+                {poverty_impact.young_child_poverty_change_pp.toFixed(2)}pp
+              </span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-pe-gray-600">Deep poverty change</span>
+              <span className="font-medium" style={{ color: COLORS.positive }}>
+                {poverty_impact.deep_poverty_change_pp.toFixed(2)}pp
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium" style={{ color: COLORS.primary }}>State Fiscal Impact</h4>
+            <div className="flex justify-between py-2 border-b border-pe-gray-100">
+              <span className="text-pe-gray-600">State revenue impact</span>
+              <span className="font-medium" style={{ color: fiscal_cost.state_cost_billions > 0 ? COLORS.negative : COLORS.positive }}>
+                {fiscal_cost.state_cost_billions > 0 ? '-' : '+'}{formatBillions(Math.abs(fiscal_cost.state_cost_billions))}
+              </span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-pe-gray-100">
+              <span className="text-pe-gray-600">State CTC cost</span>
+              <span className="font-medium">{formatBillions(fiscal_cost.state_ctc_cost_billions)}</span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-pe-gray-600">Cost per child lifted</span>
+              <span className="font-medium">{formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium" style={{ color: COLORS.primary }}>Distribution</h4>
+            <div className="flex justify-between py-2 border-b border-pe-gray-100">
+              <span className="text-pe-gray-600">Average gain (all)</span>
+              <span className="font-medium" style={{ color: COLORS.positive }}>
+                {formatCurrencyWithSign(distributional_impact.average_gain_all)}
+              </span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-pe-gray-100">
+              <span className="text-pe-gray-600">Bottom 50% gain</span>
+              <span className="font-medium" style={{ color: COLORS.positive }}>
+                {formatCurrencyWithSign(distributional_impact.average_gain_bottom_50)}
+              </span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-pe-gray-600">Gini coefficient change</span>
+              <span className="font-medium" style={{ color: distributional_impact.gini_change < 0 ? COLORS.positive : COLORS.negative }}>
+                {distributional_impact.gini_change < 0 ? '' : '+'}{distributional_impact.gini_change.toFixed(4)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatewidePovertyTab({
+  config,
+  results
+}: {
+  config: ReportConfig;
+  results: AnalysisResponse;
+}) {
+  const { poverty_impact } = results;
+
+  // Chart data for poverty rates comparison
+  const povertyRateData = [
+    {
+      name: 'Child (0-17)',
+      baseline: poverty_impact.baseline_child_poverty_rate * 100,
+      reform: poverty_impact.reform_child_poverty_rate * 100,
+    },
+    {
+      name: 'Young Child (0-5)',
+      baseline: poverty_impact.baseline_young_child_poverty_rate * 100,
+      reform: poverty_impact.reform_young_child_poverty_rate * 100,
+    },
+    {
+      name: 'Deep Poverty',
+      baseline: poverty_impact.baseline_deep_child_poverty_rate * 100,
+      reform: poverty_impact.reform_deep_child_poverty_rate * 100,
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Children Lifted - Hero Section */}
+      <div className="grid sm:grid-cols-2 gap-6">
+        <div className="card p-8 text-center" style={{ background: `linear-gradient(135deg, ${COLORS.primary}10, ${COLORS.primary}05)`, borderColor: COLORS.primary }}>
+          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
+            <svg className="w-8 h-8" style={{ color: COLORS.primary }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+          </div>
+          <p className="text-4xl font-bold mb-2" style={{ color: COLORS.primary }}>
+            {poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+          </p>
+          <p className="text-lg font-medium text-pe-gray-700">Children lifted out of poverty</p>
+          <p className="text-sm text-pe-gray-500 mt-1">Ages 0-17</p>
+        </div>
+
+        <div className="card p-8 text-center" style={{ background: `linear-gradient(135deg, ${COLORS.primaryDark}10, ${COLORS.primaryDark}05)`, borderColor: COLORS.primaryDark }}>
+          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${COLORS.primaryDark}20` }}>
+            <svg className="w-8 h-8" style={{ color: COLORS.primaryDark }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-4xl font-bold mb-2" style={{ color: COLORS.primaryDark }}>
+            {poverty_impact.young_children_lifted_out_of_poverty.toLocaleString()}
+          </p>
+          <p className="text-lg font-medium text-pe-gray-700">Young children lifted out of poverty</p>
+          <p className="text-sm text-pe-gray-500 mt-1">Ages 0-5</p>
+        </div>
+      </div>
+
+      {/* Poverty Rate Comparison Chart */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">Poverty Rate Changes</h3>
+        <p className="text-sm text-pe-gray-500 mb-6">Baseline vs. Reform poverty rates by age group</p>
+
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={povertyRateData}
+              layout="vertical"
+              margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+              <XAxis
+                type="number"
+                tickFormatter={(v) => `${v.toFixed(0)}%`}
+                tick={{ fill: '#6B7280', fontSize: 12 }}
+                domain={[0, 'auto']}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={{ fill: '#6B7280', fontSize: 12 }}
+                width={90}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+                formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
+              />
+              <Legend
+                wrapperStyle={{ paddingTop: '20px' }}
+                formatter={(value) => <span style={{ color: '#4B5563' }}>{value}</span>}
+              />
+              <Bar dataKey="baseline" name="Baseline" fill={COLORS.baseline} radius={[0, 4, 4, 0]} />
+              <Bar dataKey="reform" name="Reform" fill={COLORS.reform} radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Detailed Stats Table */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Detailed Poverty Statistics</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2" style={{ borderColor: COLORS.primary }}>
+                <th className="text-left py-3 px-4 text-pe-gray-500 font-medium">Metric</th>
+                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Baseline</th>
+                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Reform</th>
+                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Change (pp)</th>
+                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">% Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-pe-gray-100 hover:bg-pe-gray-50">
+                <td className="py-4 px-4 text-pe-gray-700 font-medium">Child Poverty Rate (0-17)</td>
+                <td className="py-4 px-4 text-right text-pe-gray-600">{(poverty_impact.baseline_child_poverty_rate * 100).toFixed(2)}%</td>
+                <td className="py-4 px-4 text-right font-semibold" style={{ color: COLORS.primary }}>{(poverty_impact.reform_child_poverty_rate * 100).toFixed(2)}%</td>
+                <td className="py-4 px-4 text-right font-medium" style={{ color: COLORS.positive }}>{poverty_impact.child_poverty_change_pp.toFixed(2)}</td>
+                <td className="py-4 px-4 text-right font-medium" style={{ color: COLORS.positive }}>{poverty_impact.child_poverty_percent_change.toFixed(1)}%</td>
+              </tr>
+              <tr className="border-b border-pe-gray-100 hover:bg-pe-gray-50">
+                <td className="py-4 px-4 text-pe-gray-700 font-medium">Young Child Poverty (0-5)</td>
+                <td className="py-4 px-4 text-right text-pe-gray-600">{(poverty_impact.baseline_young_child_poverty_rate * 100).toFixed(2)}%</td>
+                <td className="py-4 px-4 text-right font-semibold" style={{ color: COLORS.primary }}>{(poverty_impact.reform_young_child_poverty_rate * 100).toFixed(2)}%</td>
+                <td className="py-4 px-4 text-right font-medium" style={{ color: COLORS.positive }}>{poverty_impact.young_child_poverty_change_pp.toFixed(2)}</td>
+                <td className="py-4 px-4 text-right font-medium" style={{ color: COLORS.positive }}>{poverty_impact.young_child_poverty_percent_change.toFixed(1)}%</td>
+              </tr>
+              <tr className="hover:bg-pe-gray-50">
+                <td className="py-4 px-4 text-pe-gray-700 font-medium">Deep Child Poverty</td>
+                <td className="py-4 px-4 text-right text-pe-gray-600">{(poverty_impact.baseline_deep_child_poverty_rate * 100).toFixed(2)}%</td>
+                <td className="py-4 px-4 text-right font-semibold" style={{ color: COLORS.primary }}>{(poverty_impact.reform_deep_child_poverty_rate * 100).toFixed(2)}%</td>
+                <td className="py-4 px-4 text-right font-medium" style={{ color: COLORS.positive }}>{poverty_impact.deep_poverty_change_pp.toFixed(2)}</td>
+                <td className="py-4 px-4 text-right text-pe-gray-400">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatewideFiscalTab({
+  config,
+  results
+}: {
+  config: ReportConfig;
+  results: AnalysisResponse;
+}) {
+  const { fiscal_cost } = results;
+
+  // Focus on state-level costs only
+  const stateCostBreakdown = [
+    { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions },
+    { name: 'State EITC', value: fiscal_cost.eitc_cost_billions * 0.3 }, // Approximate state share
+    { name: 'Other State Programs', value: fiscal_cost.state_cost_billions - fiscal_cost.state_ctc_cost_billions },
+  ].filter(item => Math.abs(item.value) > 0.001);
+
+  // Chart data for state cost breakdown
+  const chartData = stateCostBreakdown.map(item => ({
+    name: item.name,
+    value: item.value,
+  }));
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Card - State Revenue Impact */}
+      <div className="card p-6" style={{ borderLeft: `4px solid ${COLORS.primary}` }}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-pe-gray-800">Effective Tax Rate</h3>
-            <p className="text-sm text-pe-gray-500 mt-1">Including all taxes and benefits</p>
+            <p className="text-sm text-pe-gray-500 mb-1">State Revenue Impact</p>
+            <p className="text-4xl font-bold" style={{ color: fiscal_cost.state_cost_billions > 0 ? COLORS.negative : COLORS.positive }}>
+              {fiscal_cost.state_cost_billions > 0 ? '-' : '+'}{formatBillions(Math.abs(fiscal_cost.state_cost_billions))}
+            </p>
+            <p className="text-sm text-pe-gray-500 mt-1">per year</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-pe-gray-500">
-              {(baseline.effective_tax_rate * 100).toFixed(1)}% &rarr;
+            <p className="text-sm text-pe-gray-500">Cost per child lifted</p>
+            <p className="text-2xl font-semibold" style={{ color: COLORS.primary }}>
+              {formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty)}
             </p>
-            <p className="text-2xl font-bold text-pe-teal-600">
-              {(reform.effective_tax_rate * 100).toFixed(1)}%
+          </div>
+        </div>
+      </div>
+
+      {/* State Cost Breakdown Chart */}
+      {chartData.length > 0 && (
+        <div className="card">
+          <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">State Cost Breakdown</h3>
+          <p className="text-sm text-pe-gray-500 mb-6">Annual state revenue impact by program</p>
+
+          <div style={{ height: `${Math.max(200, chartData.length * 60)}px` }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 140, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" horizontal={true} vertical={false} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => formatBillions(v)}
+                  tick={{ fill: '#6B7280', fontSize: 12 }}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fill: '#6B7280', fontSize: 12 }}
+                  width={130}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                  }}
+                  formatter={(value: number) => [formatBillions(value), 'State Cost']}
+                />
+                <ReferenceLine x={0} stroke="#9CA3AF" />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.value >= 0 ? COLORS.negative : COLORS.positive}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* State Cost Metrics */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.primary}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">State CTC Cost</p>
+          <p className="text-2xl font-bold" style={{ color: COLORS.negative }}>
+            {formatBillions(fiscal_cost.state_ctc_cost_billions)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Annual</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.primary}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Cost Per Child Lifted</p>
+          <p className="text-2xl font-bold text-pe-gray-800">
+            {formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Out of poverty</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.primary}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Cost Per Child (All)</p>
+          <p className="text-2xl font-bold text-pe-gray-800">
+            {formatCurrency(fiscal_cost.cost_per_child)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Average across all children</p>
+        </div>
+      </div>
+
+      {/* State Revenue Summary */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">State Revenue Summary</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-4 border-b border-pe-gray-100">
+            <div>
+              <p className="text-pe-gray-700 font-medium">Total State Revenue Impact</p>
+              <p className="text-sm text-pe-gray-500">Annual cost to state budget</p>
+            </div>
+            <p className="text-3xl font-bold" style={{ color: fiscal_cost.state_cost_billions > 0 ? COLORS.negative : COLORS.positive }}>
+              {fiscal_cost.state_cost_billions > 0 ? '-' : '+'}{formatBillions(Math.abs(fiscal_cost.state_cost_billions))}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between py-4 border-b border-pe-gray-100">
+            <div>
+              <p className="text-pe-gray-700 font-medium">State CTC Program</p>
+              <p className="text-sm text-pe-gray-500">State Child Tax Credit costs</p>
+            </div>
+            <p className="text-xl font-semibold" style={{ color: COLORS.negative }}>
+              {formatBillions(fiscal_cost.state_ctc_cost_billions)}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between py-4">
+            <div>
+              <p className="text-pe-gray-700 font-medium">Cost Effectiveness</p>
+              <p className="text-sm text-pe-gray-500">State cost per child lifted from poverty</p>
+            </div>
+            <p className="text-xl font-semibold" style={{ color: COLORS.primary }}>
+              {formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty)}
             </p>
           </div>
         </div>
@@ -615,43 +1107,272 @@ function FiscalTab({
   );
 }
 
-// Distributional Tab (placeholder for household - more relevant for statewide)
-function DistributionalTab({
+function StatewideDistributionalTab({
   config,
   results
 }: {
   config: ReportConfig;
-  results: HouseholdImpact;
+  results: AnalysisResponse;
 }) {
-  if (config.populationType === 'household') {
-    return (
-      <div className="card bg-pe-gray-50">
-        <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-pe-gray-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-pe-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">
-            Distributional Analysis
-          </h3>
-          <p className="text-pe-gray-500 max-w-md mx-auto">
-            Distributional analysis shows how policy impacts vary across income groups.
-            This analysis is available for statewide population simulations.
+  const { distributional_impact } = results;
+
+  // Prepare decile chart data
+  const decileChartData = distributional_impact.decile_impacts.map((decile) => ({
+    name: `${decile.decile}`,
+    value: decile.average_gain,
+    percentGaining: decile.percent_gaining,
+  }));
+
+  // Calculate max absolute value for symmetric axis
+  const maxAbsValue = Math.max(
+    ...distributional_impact.decile_impacts.map(d => Math.abs(d.average_gain)),
+    100
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Metrics */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.positive}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Households Gaining</p>
+          <p className="text-2xl font-bold" style={{ color: COLORS.positive }}>
+            {formatPercent(distributional_impact.percent_gaining)}
           </p>
-          <Link href="/report" className="btn btn-primary mt-6">
-            Run Statewide Analysis
-          </Link>
+          <p className="text-xs text-pe-gray-400 mt-1">Of all households</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.positive}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Average Gain (All)</p>
+          <p className="text-2xl font-bold" style={{ color: COLORS.positive }}>
+            {formatCurrencyWithSign(distributional_impact.average_gain_all)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Per household</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${COLORS.positive}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Bottom 50% Gain</p>
+          <p className="text-2xl font-bold" style={{ color: COLORS.positive }}>
+            {formatCurrencyWithSign(distributional_impact.average_gain_bottom_50)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">Average gain</p>
+        </div>
+
+        <div className="card p-5" style={{ borderTop: `3px solid ${distributional_impact.gini_change < 0 ? COLORS.positive : COLORS.negative}` }}>
+          <p className="text-sm text-pe-gray-500 mb-1">Gini Coefficient Change</p>
+          <p className="text-2xl font-bold" style={{ color: distributional_impact.gini_change < 0 ? COLORS.positive : COLORS.negative }}>
+            {distributional_impact.gini_change < 0 ? '' : '+'}{distributional_impact.gini_change.toFixed(4)}
+          </p>
+          <p className="text-xs text-pe-gray-400 mt-1">{distributional_impact.gini_change < 0 ? 'More equal' : 'Less equal'}</p>
         </div>
       </div>
-    );
-  }
 
-  // TODO: Implement statewide distributional display
-  return null;
+      {/* Decile Impact Chart */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">Impact by Income Decile</h3>
+        <p className="text-sm text-pe-gray-500 mb-6">Average annual income change by household income decile</p>
+
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={decileChartData}
+              margin={{ top: 20, right: 30, left: 60, bottom: 30 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: '#6B7280', fontSize: 12 }}
+                label={{ value: 'Income Decile', position: 'bottom', offset: 0, fill: '#6B7280', fontSize: 12 }}
+              />
+              <YAxis
+                tickFormatter={(v) => formatCurrencyWithSign(v)}
+                tick={{ fill: '#6B7280', fontSize: 12 }}
+                domain={[-maxAbsValue * 0.1, maxAbsValue * 1.1]}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+                formatter={(value: number, name: string) => {
+                  if (name === 'value') return [formatCurrencyWithSign(value), 'Average change'];
+                  return [value, name];
+                }}
+                labelFormatter={(label) => `Decile ${label}`}
+              />
+              <ReferenceLine y={0} stroke="#9CA3AF" strokeWidth={1} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {decileChartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.value >= 0 ? COLORS.positive : COLORS.negative}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Chart Legend */}
+        <div className="flex justify-center gap-8 mt-4 pt-4 border-t border-pe-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.positive }}></div>
+            <span className="text-sm text-pe-gray-600">Gain</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.negative }}></div>
+            <span className="text-sm text-pe-gray-600">Loss</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Distribution Summary */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="card">
+          <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Share of Benefits</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-pe-gray-600">Bottom 20%</span>
+                <span className="font-semibold" style={{ color: COLORS.primary }}>
+                  {distributional_impact.share_to_bottom_20_pct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-pe-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    backgroundColor: COLORS.primary,
+                    width: `${Math.min(100, distributional_impact.share_to_bottom_20_pct)}%`
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-pe-gray-600">Bottom 50%</span>
+                <span className="font-semibold" style={{ color: COLORS.primary }}>
+                  {distributional_impact.share_to_bottom_50_pct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-pe-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    backgroundColor: COLORS.primary,
+                    width: `${Math.min(100, distributional_impact.share_to_bottom_50_pct)}%`
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-pe-gray-600">Top 20%</span>
+                <span className="font-semibold text-pe-gray-600">
+                  {distributional_impact.share_to_top_20_pct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-pe-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-pe-gray-400 rounded-full"
+                  style={{ width: `${Math.min(100, distributional_impact.share_to_top_20_pct)}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-pe-gray-600">Top 10%</span>
+                <span className="font-semibold text-pe-gray-600">
+                  {distributional_impact.share_to_top_10_pct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-pe-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-pe-gray-400 rounded-full"
+                  style={{ width: `${Math.min(100, distributional_impact.share_to_top_10_pct)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Inequality Impact</h3>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between py-4 border-b border-pe-gray-100">
+              <div>
+                <p className="text-pe-gray-600">Baseline Gini</p>
+                <p className="text-xs text-pe-gray-400">Before reform</p>
+              </div>
+              <p className="text-2xl font-bold text-pe-gray-800">
+                {distributional_impact.baseline_gini.toFixed(4)}
+              </p>
+            </div>
+            <div className="flex items-center justify-between py-4 border-b border-pe-gray-100">
+              <div>
+                <p className="text-pe-gray-600">Reform Gini</p>
+                <p className="text-xs text-pe-gray-400">After reform</p>
+              </div>
+              <p className="text-2xl font-bold" style={{ color: COLORS.primary }}>
+                {distributional_impact.reform_gini.toFixed(4)}
+              </p>
+            </div>
+            <div className="flex items-center justify-between py-4">
+              <div>
+                <p className="text-pe-gray-600 font-medium">Net Change</p>
+                <p className="text-xs text-pe-gray-400">
+                  {distributional_impact.gini_change < 0 ? 'Inequality reduced' : 'Inequality increased'}
+                </p>
+              </div>
+              <p className="text-2xl font-bold" style={{ color: distributional_impact.gini_change < 0 ? COLORS.positive : COLORS.negative }}>
+                {distributional_impact.gini_change < 0 ? '' : '+'}{distributional_impact.gini_change.toFixed(4)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Decile Details Table */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Detailed Decile Impacts</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2" style={{ borderColor: COLORS.primary }}>
+                <th className="text-left py-3 px-4 text-pe-gray-500 font-medium">Decile</th>
+                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Average Change</th>
+                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">% Gaining</th>
+              </tr>
+            </thead>
+            <tbody>
+              {distributional_impact.decile_impacts.map((decile, index) => (
+                <tr key={decile.decile} className={`border-b border-pe-gray-100 hover:bg-pe-gray-50 ${index === 0 ? 'bg-pe-gray-25' : ''}`}>
+                  <td className="py-3 px-4 text-pe-gray-700 font-medium">
+                    Decile {decile.decile}
+                    {decile.decile === 1 && <span className="text-xs text-pe-gray-400 ml-2">(Lowest income)</span>}
+                    {decile.decile === 10 && <span className="text-xs text-pe-gray-400 ml-2">(Highest income)</span>}
+                  </td>
+                  <td className="py-3 px-4 text-right font-semibold" style={{ color: decile.average_gain >= 0 ? COLORS.positive : COLORS.negative }}>
+                    {formatCurrencyWithSign(decile.average_gain)}
+                  </td>
+                  <td className="py-3 px-4 text-right text-pe-gray-600">
+                    {decile.percent_gaining.toFixed(1)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// Helper Components
+// ============================================================================
+// SHARED HELPER COMPONENTS
+// ============================================================================
+
 function MetricCard({
   label,
   value,
@@ -661,22 +1382,32 @@ function MetricCard({
   label: string;
   value: string;
   subtext?: string;
-  color?: 'green' | 'red' | 'blue' | 'amber' | 'purple' | 'gray';
+  color?: 'green' | 'red' | 'blue' | 'amber' | 'purple' | 'gray' | 'teal';
 }) {
-  const colorClasses = {
-    green: 'bg-green-50 text-green-700',
-    red: 'bg-red-50 text-red-700',
-    blue: 'bg-blue-50 text-blue-700',
-    amber: 'bg-amber-50 text-amber-700',
-    purple: 'bg-purple-50 text-purple-700',
-    gray: 'bg-pe-gray-50 text-pe-gray-700',
+  // PolicyEngine color-matched backgrounds and text
+  const colorStyles: Record<string, { bg: string; text: string; border: string }> = {
+    green: { bg: `${COLORS.positive}10`, text: COLORS.positive, border: COLORS.positive },
+    teal: { bg: `${COLORS.primary}10`, text: COLORS.primary, border: COLORS.primary },
+    red: { bg: `${COLORS.negative}10`, text: COLORS.negative, border: COLORS.negative },
+    blue: { bg: '#EBF8FF', text: '#2B6CB0', border: '#3182CE' },
+    amber: { bg: '#FFFBEB', text: '#B45309', border: '#D97706' },
+    purple: { bg: '#F5F3FF', text: '#6D28D9', border: '#7C3AED' },
+    gray: { bg: '#F9FAFB', text: '#4B5563', border: '#9CA3AF' },
   };
 
+  const style = colorStyles[color] || colorStyles.gray;
+
   return (
-    <div className={`p-4 rounded-xl ${colorClasses[color]}`}>
-      <p className="text-sm opacity-75 mb-1">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
-      {subtext && <p className="text-xs opacity-60 mt-1">{subtext}</p>}
+    <div
+      className="p-4 rounded-xl"
+      style={{
+        backgroundColor: style.bg,
+        borderTop: `3px solid ${style.border}`,
+      }}
+    >
+      <p className="text-sm text-pe-gray-500 mb-1">{label}</p>
+      <p className="text-2xl font-bold" style={{ color: style.text }}>{value}</p>
+      {subtext && <p className="text-xs text-pe-gray-400 mt-1">{subtext}</p>}
     </div>
   );
 }
@@ -732,5 +1463,18 @@ function ComparisonRow({
         {change !== 0 ? formatChange(change) : '-'}
       </td>
     </tr>
+  );
+}
+
+function StatusRow({ label, value }: { label: string; value: boolean }) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
+      <span className="text-pe-gray-600">{label}</span>
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+        value ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+      }`}>
+        {value ? 'Yes' : 'No'}
+      </span>
+    </div>
   );
 }
