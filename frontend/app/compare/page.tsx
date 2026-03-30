@@ -12,13 +12,14 @@ import {
   Cell,
 } from 'recharts';
 import { useStates, useStateComparison } from '@/hooks/useAnalysis';
+import { colors, chartColors } from '@/lib/colors';
 import type { ReformRequest, StateInfo } from '@/lib/types';
 import type { StateComparisonResponse } from '@/lib/api';
 
 const STATE_COLORS = {
-  withCTC: '#22c55e',
-  withoutCTC: '#3b82f6',
-  selected: '#2C6496',
+  withCTC: colors.success,
+  withoutCTC: colors.blue[500],
+  selected: chartColors.primary,
 };
 
 export default function ComparePage() {
@@ -342,7 +343,7 @@ function StateComparisonChart({
           {chartData.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={sortBy === 'poverty' ? '#22c55e' : sortBy === 'cost' ? '#f59e0b' : '#3b82f6'}
+              fill={sortBy === 'poverty' ? colors.success : sortBy === 'cost' ? colors.warning : colors.blue[500]}
             />
           ))}
         </Bar>

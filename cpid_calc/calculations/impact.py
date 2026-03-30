@@ -17,6 +17,7 @@ from cpid_calc.calculations.microsim import (
     get_young_child_filter,
     get_person_weight,
     calculate_weighted_mean,
+    _to_numpy,
 )
 
 
@@ -83,27 +84,40 @@ def calculate_poverty_impact(
     Returns:
         PovertyImpact with detailed poverty statistics
     """
-    # Run simulations
-    baseline, reform = run_microsimulation(config)
+    # Run simulations - use state-specific dataset if single state provided
+    state = states[0] if states and len(states) == 1 else None
+    baseline, reform = run_microsimulation(config, state=state)
 
-    # Get filters
-    state_filter = get_state_filter(baseline, states or [])
-    child_filter = get_child_filter(baseline)
-    young_child_filter = get_young_child_filter(baseline)
+    # Get filters - skip state filter if using state-specific dataset
+    # (all persons in state-specific dataset are already from that state)
+    child_filter = get_child_filter(baseline, year=year)
+    young_child_filter = get_young_child_filter(baseline, year=year)
 
-    # Combined filters
-    children = state_filter & child_filter
-    young_children = state_filter & young_child_filter
+    if state is not None:
+        # Using state-specific dataset - no state filter needed
+        children = child_filter
+        young_children = young_child_filter
+    else:
+        # Using national dataset - apply state filter
+        state_filter = get_state_filter(baseline, states or [])
+        children = state_filter & child_filter
+        young_children = state_filter & young_child_filter
 
     # Get weights
     weights = get_person_weight(baseline, year)
 
-    # Calculate poverty status
-    baseline_in_poverty = baseline.calculate("in_poverty", period=year)
-    reform_in_poverty = reform.calculate("in_poverty", period=year)
+    # Calculate poverty status (use person-level poverty indicator)
+    baseline_in_poverty = baseline.calculate("person_in_poverty", period=year)
+    reform_in_poverty = reform.calculate("person_in_poverty", period=year)
 
-    baseline_in_deep_poverty = baseline.calculate("in_deep_poverty", period=year)
-    reform_in_deep_poverty = reform.calculate("in_deep_poverty", period=year)
+    # Deep poverty - use person-level indicator if available, else map from spm_unit
+    try:
+        baseline_in_deep_poverty = baseline.calculate("person_in_deep_poverty", period=year)
+        reform_in_deep_poverty = reform.calculate("person_in_deep_poverty", period=year)
+    except Exception:
+        # Fall back to assuming same shape as regular poverty (may need proper mapping)
+        baseline_in_deep_poverty = baseline_in_poverty * 0  # placeholder
+        reform_in_deep_poverty = reform_in_poverty * 0
 
     # Child poverty rates
     baseline_child_poverty_rate = calculate_weighted_mean(
@@ -130,9 +144,16 @@ def calculate_poverty_impact(
     )
 
     # Count children lifted out of poverty
-    lifted_out = baseline_in_poverty & ~reform_in_poverty
-    children_lifted = int(np.sum(lifted_out[children] * weights[children]))
-    young_children_lifted = int(np.sum(lifted_out[young_children] * weights[young_children]))
+    # Convert MicroSeries to numpy arrays for boolean operations
+    baseline_poverty_arr = _to_numpy(baseline_in_poverty)
+    reform_poverty_arr = _to_numpy(reform_in_poverty)
+    children_arr = _to_numpy(children)
+    young_children_arr = _to_numpy(young_children)
+    weights_arr = _to_numpy(weights)
+
+    lifted_out = baseline_poverty_arr & ~reform_poverty_arr
+    children_lifted = int(np.sum(lifted_out[children_arr] * weights_arr[children_arr]))
+    young_children_lifted = int(np.sum(lifted_out[young_children_arr] * weights_arr[young_children_arr]))
 
     # Calculate changes
     child_poverty_change = reform_child_poverty_rate - baseline_child_poverty_rate

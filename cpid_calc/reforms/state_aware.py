@@ -38,6 +38,19 @@ class ReformCategory(str, Enum):
 
 
 @dataclass
+class AdjustableParameter:
+    """A parameter that users can adjust via slider or input."""
+    name: str
+    label: str
+    min_value: float
+    max_value: float
+    default_value: float
+    step: float = 1.0
+    unit: str = ""  # e.g., "%", "$"
+    description: str = ""
+
+
+@dataclass
 class ReformOption:
     """A single reform option that can be presented to users."""
     id: str
@@ -54,8 +67,14 @@ class ReformOption:
     # Reform configuration
     reform_config: Optional[Dict[str, Any]] = None
 
-    # Parameters users can customize
+    # Parameters users can customize (old style - string list)
     customizable_params: List[str] = field(default_factory=list)
+
+    # New: Adjustable parameters with ranges
+    adjustable_params: List[AdjustableParameter] = field(default_factory=list)
+
+    # Whether this is a "configurable" option with slider
+    is_configurable: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -69,6 +88,20 @@ class ReformOption:
             "estimated_household_impact": self.estimated_household_impact,
             "estimated_state_cost": self.estimated_state_cost,
             "customizable_params": self.customizable_params,
+            "is_configurable": self.is_configurable,
+            "adjustable_params": [
+                {
+                    "name": p.name,
+                    "label": p.label,
+                    "min_value": p.min_value,
+                    "max_value": p.max_value,
+                    "default_value": p.default_value,
+                    "step": p.step,
+                    "unit": p.unit,
+                    "description": p.description,
+                }
+                for p in self.adjustable_params
+            ],
         }
 
 
@@ -339,89 +372,83 @@ def _get_ctc_options(programs: StatePrograms) -> List[ReformOption]:
 
 
 def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
-    """Generate EITC reform options for a state."""
+    """Generate EITC reform options for a state.
+
+    For now, only handles:
+    - States with existing refundable EITCs (adjust match rate)
+    - North Carolina (create new refundable EITC)
+    """
     options = []
 
-    if not programs.has_income_tax:
-        # No income tax - suggest working families rebate
+    # Special case: North Carolina - create new refundable EITC
+    if programs.state_code == "NC":
         options.append(ReformOption(
-            id=f"{programs.state_code.lower()}_working_families_rebate",
-            name=f"{programs.state_name} Working Families Rebate",
-            description="Create a refundable rebate for low-income working families (like WA)",
+            id="nc_new_state_eitc",
+            name="Create North Carolina EITC",
+            description="Create a new refundable state EITC matching a percentage of the federal credit",
             category=ReformCategory.STATE_EITC,
             is_new_program=True,
             is_enhancement=False,
-            estimated_household_impact=800,
-            customizable_params=["match_rate"],
+            is_configurable=True,
+            estimated_household_impact=1000,  # At 20% match
+            adjustable_params=[
+                AdjustableParameter(
+                    name="match_rate",
+                    label="Match rate",
+                    min_value=0,
+                    max_value=100,
+                    default_value=20,
+                    step=5,
+                    unit="%",
+                    description="Percentage of federal EITC to match",
+                ),
+            ],
             reform_config={
-                "eitc": {
+                "state_eitc": {
                     "enabled": True,
-                    "expansion_percent": 10,  # 10% of federal EITC
+                    "state": "NC",
+                    "match_rate": 0.20,
+                    "refundable": True,
                 }
             },
         ))
         return options
 
-    if programs.eitc is None:
-        # State doesn't have EITC - offer new programs
-        match_rates = [10, 25, 40]
-        for rate in match_rates:
-            options.append(ReformOption(
-                id=f"{programs.state_code.lower()}_new_eitc_{rate}",
-                name=f"{programs.state_name} EITC ({rate}% Match)",
-                description=f"Match {rate}% of the federal EITC for {programs.state_name} workers",
-                category=ReformCategory.STATE_EITC,
-                is_new_program=True,
-                is_enhancement=False,
-                estimated_household_impact=rate * 50,  # Rough estimate
-                customizable_params=["match_rate", "refundable"],
-                reform_config={
-                    "eitc": {
-                        "enabled": True,
-                        "expansion_percent": rate,
-                    }
-                },
-            ))
-    else:
-        # State has EITC - offer enhancements
+    # States with existing refundable EITC - offer adjustable match rate
+    if programs.eitc is not None and programs.eitc.refundable:
         current = programs.eitc
         current_rate = int(current.match_rate * 100)
 
-        # Increase match rate
-        for increase in [10, 25]:
-            new_rate = current_rate + increase
-            options.append(ReformOption(
-                id=f"{programs.state_code.lower()}_eitc_increase_{increase}",
-                name=f"Increase {current.name} by {increase} Points",
-                description=f"Increase match from {current_rate}% to {new_rate}% of federal EITC",
-                category=ReformCategory.STATE_EITC,
-                is_new_program=False,
-                is_enhancement=True,
-                estimated_household_impact=increase * 50,
-                reform_config={
-                    "eitc": {
-                        "enabled": True,
-                        "expansion_percent": increase,
-                    }
-                },
-            ))
-
-        # Expand for childless workers
-        if not current.has_childless_credit:
-            options.append(ReformOption(
-                id=f"{programs.state_code.lower()}_eitc_childless",
-                name="Expand EITC for Childless Workers",
-                description="Extend the state EITC to workers without children",
-                category=ReformCategory.STATE_EITC,
-                is_new_program=False,
-                is_enhancement=True,
-                reform_config={
-                    "eitc": {
-                        "enabled": True,
-                        "childless_expansion": True,
-                    }
-                },
-            ))
+        options.append(ReformOption(
+            id=f"{programs.state_code.lower()}_adjust_eitc_match",
+            name=f"Adjust {current.name} Match Rate",
+            description=f"Current: {current_rate}% match. Adjust the match rate from 0-100% of federal EITC.",
+            category=ReformCategory.STATE_EITC,
+            is_new_program=False,
+            is_enhancement=True,
+            is_configurable=True,
+            estimated_household_impact=500,  # Varies with rate
+            adjustable_params=[
+                AdjustableParameter(
+                    name="match_rate",
+                    label="Match rate",
+                    min_value=0,
+                    max_value=100,
+                    default_value=current_rate,
+                    step=5,
+                    unit="%",
+                    description=f"Current: {current_rate}%. Set the new match rate.",
+                ),
+            ],
+            reform_config={
+                "state_eitc": {
+                    "enabled": True,
+                    "state": programs.state_code,
+                    "match_rate": current.match_rate,
+                    "refundable": True,
+                }
+            },
+        ))
 
     return options
 

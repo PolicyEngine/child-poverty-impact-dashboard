@@ -1,9 +1,13 @@
 """
 API routes for policy analysis.
+
+Uses the PolicyEngine API directly for economy-wide calculations,
+following the same pattern as policyengine-app-v2.
 """
 
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks
+from pydantic import BaseModel
 import sys
 import os
 
@@ -19,12 +23,16 @@ from app.api.models.responses import (
     DecileImpactResponse,
 )
 from app.core.config import settings
-from modal_app.client import get_modal_client
+from app.api.policyengine_client import get_policyengine_client
+from app.api.reform_converter import (
+    reform_config_to_policyengine_format,
+    get_reform_for_option_ids,
+)
 
 router = APIRouter()
 
-# Get Modal client
-modal_client = get_modal_client(enabled=settings.MODAL_ENABLED)
+# Get PolicyEngine API client
+pe_client = get_policyengine_client()
 
 
 def convert_reform_request_to_config(reform: ReformRequest):
@@ -260,3 +268,110 @@ async def run_distributional_analysis(reform: ReformRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Distributional analysis failed: {str(e)}")
+
+
+class FromOptionsRequest(BaseModel):
+    """Request to run analysis from selected reform option IDs."""
+    state: str
+    year: int = 2025
+    reform_option_ids: List[str]
+
+
+@router.post("/from-options", response_model=AnalysisResponse)
+async def run_analysis_from_options(request: FromOptionsRequest):
+    """
+    Run statewide population analysis from selected reform option IDs.
+
+    Uses the PolicyEngine API directly for economy-wide calculations,
+    following the same pattern as policyengine-app-v2.
+    """
+    try:
+        # Map option IDs to display names
+        OPTION_NAMES = {
+            "federal_ctc_expanded": "Restore 2021 Expanded CTC",
+            "federal_ctc_universal": "Universal Child Allowance",
+            "federal_eitc_expansion": "50% EITC Expansion",
+            "federal_eitc_childless": "Expanded EITC for Childless Workers",
+        }
+
+        # Build reform name from selected options
+        reform_names = [
+            OPTION_NAMES.get(oid, oid.replace("_", " ").title())
+            for oid in request.reform_option_ids
+        ]
+        reform_name = " + ".join(reform_names[:3])
+        if len(reform_names) > 3:
+            reform_name += f" + {len(reform_names) - 3} more"
+
+        # Convert reform options to PolicyEngine API format
+        reform_dict = get_reform_for_option_ids(
+            request.reform_option_ids,
+            request.state.upper(),
+            request.year,
+        )
+
+        if not reform_dict:
+            # No valid PolicyEngine parameters - return baseline comparison
+            raise HTTPException(
+                status_code=400,
+                detail="Selected reforms could not be converted to PolicyEngine format. Try selecting a federal CTC option."
+            )
+
+        # Run analysis via PolicyEngine API
+        results = await pe_client.run_statewide_analysis(
+            reform_dict=reform_dict,
+            state=request.state.upper(),
+            year=request.year,
+            label=reform_name,
+        )
+
+        # Build response from results
+        poverty_dict = results["poverty"]
+        fiscal_dict = results["fiscal"]
+        dist_dict = results["distributional"]
+
+        poverty_response = PovertyImpactResponse(**poverty_dict)
+        fiscal_response = FiscalCostResponse(**fiscal_dict)
+
+        dist_response = DistributionalResponse(
+            decile_impacts=[DecileImpactResponse(**d) for d in dist_dict["decile_impacts"]],
+            average_gain_all=dist_dict["average_gain_all"],
+            average_gain_bottom_50=dist_dict["average_gain_bottom_50"],
+            average_gain_top_10=dist_dict["average_gain_top_10"],
+            share_to_bottom_20_pct=dist_dict["share_to_bottom_20_pct"],
+            share_to_bottom_50_pct=dist_dict["share_to_bottom_50_pct"],
+            share_to_top_20_pct=dist_dict["share_to_top_20_pct"],
+            share_to_top_10_pct=dist_dict["share_to_top_10_pct"],
+            baseline_gini=dist_dict["baseline_gini"],
+            reform_gini=dist_dict["reform_gini"],
+            gini_change=dist_dict["gini_change"],
+            percent_gaining=dist_dict["percent_gaining"],
+            percent_losing=dist_dict["percent_losing"],
+            percent_unchanged=dist_dict["percent_unchanged"],
+            state=dist_dict.get("state"),
+        )
+
+        headline_stats = {
+            "child_poverty_reduction_pct": abs(poverty_response.child_poverty_percent_change),
+            "total_cost_billions": fiscal_response.total_cost_billions,
+            "children_lifted_from_poverty": poverty_response.children_lifted_out_of_poverty,
+            "cost_per_child_lifted": fiscal_response.cost_per_child_lifted_from_poverty,
+        }
+
+        return AnalysisResponse(
+            reform_name=reform_name,
+            reform_description=f"Combined reform analysis for {request.state.upper()}",
+            year=request.year,
+            states_analyzed=[request.state.upper()],
+            poverty_impact=poverty_response,
+            fiscal_cost=fiscal_response,
+            distributional_impact=dist_response,
+            headline_stats=headline_stats,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")

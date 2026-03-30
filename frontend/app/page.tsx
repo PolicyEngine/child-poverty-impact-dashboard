@@ -159,8 +159,8 @@ export default function HomePage() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/analyze" className="btn btn-primary btn-lg group">
-                <span>Start Analysis</span>
+              <Link href="/report" className="btn btn-primary btn-lg group">
+                <span>Build Report</span>
                 <svg
                   className="w-5 h-5 group-hover:translate-x-1 transition-transform"
                   fill="none"
@@ -288,7 +288,7 @@ export default function HomePage() {
               </p>
             </div>
             <Link
-              href="/analyze"
+              href="/report"
               className="btn btn-ghost mt-4 lg:mt-0 self-start lg:self-auto"
             >
               Explore all options
@@ -389,10 +389,10 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link
-                  href="/analyze"
+                  href="/report"
                   className="btn btn-lg bg-white text-pe-teal-600 hover:bg-pe-gray-50 shadow-lg"
                 >
-                  Launch the Dashboard
+                  Build Your Report
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

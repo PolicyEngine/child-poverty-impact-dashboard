@@ -13,6 +13,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { colors, chartColors } from '@/lib/colors';
 import type { AnalysisResponse } from '@/lib/types';
 
 interface ResultsDisplayProps {
@@ -110,8 +111,8 @@ function PovertyImpactSection({ results }: { results: AnalysisResponse }) {
               <YAxis tickFormatter={(v) => `${v}%`} />
               <Tooltip formatter={(v: number) => `${v.toFixed(2)}%`} />
               <Legend />
-              <Bar dataKey="baseline" name="Baseline" fill="#94a3b8" />
-              <Bar dataKey="reform" name="Reform" fill="#2C6496" />
+              <Bar dataKey="baseline" name="Baseline" fill={chartColors.baseline} />
+              <Bar dataKey="reform" name="Reform" fill={chartColors.primary} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -154,11 +155,11 @@ function FiscalCostSection({ results }: { results: AnalysisResponse }) {
   const { fiscal_cost } = results;
 
   const costBreakdown = [
-    { name: 'CTC', value: fiscal_cost.ctc_cost_billions, color: '#2C6496' },
-    { name: 'EITC', value: fiscal_cost.eitc_cost_billions, color: '#39C6C0' },
-    { name: 'SNAP', value: fiscal_cost.snap_cost_billions, color: '#f59e0b' },
-    { name: 'UBI', value: fiscal_cost.ubi_cost_billions, color: '#8b5cf6' },
-    { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions, color: '#ec4899' },
+    { name: 'CTC', value: fiscal_cost.ctc_cost_billions, color: colors.primary[500] },
+    { name: 'EITC', value: fiscal_cost.eitc_cost_billions, color: colors.primary[300] },
+    { name: 'SNAP', value: fiscal_cost.snap_cost_billions, color: colors.blue[500] },
+    { name: 'UBI', value: fiscal_cost.ubi_cost_billions, color: colors.primary[700] },
+    { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions, color: colors.blue[300] },
   ].filter((item) => item.value > 0);
 
   return (
@@ -249,7 +250,7 @@ function DistributionalSection({ results }: { results: AnalysisResponse }) {
               <XAxis dataKey="decile" />
               <YAxis tickFormatter={(v) => `$${v}`} />
               <Tooltip formatter={(v: number) => `$${v.toFixed(0)}`} />
-              <Bar dataKey="gain" name="Average Gain" fill="#2C6496" />
+              <Bar dataKey="gain" name="Average Gain" fill={chartColors.primary} />
             </BarChart>
           </ResponsiveContainer>
         </div>

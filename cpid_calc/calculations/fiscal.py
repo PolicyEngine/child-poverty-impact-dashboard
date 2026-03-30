@@ -81,11 +81,12 @@ def calculate_fiscal_cost(
     Returns:
         FiscalCost with detailed fiscal impacts
     """
-    # Run simulations
-    baseline, reform = run_microsimulation(config)
+    # Run simulations - use state-specific dataset if single state provided
+    state = states[0] if states and len(states) == 1 else None
+    baseline, reform = run_microsimulation(config, state=state)
 
-    # Get filters
-    state_filter = get_state_filter(baseline, states or [])
+    # Note: When using state-specific dataset, no state filter is needed
+    # as all households are already from that state
 
     # Map state filter to households
     # This is a simplification - in practice would need proper aggregation

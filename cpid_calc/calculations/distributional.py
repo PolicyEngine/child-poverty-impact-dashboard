@@ -178,8 +178,9 @@ def calculate_distributional_impact(
     Returns:
         DistributionalImpact with detailed distributional analysis
     """
-    # Run simulations
-    baseline, reform = run_microsimulation(config)
+    # Run simulations - use state-specific dataset if single state provided
+    state = states[0] if states and len(states) == 1 else None
+    baseline, reform = run_microsimulation(config, state=state)
 
     # Get weights
     weights = get_household_weight(baseline, year)
