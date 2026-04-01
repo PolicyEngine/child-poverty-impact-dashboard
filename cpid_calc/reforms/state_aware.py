@@ -374,30 +374,40 @@ def _get_ctc_options(programs: StatePrograms) -> List[ReformOption]:
 def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
     """Generate EITC reform options for a state.
 
-    For now, only handles:
-    - States with existing refundable EITCs (adjust match rate)
-    - North Carolina (create new refundable EITC)
+    Uses dynamic EITC info from policyengine-us to handle:
+    - States without EITC: Create new refundable EITC
+    - States with nonrefundable EITC: Convert to refundable
+    - States with refundable EITC: Adjust match rate
     """
-    options = []
+    from cpid_calc.data.eitc_helper import get_state_eitc_info
 
-    # Special case: North Carolina - create new refundable EITC
-    if programs.state_code == "NC":
+    options = []
+    state = programs.state_code.upper()
+    eitc_info = get_state_eitc_info(state)
+
+    # Skip states without EITC infrastructure (no income tax, etc.)
+    if not eitc_info.uses_contrib_params and not eitc_info.has_baseline_eitc:
+        return options
+
+    # Case 1: States without baseline EITC - create new refundable EITC
+    if not eitc_info.has_baseline_eitc and eitc_info.uses_contrib_params:
+        default_rate = int(eitc_info.match_rate * 100) if eitc_info.match_rate > 0 else 20
         options.append(ReformOption(
-            id="nc_new_state_eitc",
-            name="Create North Carolina EITC",
-            description="Create a new refundable state EITC matching a percentage of the federal credit",
+            id=f"{state.lower()}_new_state_eitc",
+            name=f"Create {programs.state_name} EITC",
+            description=f"Create a new refundable state EITC matching a percentage of the federal credit",
             category=ReformCategory.STATE_EITC,
             is_new_program=True,
             is_enhancement=False,
             is_configurable=True,
-            estimated_household_impact=1000,  # At 20% match
+            estimated_household_impact=1000,
             adjustable_params=[
                 AdjustableParameter(
                     name="match_rate",
                     label="Match rate",
                     min_value=0,
                     max_value=100,
-                    default_value=20,
+                    default_value=default_rate,
                     step=5,
                     unit="%",
                     description="Percentage of federal EITC to match",
@@ -406,28 +416,70 @@ def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
             reform_config={
                 "state_eitc": {
                     "enabled": True,
-                    "state": "NC",
-                    "match_rate": 0.20,
+                    "state": state,
+                    "match_rate": default_rate / 100,
                     "refundable": True,
+                    "uses_contrib_params": True,
                 }
             },
         ))
         return options
 
-    # States with existing refundable EITC - offer adjustable match rate
-    if programs.eitc is not None and programs.eitc.refundable:
-        current = programs.eitc
-        current_rate = int(current.match_rate * 100)
-
+    # Case 2: States with baseline EITC that need contrib params (nonrefundable)
+    # CO, MO, OH have nonrefundable EITCs - offer to convert to refundable
+    if eitc_info.has_baseline_eitc and eitc_info.uses_contrib_params:
+        current_rate = int(eitc_info.match_rate * 100)
         options.append(ReformOption(
-            id=f"{programs.state_code.lower()}_adjust_eitc_match",
-            name=f"Adjust {current.name} Match Rate",
+            id=f"{state.lower()}_convert_eitc_refundable",
+            name=f"Convert {programs.state_name} EITC to Refundable",
+            description=f"Current law: {current_rate}% nonrefundable match. Create a refundable EITC that replaces the nonrefundable credit.",
+            category=ReformCategory.STATE_EITC,
+            is_new_program=False,
+            is_enhancement=True,
+            is_configurable=True,
+            estimated_household_impact=1500,
+            adjustable_params=[
+                AdjustableParameter(
+                    name="match_rate",
+                    label="Match rate",
+                    min_value=0,
+                    max_value=100,
+                    default_value=current_rate,
+                    step=5,
+                    unit="%",
+                    description=f"Current nonrefundable: {current_rate}%. Set the new refundable match rate.",
+                ),
+            ],
+            reform_config={
+                "state_eitc": {
+                    "enabled": True,
+                    "state": state,
+                    "match_rate": current_rate / 100,
+                    "refundable": True,
+                    "uses_contrib_params": True,
+                }
+            },
+        ))
+        return options
+
+    # Case 3: States with refundable EITC - adjust match rate
+    if eitc_info.has_baseline_eitc and not eitc_info.uses_contrib_params:
+        current_rate = int(eitc_info.match_rate * 100)
+
+        # Skip CA/WA which use fixed amounts
+        if eitc_info.match_rate == 0 and "fixed amounts" in eitc_info.notes:
+            return options
+
+        eitc_name = programs.eitc.name if programs.eitc else f"{programs.state_name} EITC"
+        options.append(ReformOption(
+            id=f"{state.lower()}_adjust_eitc_match",
+            name=f"Adjust {eitc_name} Match Rate",
             description=f"Current: {current_rate}% match. Adjust the match rate from 0-100% of federal EITC.",
             category=ReformCategory.STATE_EITC,
             is_new_program=False,
             is_enhancement=True,
             is_configurable=True,
-            estimated_household_impact=500,  # Varies with rate
+            estimated_household_impact=500,
             adjustable_params=[
                 AdjustableParameter(
                     name="match_rate",
@@ -443,9 +495,10 @@ def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
             reform_config={
                 "state_eitc": {
                     "enabled": True,
-                    "state": programs.state_code,
-                    "match_rate": current.match_rate,
+                    "state": state,
+                    "match_rate": current_rate / 100,
                     "refundable": True,
+                    "uses_contrib_params": False,
                 }
             },
         ))

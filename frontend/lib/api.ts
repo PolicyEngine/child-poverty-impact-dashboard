@@ -67,12 +67,14 @@ export async function runDistributionalAnalysis(
 export async function runAnalysisFromOptions(
   state: string,
   year: number,
-  reformOptionIds: string[]
+  reformOptionIds: string[],
+  parameterValues?: Record<string, Record<string, number>>
 ): Promise<AnalysisResponse> {
   const response = await api.post('/analysis/from-options', {
     state,
     year,
     reform_option_ids: reformOptionIds,
+    parameter_values: parameterValues,
   });
   return response.data;
 }

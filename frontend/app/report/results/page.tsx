@@ -77,6 +77,7 @@ interface ReportConfig {
   household: HouseholdInput | null;
   selectedReforms: string[];
   year: number;
+  parameterValues?: Record<string, Record<string, number>>;
 }
 
 interface TabConfig {
@@ -165,7 +166,8 @@ export default function ReportResultsPage() {
           const results = await runAnalysisFromOptions(
             parsedConfig.state,
             parsedConfig.year,
-            parsedConfig.selectedReforms
+            parsedConfig.selectedReforms,
+            parsedConfig.parameterValues
           );
           setStatewideResults(results);
         } else {

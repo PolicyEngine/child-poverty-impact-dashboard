@@ -112,6 +112,18 @@ class HouseholdImpactResponse(BaseModel):
     poverty_status_change: str
 
 
+class AdjustableParameterResponse(BaseModel):
+    """A parameter that users can adjust via slider."""
+    name: str
+    label: str
+    min_value: float
+    max_value: float
+    default_value: float
+    step: float = 1.0
+    unit: str = ""
+    description: str = ""
+
+
 class ReformOptionResponse(BaseModel):
     """A single reform option."""
     id: str
@@ -122,6 +134,8 @@ class ReformOptionResponse(BaseModel):
     is_enhancement: bool
     estimated_household_impact: Optional[float] = None
     customizable_params: List[str] = Field(default_factory=list)
+    is_configurable: bool = False
+    adjustable_params: List[AdjustableParameterResponse] = Field(default_factory=list)
 
 
 class StateReformOptionsResponse(BaseModel):

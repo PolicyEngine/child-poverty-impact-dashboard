@@ -275,6 +275,7 @@ class FromOptionsRequest(BaseModel):
     state: str
     year: int = 2025
     reform_option_ids: List[str]
+    parameter_values: Optional[dict] = None  # Maps option_id -> {param_name: value}
 
 
 @router.post("/from-options", response_model=AnalysisResponse)
@@ -308,6 +309,7 @@ async def run_analysis_from_options(request: FromOptionsRequest):
             request.reform_option_ids,
             request.state.upper(),
             request.year,
+            request.parameter_values,
         )
 
         if not reform_dict:
