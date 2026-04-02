@@ -149,7 +149,7 @@ class HouseholdConfig:
 
     # Filing
     filing_status: FilingStatus = FilingStatus.SINGLE
-    year: int = 2024
+    year: int = 2026
 
     # Household members
     adults: List[AdultConfig] = field(default_factory=list)

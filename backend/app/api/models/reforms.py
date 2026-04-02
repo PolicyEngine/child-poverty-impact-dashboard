@@ -100,7 +100,7 @@ class ReformRequest(BaseModel):
     """Complete reform configuration request."""
     name: str = Field(default="Custom Reform", max_length=100)
     description: str = Field(default="", max_length=500)
-    year: int = Field(default=2024, ge=2020, le=2035)
+    year: int = Field(default=2026, ge=2026, le=2035)
     states: List[str] = Field(default_factory=list, description="States to analyze")
 
     # Individual reforms

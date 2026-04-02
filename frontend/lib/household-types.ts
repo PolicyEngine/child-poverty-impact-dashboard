@@ -141,7 +141,7 @@ export interface IncomeSweepResponse {
 // Default values
 export const defaultHousehold: HouseholdInput = {
   state: 'CA',
-  year: 2024,
+  year: 2026,
   filing_status: 'single',
   adults: [{ age: 30 }],
   children: [],
@@ -152,7 +152,7 @@ export const defaultHousehold: HouseholdInput = {
 
 export const defaultSingleParent: HouseholdInput = {
   state: 'CA',
-  year: 2024,
+  year: 2026,
   filing_status: 'head_of_household',
   adults: [{ age: 35 }],
   children: [{ age: 5 }, { age: 8 }],
@@ -163,7 +163,7 @@ export const defaultSingleParent: HouseholdInput = {
 
 export const defaultMarriedCouple: HouseholdInput = {
   state: 'CA',
-  year: 2024,
+  year: 2026,
   filing_status: 'married_filing_jointly',
   adults: [{ age: 35 }, { age: 33 }],
   children: [{ age: 3 }, { age: 7 }],

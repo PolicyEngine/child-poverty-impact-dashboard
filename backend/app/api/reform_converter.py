@@ -225,6 +225,10 @@ def get_reform_for_option_ids(
 
 def _is_eitc_option(option_id: str) -> bool:
     """Check if an option ID is for a state EITC reform."""
+    # Match new format: {state}_eitc (e.g., "ny_eitc", "in_eitc")
+    if option_id.endswith("_eitc") and len(option_id) == 7:  # 2-letter state + "_eitc"
+        return True
+    # Also match old formats for backwards compatibility
     eitc_patterns = [
         "_new_state_eitc",
         "_convert_eitc_refundable",

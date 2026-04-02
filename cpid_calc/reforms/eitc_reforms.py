@@ -105,13 +105,10 @@ def get_eitc_reform_for_state(
     match_rate: float,
     year: int = 2026,
 ) -> Dict[str, Any]:
-    """Get the appropriate EITC reform for a state.
+    """Get the appropriate EITC reform for a state using JSON config.
 
-    Automatically selects the correct parameter path based on state:
-    - States without EITC: Use contributed params
-    - States with nonrefundable EITC: Use contributed params
-    - States with refundable EITC: Modify existing match rate
-    - NC: Uses special contributed param path
+    Reads parameter paths from eitc_reforms.json and builds the reform dict
+    with proper date range formatting for the PolicyEngine API.
 
     Args:
         state: Two-letter state code
@@ -121,15 +118,41 @@ def get_eitc_reform_for_state(
     Returns:
         Reform dictionary in PolicyEngine API format
     """
-    st = state.upper()
+    import json
+    import os
 
-    if st == "NC":
-        return create_nc_eitc_reform(match_rate=match_rate, year=year)
-    elif st in STATES_WITH_CPID_EITC_PARAMS:
-        return create_state_eitc_reform(state=state, match_rate=match_rate, year=year)
+    st = state.upper()
+    date_range = f"{year}-01-01.2100-12-31"
+
+    # Load config from JSON
+    json_path = os.path.join(os.path.dirname(__file__), "eitc_reforms.json")
+    try:
+        with open(json_path, "r") as f:
+            params = json.load(f)
+    except FileNotFoundError:
+        # Fallback to hardcoded logic
+        if st == "NC":
+            return create_nc_eitc_reform(match_rate=match_rate, year=year)
+        elif st in STATES_WITH_CPID_EITC_PARAMS:
+            return create_state_eitc_reform(state=state, match_rate=match_rate, year=year)
+        else:
+            return create_existing_eitc_reform(state=state, match_rate=match_rate, year=year)
+
+    cfg = params.get(st)
+    if cfg is None:
+        # No income tax state
+        return {}
+
+    reform = {}
+    if cfg["type"] == "contrib":
+        reform[cfg["in_effect"]] = {date_range: True}
+        reform[cfg["match"]] = {date_range: match_rate}
+        if "zero_out" in cfg and match_rate > 0:
+            reform[cfg["zero_out"]] = {date_range: 0}
     else:
-        # States with existing refundable EITC - modify the match rate
-        return create_existing_eitc_reform(state=state, match_rate=match_rate, year=year)
+        reform[cfg["match"]] = {date_range: match_rate}
+
+    return reform
 
 
 # States that use the child_poverty_impact_dashboard EITC params

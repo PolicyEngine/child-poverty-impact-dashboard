@@ -40,7 +40,7 @@ class IncomeRequest(BaseModel):
 class HouseholdRequest(BaseModel):
     """Complete household configuration."""
     state: str = Field(max_length=2, min_length=2)
-    year: int = Field(default=2024, ge=2020, le=2035)
+    year: int = Field(default=2026, ge=2026, le=2035)
     filing_status: str = Field(default="single")
 
     adults: List[PersonRequest] = Field(default_factory=list)
