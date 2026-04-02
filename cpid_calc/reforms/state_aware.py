@@ -372,85 +372,49 @@ def _get_ctc_options(programs: StatePrograms) -> List[ReformOption]:
 
 
 def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
-    """Generate EITC reform options for a state.
+    """Generate one EITC reform option per state with configurable match rate slider."""
+    state = programs.state_code.upper()
 
-    For now, only handles:
-    - States with existing refundable EITCs (adjust match rate)
-    - North Carolina (create new refundable EITC)
-    """
-    options = []
+    # Skip states without income tax - can't have state EITC
+    if not programs.has_income_tax:
+        return []
 
-    # Special case: North Carolina - create new refundable EITC
-    if programs.state_code == "NC":
-        options.append(ReformOption(
-            id="nc_new_state_eitc",
-            name="Create North Carolina EITC",
-            description="Create a new refundable state EITC matching a percentage of the federal credit",
-            category=ReformCategory.STATE_EITC,
-            is_new_program=True,
-            is_enhancement=False,
-            is_configurable=True,
-            estimated_household_impact=1000,  # At 20% match
-            adjustable_params=[
-                AdjustableParameter(
-                    name="match_rate",
-                    label="Match rate",
-                    min_value=0,
-                    max_value=100,
-                    default_value=20,
-                    step=5,
-                    unit="%",
-                    description="Percentage of federal EITC to match",
-                ),
-            ],
-            reform_config={
-                "state_eitc": {
-                    "enabled": True,
-                    "state": "NC",
-                    "match_rate": 0.20,
-                    "refundable": True,
-                }
-            },
-        ))
-        return options
+    # Get current match rate if state has EITC, otherwise default to 0
+    current_rate = 0
+    if programs.eitc and programs.eitc.match_rate > 0:
+        current_rate = int(programs.eitc.match_rate * 100)
 
-    # States with existing refundable EITC - offer adjustable match rate
-    if programs.eitc is not None and programs.eitc.refundable:
-        current = programs.eitc
-        current_rate = int(current.match_rate * 100)
+    has_existing = programs.eitc is not None
 
-        options.append(ReformOption(
-            id=f"{programs.state_code.lower()}_adjust_eitc_match",
-            name=f"Adjust {current.name} Match Rate",
-            description=f"Current: {current_rate}% match. Adjust the match rate from 0-100% of federal EITC.",
-            category=ReformCategory.STATE_EITC,
-            is_new_program=False,
-            is_enhancement=True,
-            is_configurable=True,
-            estimated_household_impact=500,  # Varies with rate
-            adjustable_params=[
-                AdjustableParameter(
-                    name="match_rate",
-                    label="Match rate",
-                    min_value=0,
-                    max_value=100,
-                    default_value=current_rate,
-                    step=5,
-                    unit="%",
-                    description=f"Current: {current_rate}%. Set the new match rate.",
-                ),
-            ],
-            reform_config={
-                "state_eitc": {
-                    "enabled": True,
-                    "state": programs.state_code,
-                    "match_rate": current.match_rate,
-                    "refundable": True,
-                }
-            },
-        ))
-
-    return options
+    return [ReformOption(
+        id=f"{state.lower()}_eitc",
+        name=f"{programs.state_name} EITC",
+        description=f"{'Adjust' if has_existing else 'Create'} state EITC as percentage of federal EITC. Current: {current_rate}%.",
+        category=ReformCategory.STATE_EITC,
+        is_new_program=not has_existing,
+        is_enhancement=has_existing,
+        is_configurable=True,
+        estimated_household_impact=500,
+        adjustable_params=[
+            AdjustableParameter(
+                name="match_rate",
+                label="Match rate",
+                min_value=0,
+                max_value=100,
+                default_value=current_rate,
+                step=5,
+                unit="%",
+                description=f"Percentage of federal EITC. Current: {current_rate}%.",
+            ),
+        ],
+        reform_config={
+            "state_eitc": {
+                "enabled": True,
+                "state": state,
+                "match_rate": current_rate / 100,
+            }
+        },
+    )]
 
 
 def _get_snap_options() -> List[ReformOption]:
@@ -658,7 +622,7 @@ def _get_federal_options() -> List[ReformOption]:
 def build_reform_from_options(
     options: List[ReformOption],
     state: str,
-    year: int = 2024,
+    year: int = 2026,
 ) -> ReformConfig:
     """
     Build a ReformConfig from selected reform options.
@@ -678,6 +642,7 @@ def build_reform_from_options(
         SNAPConfig,
         UBIConfig,
         StateCTCConfig,
+        StateEITCConfig,
     )
 
     config = ReformConfig(
@@ -710,5 +675,9 @@ def build_reform_from_options(
         if "state_ctc" in option.reform_config:
             state_ctc_data = option.reform_config["state_ctc"]
             config.state_ctc = StateCTCConfig(**{**config.state_ctc.__dict__, **state_ctc_data})
+
+        if "state_eitc" in option.reform_config:
+            state_eitc_data = option.reform_config["state_eitc"]
+            config.state_eitc = StateEITCConfig(**{**config.state_eitc.__dict__, **state_eitc_data})
 
     return config

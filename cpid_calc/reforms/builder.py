@@ -47,6 +47,9 @@ def create_reform(config: ReformConfig) -> Optional[Reform]:
     if config.state_ctc.enabled:
         reform_dict.update(_build_state_ctc_reform(config))
 
+    if config.state_eitc.enabled:
+        reform_dict.update(_build_state_eitc_reform(config))
+
     return create_reform_from_dict(reform_dict, config.year)
 
 
@@ -164,24 +167,42 @@ def _build_snap_reform(config: ReformConfig) -> Dict[str, Any]:
 
 
 def _build_state_ctc_reform(config: ReformConfig) -> Dict[str, Any]:
-    """Build state-level CTC reform parameters.
-
-    Note: State CTC parameter structures vary significantly by state.
-    Each state has unique parameter paths based on how their CTC is
-    structured in PolicyEngine. For example:
-    - NY: gov.states.ny.tax.income.credits.ctc.amount.percent
-    - MD: gov.states.md.tax.income.credits.ctc.amount
-    etc.
-
-    This builder currently does not support arbitrary state CTC changes
-    as it would require state-specific parameter path mappings.
-    """
+    """Build state-level CTC reform parameters."""
     state_ctc = config.state_ctc
     reform = {}
-    state = state_ctc.state.lower()
+    # State CTCs have varying parameter structures - not yet implemented
+    return reform
 
-    # State CTCs have varying parameter structures.
-    # For now, we attempt common patterns but may not cover all states.
-    # The reform will still run but without state CTC modifications.
+
+def _build_state_eitc_reform(config: ReformConfig) -> Dict[str, Any]:
+    """Build state EITC reform using eitc_reforms.json parameter paths."""
+    import json
+    import os
+
+    state_eitc = config.state_eitc
+    reform = {}
+    state = state_eitc.state.upper()
+    match_rate = state_eitc.match_rate
+
+    # Load EITC parameter paths from JSON
+    json_path = os.path.join(os.path.dirname(__file__), "eitc_reforms.json")
+    with open(json_path) as f:
+        eitc_params = json.load(f)
+
+    state_config = eitc_params.get(state)
+    if state_config is None:
+        return reform  # No income tax state
+
+    if state_config["type"] == "contrib":
+        # Use contrib params to create/modify refundable EITC
+        reform[state_config["in_effect"]] = True
+        reform[state_config["match"]] = match_rate
+
+        # Zero out nonrefundable EITC if it exists
+        if "zero_out" in state_config and match_rate > 0:
+            reform[state_config["zero_out"]] = 0
+    else:
+        # Modify existing state EITC match rate
+        reform[state_config["match"]] = match_rate
 
     return reform

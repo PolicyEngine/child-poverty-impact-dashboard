@@ -105,6 +105,14 @@ class StateCTCConfig:
 
 
 @dataclass
+class StateEITCConfig:
+    """State-level EITC configuration."""
+    enabled: bool = False
+    state: str = ""  # Two-letter state code
+    match_rate: float = 0  # Match rate as decimal (0.20 = 20% of federal EITC)
+
+
+@dataclass
 class ReformConfig:
     """
     Complete reform configuration combining all policy options.
@@ -113,7 +121,7 @@ class ReformConfig:
     """
     name: str = "Custom Reform"
     description: str = ""
-    year: int = 2024
+    year: int = 2026
 
     # Target states (empty = all states)
     states: list[str] = field(default_factory=list)
@@ -127,6 +135,7 @@ class ReformConfig:
     ubi: UBIConfig = field(default_factory=UBIConfig)
     snap: SNAPConfig = field(default_factory=SNAPConfig)
     state_ctc: StateCTCConfig = field(default_factory=StateCTCConfig)
+    state_eitc: StateEITCConfig = field(default_factory=StateEITCConfig)
 
     def get_enabled_reforms(self) -> list[str]:
         """Return list of enabled reform types."""
@@ -143,6 +152,8 @@ class ReformConfig:
             enabled.append("snap")
         if self.state_ctc.enabled:
             enabled.append("state_ctc")
+        if self.state_eitc.enabled:
+            enabled.append("state_eitc")
         return enabled
 
     def to_dict(self) -> dict:
@@ -179,4 +190,6 @@ class ReformConfig:
             if "age_eligibility" in state_ctc_data and isinstance(state_ctc_data["age_eligibility"], str):
                 state_ctc_data["age_eligibility"] = AgeEligibility(state_ctc_data["age_eligibility"])
             data["state_ctc"] = StateCTCConfig(**state_ctc_data)
+        if "state_eitc" in data and isinstance(data["state_eitc"], dict):
+            data["state_eitc"] = StateEITCConfig(**data["state_eitc"])
         return cls(**data)

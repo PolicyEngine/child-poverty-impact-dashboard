@@ -39,7 +39,7 @@ export default function ComparePage() {
     const reform: ReformRequest = {
       name: 'Expanded CTC',
       description: `$${reformConfig.ctcAmount} CTC`,
-      year: 2024,
+      year: 2026,
       states: selectedStates,
       ctc: {
         enabled: true,

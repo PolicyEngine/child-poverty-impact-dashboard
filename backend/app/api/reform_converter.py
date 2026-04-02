@@ -11,6 +11,8 @@ The PolicyEngine API expects reforms as:
 
 from typing import Any, Dict, List, Optional
 
+from cpid_calc.reforms.eitc_reforms import get_eitc_reform_for_state
+
 
 def reform_options_to_policyengine_format(
     reform_option_ids: List[str],
@@ -185,30 +187,85 @@ def get_reform_for_option_ids(
     option_ids: List[str],
     state: str,
     year: int = 2025,
+    parameter_values: Optional[Dict[str, Dict[str, float]]] = None,
 ) -> Dict[str, Any]:
     """
     Get PolicyEngine reform dictionary for given option IDs.
 
-    Uses predefined reforms for known IDs. Unknown IDs are skipped
-    (they may be state-specific options that aren't yet mapped to
-    PolicyEngine parameters).
+    Uses predefined reforms for known IDs. State EITC reforms use
+    the contributed parameters from policyengine-us PR #7895.
 
     Args:
         option_ids: List of reform option IDs
         state: State code
         year: Tax year
+        parameter_values: Optional dict mapping option_id -> {param_name: value}
+                         For EITC, expects {"match_rate": 0-100}
 
     Returns:
         Combined reform dictionary in PolicyEngine format
     """
     combined_reform = {}
+    parameter_values = parameter_values or {}
 
     for option_id in option_ids:
         if option_id in PREDEFINED_REFORMS:
             # Use predefined reform
             reform = PREDEFINED_REFORMS[option_id](year)
             combined_reform.update(reform)
-        # Note: Unknown option IDs are skipped since they may require
-        # state-specific parameter mappings that aren't yet implemented
+
+        # Handle state EITC reforms
+        elif _is_eitc_option(option_id):
+            reform = _build_eitc_reform(option_id, state, year, parameter_values)
+            if reform:
+                combined_reform.update(reform)
 
     return combined_reform
+
+
+def _is_eitc_option(option_id: str) -> bool:
+    """Check if an option ID is for a state EITC reform."""
+    # Match new format: {state}_eitc (e.g., "ny_eitc", "in_eitc")
+    if option_id.endswith("_eitc") and len(option_id) == 7:  # 2-letter state + "_eitc"
+        return True
+    # Also match old formats for backwards compatibility
+    eitc_patterns = [
+        "_new_state_eitc",
+        "_convert_eitc_refundable",
+        "_adjust_eitc_match",
+    ]
+    return any(pattern in option_id for pattern in eitc_patterns)
+
+
+def _build_eitc_reform(
+    option_id: str,
+    state: str,
+    year: int,
+    parameter_values: Dict[str, Dict[str, float]],
+) -> Dict[str, Any]:
+    """
+    Build EITC reform from option ID and parameter values.
+
+    Args:
+        option_id: The EITC option ID (e.g., "nc_new_state_eitc")
+        state: State code
+        year: Tax year
+        parameter_values: Dict mapping option_id -> {param_name: value}
+
+    Returns:
+        Reform dictionary in PolicyEngine API format
+    """
+    # Extract state from option_id if not matching
+    option_state = option_id.split("_")[0].upper()
+    if option_state != state.upper():
+        state = option_state
+
+    # Get match rate from parameter_values or use default
+    option_params = parameter_values.get(option_id, {})
+    match_rate_percent = option_params.get("match_rate", 20)  # Default 20%
+    match_rate = match_rate_percent / 100  # Convert to decimal
+
+    # Use the eitc_reforms module to create the reform
+    # Works for all states - contributed params for new/nonrefundable,
+    # existing params for states with refundable EITCs
+    return get_eitc_reform_for_state(state, match_rate, year)

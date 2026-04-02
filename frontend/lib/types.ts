@@ -234,7 +234,7 @@ export const defaultStateCTCConfig: StateCTCConfig = {
 export const defaultReformRequest: ReformRequest = {
   name: 'Custom Reform',
   description: '',
-  year: 2024,
+  year: 2026,
   states: [],
   ctc: defaultCTCConfig,
   eitc: defaultEITCConfig,

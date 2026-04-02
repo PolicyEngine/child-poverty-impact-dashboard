@@ -30,7 +30,7 @@ interface ReportConfig {
 }
 
 // Available years for analysis
-const AVAILABLE_YEARS = [2023, 2024, 2025, 2026, 2027, 2028];
+const AVAILABLE_YEARS = [2026, 2027, 2028, 2029, 2030];
 
 const STEPS: { key: Step; label: string; icon: React.ReactNode }[] = [
   {

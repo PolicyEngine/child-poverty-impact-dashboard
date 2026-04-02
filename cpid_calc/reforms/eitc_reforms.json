@@ -1,0 +1,250 @@
+{
+  "_comment": "EITC parameter paths. type=existing uses gov.states param, type=contrib uses contrib params for new/refundable EITC. null=no income tax.",
+
+  "AL": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.al.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.al.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "AK": null,
+  "AZ": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.az.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.az.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "AR": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.ar.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.ar.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "CA": {
+    "type": "existing",
+    "match": "gov.states.ca.tax.income.credits.eitc.match",
+    "current_rate": 0.85,
+    "note": "CalEITC uses complex structure"
+  },
+  "CO": {
+    "type": "existing",
+    "match": "gov.states.co.tax.income.credits.eitc.match",
+    "current_rate": 0.25
+  },
+  "CT": {
+    "type": "existing",
+    "match": "gov.states.ct.tax.income.credits.eitc.match",
+    "current_rate": 0.40
+  },
+  "DC": {
+    "type": "existing",
+    "match": "gov.states.dc.tax.income.credits.eitc.with_children.match",
+    "current_rate": 0.70,
+    "note": "DC has complex with/without children structure"
+  },
+  "DE": {
+    "type": "existing",
+    "match": "gov.states.de.tax.income.credits.eitc.refundable",
+    "current_rate": 0.20
+  },
+  "FL": null,
+  "GA": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.ga.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.ga.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "HI": {
+    "type": "existing",
+    "match": "gov.states.hi.tax.income.credits.eitc.match",
+    "current_rate": 0.40
+  },
+  "ID": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.id.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.id.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "IL": {
+    "type": "existing",
+    "match": "gov.states.il.tax.income.credits.eitc.match",
+    "current_rate": 0.20
+  },
+  "IN": {
+    "type": "existing",
+    "match": "gov.states.in.tax.income.credits.earned_income.match_rate",
+    "current_rate": 0.10
+  },
+  "IA": {
+    "type": "existing",
+    "match": "gov.states.ia.tax.income.credits.earned_income.fraction",
+    "current_rate": 0.15
+  },
+  "KS": {
+    "type": "existing",
+    "match": "gov.states.ks.tax.income.credits.eitc_fraction",
+    "current_rate": 0.17
+  },
+  "KY": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.ky.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.ky.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "LA": {
+    "type": "existing",
+    "match": "gov.states.la.tax.income.credits.eitc.match",
+    "current_rate": 0.05
+  },
+  "ME": {
+    "type": "existing",
+    "match": "gov.states.me.tax.income.credits.eitc.rate.with_qualifying_child",
+    "current_rate": 0.25,
+    "note": "ME has separate rates for with/without children"
+  },
+  "MD": {
+    "type": "existing",
+    "match": "gov.states.md.tax.income.credits.eitc.refundable.married_or_has_child.match",
+    "current_rate": 0.45,
+    "note": "MD has complex structure"
+  },
+  "MA": {
+    "type": "existing",
+    "match": "gov.states.ma.tax.income.credits.eitc.match",
+    "current_rate": 0.40
+  },
+  "MI": {
+    "type": "existing",
+    "match": "gov.states.mi.tax.income.credits.eitc.match",
+    "current_rate": 0.30
+  },
+  "MN": {
+    "type": "existing",
+    "match": "gov.states.mn.tax.income.credits.cwfc.wfc.phase_in",
+    "current_rate": 0.34,
+    "note": "MN has complex Working Families Credit structure"
+  },
+  "MS": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.ms.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.ms.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "MO": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0.20,
+    "zero_out": "gov.states.mo.tax.income.credits.wftc.match",
+    "note": "MO has nonrefundable WFTC - zero it out when creating refundable"
+  },
+  "MT": {
+    "type": "existing",
+    "match": "gov.states.mt.tax.income.credits.eitc.match",
+    "current_rate": 0.03
+  },
+  "NE": {
+    "type": "existing",
+    "match": "gov.states.ne.tax.income.credits.eitc.fraction",
+    "current_rate": 0.10
+  },
+  "NV": null,
+  "NH": null,
+  "NJ": {
+    "type": "existing",
+    "match": "gov.states.nj.tax.income.credits.eitc.match",
+    "current_rate": 0.40
+  },
+  "NM": {
+    "type": "existing",
+    "match": "gov.states.nm.tax.income.credits.eitc.match",
+    "current_rate": 0.25
+  },
+  "NY": {
+    "type": "existing",
+    "match": "gov.states.ny.tax.income.credits.eitc.match",
+    "current_rate": 0.30
+  },
+  "NC": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.nc.eitc.in_effect",
+    "match": "gov.contrib.states.nc.eitc.match",
+    "current_rate": 0
+  },
+  "ND": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.nd.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.nd.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "OH": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0.30,
+    "zero_out": "gov.states.oh.tax.income.credits.eitc.rate",
+    "note": "OH has nonrefundable EITC - zero it out when creating refundable"
+  },
+  "OK": {
+    "type": "existing",
+    "match": "gov.states.ok.tax.income.credits.earned_income.eitc_fraction",
+    "current_rate": 0.05
+  },
+  "OR": {
+    "type": "existing",
+    "match": "gov.states.or.tax.income.credits.eitc.match.no_young_child",
+    "current_rate": 0.09,
+    "note": "OR has different rates for young child"
+  },
+  "PA": {
+    "type": "existing",
+    "match": "gov.states.pa.tax.income.credits.eitc.match",
+    "current_rate": 0.25
+  },
+  "RI": {
+    "type": "existing",
+    "match": "gov.states.ri.tax.income.credits.eitc.match",
+    "current_rate": 0.16
+  },
+  "SC": {
+    "type": "existing",
+    "match": "gov.states.sc.tax.income.credits.eitc.rate",
+    "current_rate": 1.25,
+    "note": "SC has 125% match rate"
+  },
+  "SD": null,
+  "TN": null,
+  "TX": null,
+  "UT": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0.20,
+    "zero_out": "gov.states.ut.tax.income.credits.earned_income.rate",
+    "note": "UT has nonrefundable EITC - zero it out when creating refundable"
+  },
+  "VT": {
+    "type": "existing",
+    "match": "gov.states.vt.tax.income.credits.eitc.match",
+    "current_rate": 0.38
+  },
+  "VA": {
+    "type": "existing",
+    "match": "gov.states.va.tax.income.credits.eitc.match.refundable",
+    "current_rate": 0.20
+  },
+  "WA": null,
+  "WV": {
+    "type": "contrib",
+    "in_effect": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.in_effect",
+    "match": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.match",
+    "current_rate": 0
+  },
+  "WI": {
+    "type": "existing",
+    "match": "gov.states.wi.tax.income.credits.earned_income.fraction",
+    "current_rate": 0.11,
+    "note": "WI has brackets by number of children - using 2-child rate"
+  },
+  "WY": null
+}
