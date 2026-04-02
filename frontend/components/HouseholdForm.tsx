@@ -13,12 +13,14 @@ interface HouseholdFormProps {
   initialValues?: Partial<HouseholdInput>;
   onSubmit: (household: HouseholdInput) => void;
   isLoading?: boolean;
+  submitLabel?: string;
 }
 
 export default function HouseholdForm({
   initialValues,
   onSubmit,
   isLoading = false,
+  submitLabel = 'Calculate Benefits & Taxes',
 }: HouseholdFormProps) {
   const [household, setHousehold] = useState<HouseholdInput>({
     ...defaultHousehold,
@@ -424,7 +426,7 @@ export default function HouseholdForm({
         disabled={isLoading}
         className="btn btn-primary w-full py-3 text-lg"
       >
-        {isLoading ? 'Calculating...' : 'Calculate Benefits & Taxes'}
+        {isLoading ? 'Calculating...' : submitLabel}
       </button>
     </form>
   );
