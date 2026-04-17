@@ -83,6 +83,11 @@ export interface DecileImpact {
   average_gain: number;
   percent_gaining: number;
   percent_losing: number;
+  gain_more_than_5_pct?: number;
+  gain_less_than_5_pct?: number;
+  no_change_pct?: number;
+  lose_less_than_5_pct?: number;
+  lose_more_than_5_pct?: number;
   total_benefit_billions: number;
   share_of_total_benefit: number;
 }
@@ -136,6 +141,11 @@ export interface DistributionalResponse {
   percent_gaining: number;
   percent_losing: number;
   percent_unchanged: number;
+  all_gain_more_than_5_pct?: number;
+  all_gain_less_than_5_pct?: number;
+  all_no_change_pct?: number;
+  all_lose_less_than_5_pct?: number;
+  all_lose_more_than_5_pct?: number;
   state: string | null;
 }
 

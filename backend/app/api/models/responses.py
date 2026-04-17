@@ -12,6 +12,11 @@ class DecileImpactResponse(BaseModel):
     average_gain: float
     percent_gaining: float
     percent_losing: float
+    gain_more_than_5_pct: float = 0
+    gain_less_than_5_pct: float = 0
+    no_change_pct: float = 0
+    lose_less_than_5_pct: float = 0
+    lose_more_than_5_pct: float = 0
     total_benefit_billions: float
     share_of_total_benefit: float
 
@@ -68,6 +73,11 @@ class DistributionalResponse(BaseModel):
     percent_gaining: float
     percent_losing: float
     percent_unchanged: float
+    all_gain_more_than_5_pct: float = 0
+    all_gain_less_than_5_pct: float = 0
+    all_no_change_pct: float = 0
+    all_lose_less_than_5_pct: float = 0
+    all_lose_more_than_5_pct: float = 0
     state: Optional[str] = None
 
 

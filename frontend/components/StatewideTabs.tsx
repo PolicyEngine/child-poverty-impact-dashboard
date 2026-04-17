@@ -20,12 +20,13 @@ const COLORS = {
   primary: '#319795',
   primaryDark: '#285E61',
   positive: '#319795',
-  negative: '#9C2127',
-  gainMore5: '#319795',
-  gainLess5: '#7EC2C0',
-  noChange: '#E2E8F0',
-  loseLess5: '#D9A0A2',
-  loseMore5: '#9C2127',
+  negative: '#6B7280',
+  // Winners shaded by gain size; losers shaded grey (neutral)
+  gainMore5: '#285E61',   // darker teal
+  gainLess5: '#7EC2C0',   // lighter teal
+  noChange: '#E2E8F0',    // very light grey
+  loseLess5: '#9CA3AF',   // medium grey
+  loseMore5: '#4B5563',   // dark grey
   baseline: '#6B7280',
   reform: '#319795',
 };
@@ -371,7 +372,7 @@ export function StatewideFiscal({ results, year }: TabProps) {
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-900">{p.name}</td>
                     <td className="px-4 py-3 font-semibold text-right"
-                      style={{ color: p.value > 0 ? COLORS.negative : COLORS.positive }}>
+                      style={{ color: p.value > 0 ? '#4B5563' : COLORS.primary }}>
                       {formatBillions(-p.value)}
                     </td>
                   </tr>
@@ -433,16 +434,7 @@ export function StatewideDistributional({ results }: TabProps) {
 
       {activeView === 'winners' && (
         <WinnersLosersView
-          percentGaining={distributional_impact.percent_gaining}
-          percentLosing={distributional_impact.percent_losing}
-          percentUnchanged={distributional_impact.percent_unchanged}
-          decileImpacts={distributional_impact.decile_impacts}
-          averageGainAll={distributional_impact.average_gain_all}
-          averageGainBottom50={distributional_impact.average_gain_bottom_50}
-          shareToBottom20={distributional_impact.share_to_bottom_20_pct}
-          shareToBottom50={distributional_impact.share_to_bottom_50_pct}
-          shareToTop20={distributional_impact.share_to_top_20_pct}
-          shareToTop10={distributional_impact.share_to_top_10_pct}
+          distributional={distributional_impact}
         />
       )}
     </div>
@@ -566,53 +558,63 @@ function DecileView({
 }
 
 function WinnersLosersView({
-  percentGaining,
-  percentLosing,
-  percentUnchanged,
-  decileImpacts,
-  averageGainAll,
-  averageGainBottom50,
-  shareToBottom20,
-  shareToBottom50,
-  shareToTop20,
-  shareToTop10,
+  distributional,
 }: {
-  percentGaining: number;
-  percentLosing: number;
-  percentUnchanged: number;
-  decileImpacts: AnalysisResponse['distributional_impact']['decile_impacts'];
-  averageGainAll: number;
-  averageGainBottom50: number;
-  shareToBottom20: number;
-  shareToBottom50: number;
-  shareToTop20: number;
-  shareToTop10: number;
+  distributional: AnalysisResponse['distributional_impact'];
 }) {
-  // Stacked data: gaining / unchanged / losing per decile
-  const stackedData = decileImpacts.map((d) => ({
-    label: `${d.decile}`,
-    gaining: d.percent_gaining,
-    unchanged: Math.max(0, 100 - d.percent_gaining - d.percent_losing),
-    losing: d.percent_losing,
-  }));
+  const categories = [
+    { key: 'gainMore5', label: 'Gain more than 5%', color: COLORS.gainMore5 },
+    { key: 'gainLess5', label: 'Gain less than 5%', color: COLORS.gainLess5 },
+    { key: 'noChange', label: 'No change', color: COLORS.noChange },
+    { key: 'loseLess5', label: 'Lose less than 5%', color: COLORS.loseLess5 },
+    { key: 'loseMore5', label: 'Lose more than 5%', color: COLORS.loseMore5 },
+  ] as const;
+
+  // "All" row uses aggregate 5-category data (with fallback to coarse data)
+  const allGainMore = distributional.all_gain_more_than_5_pct ?? 0;
+  const allGainLess = distributional.all_gain_less_than_5_pct ?? distributional.percent_gaining;
+  const allNoChange = distributional.all_no_change_pct ?? distributional.percent_unchanged;
+  const allLoseLess = distributional.all_lose_less_than_5_pct ?? distributional.percent_losing;
+  const allLoseMore = distributional.all_lose_more_than_5_pct ?? 0;
+
+  // "All" first, then deciles 10 down to 1
+  const sortedDeciles = [...distributional.decile_impacts].sort((a, b) => b.decile - a.decile);
+  const stackedData = [
+    {
+      label: 'All',
+      gainMore5: allGainMore,
+      gainLess5: allGainLess,
+      noChange: allNoChange,
+      loseLess5: allLoseLess,
+      loseMore5: allLoseMore,
+    },
+    ...sortedDeciles.map((d) => ({
+      label: `${d.decile}`,
+      gainMore5: d.gain_more_than_5_pct ?? 0,
+      gainLess5: d.gain_less_than_5_pct ?? d.percent_gaining,
+      noChange: d.no_change_pct ?? Math.max(0, 100 - d.percent_gaining - d.percent_losing),
+      loseLess5: d.lose_less_than_5_pct ?? d.percent_losing,
+      loseMore5: d.lose_more_than_5_pct ?? 0,
+    })),
+  ];
 
   return (
     <div className="space-y-6">
       {/* Headline cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.positive}08`, borderColor: COLORS.positive }}>
+        <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.gainMore5}08`, borderColor: COLORS.gainMore5 }}>
           <p className="text-sm text-gray-700 mb-2">Winners</p>
-          <p className="text-3xl font-bold" style={{ color: COLORS.positive }}>{percentGaining.toFixed(1)}%</p>
+          <p className="text-3xl font-bold" style={{ color: COLORS.gainMore5 }}>{distributional.percent_gaining.toFixed(1)}%</p>
           <p className="text-xs text-gray-600 mt-1">Households gain income</p>
         </div>
         <div className="rounded-lg p-6 border border-gray-300 bg-gray-50">
           <p className="text-sm text-gray-700 mb-2">No change</p>
-          <p className="text-3xl font-bold text-gray-600">{percentUnchanged.toFixed(1)}%</p>
+          <p className="text-3xl font-bold text-gray-600">{distributional.percent_unchanged.toFixed(1)}%</p>
           <p className="text-xs text-gray-600 mt-1">Unaffected households</p>
         </div>
-        <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.negative}08`, borderColor: COLORS.negative }}>
+        <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.loseMore5}08`, borderColor: COLORS.loseMore5 }}>
           <p className="text-sm text-gray-700 mb-2">Losers</p>
-          <p className="text-3xl font-bold" style={{ color: COLORS.negative }}>{percentLosing.toFixed(1)}%</p>
+          <p className="text-3xl font-bold" style={{ color: COLORS.loseMore5 }}>{distributional.percent_losing.toFixed(1)}%</p>
           <p className="text-xs text-gray-600 mt-1">Households lose income</p>
         </div>
       </div>
@@ -621,21 +623,21 @@ function WinnersLosersView({
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Winners & losers by income decile</h3>
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={440}>
             <BarChart data={stackedData} layout="vertical" barSize={22} margin={CHART_MARGIN}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
               <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} tick={TICK_STYLE} stroke="#9CA3AF" />
               <YAxis type="category" dataKey="label" tick={TICK_STYLE} stroke="#9CA3AF" width={40} />
               <Tooltip content={<CustomTooltip formatter={(v) => `${v.toFixed(1)}%`} />} />
-              <Bar dataKey="gaining" stackId="a" fill={COLORS.positive} name="Gain" />
-              <Bar dataKey="unchanged" stackId="a" fill={COLORS.noChange} name="No change" />
-              <Bar dataKey="losing" stackId="a" fill={COLORS.negative} name="Lose" />
+              {categories.map((c) => (
+                <Bar key={c.key} dataKey={c.key} stackId="a" fill={c.color} name={c.label} />
+              ))}
             </BarChart>
           </ResponsiveContainer>
           <div className="flex flex-wrap justify-center gap-4 mt-4">
-            <LegendItem color={COLORS.positive} label="Gain" />
-            <LegendItem color={COLORS.noChange} label="No change" />
-            <LegendItem color={COLORS.negative} label="Lose" />
+            {categories.map((c) => (
+              <LegendItem key={c.key} color={c.color} label={c.label} />
+            ))}
           </div>
         </div>
       </div>
@@ -644,10 +646,10 @@ function WinnersLosersView({
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Share of total benefits</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ShareBar label="Bottom 20%" pct={shareToBottom20} color={COLORS.primary} />
-          <ShareBar label="Bottom 50%" pct={shareToBottom50} color={COLORS.primary} />
-          <ShareBar label="Top 20%" pct={shareToTop20} color="#9CA3AF" />
-          <ShareBar label="Top 10%" pct={shareToTop10} color="#9CA3AF" />
+          <ShareBar label="Bottom 20%" pct={distributional.share_to_bottom_20_pct} color={COLORS.primary} />
+          <ShareBar label="Bottom 50%" pct={distributional.share_to_bottom_50_pct} color={COLORS.primary} />
+          <ShareBar label="Top 20%" pct={distributional.share_to_top_20_pct} color="#9CA3AF" />
+          <ShareBar label="Top 10%" pct={distributional.share_to_top_10_pct} color="#9CA3AF" />
         </div>
       </div>
 
@@ -655,14 +657,14 @@ function WinnersLosersView({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
           <p className="text-sm text-gray-600">Average gain (all households)</p>
-          <p className="text-2xl font-bold mt-1" style={{ color: averageGainAll >= 0 ? COLORS.positive : COLORS.negative }}>
-            {formatCurrencyWithSign(averageGainAll)}
+          <p className="text-2xl font-bold mt-1" style={{ color: distributional.average_gain_all >= 0 ? COLORS.primary : '#6B7280' }}>
+            {formatCurrencyWithSign(distributional.average_gain_all)}
           </p>
         </div>
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
           <p className="text-sm text-gray-600">Average gain (bottom 50%)</p>
-          <p className="text-2xl font-bold mt-1" style={{ color: averageGainBottom50 >= 0 ? COLORS.positive : COLORS.negative }}>
-            {formatCurrencyWithSign(averageGainBottom50)}
+          <p className="text-2xl font-bold mt-1" style={{ color: distributional.average_gain_bottom_50 >= 0 ? COLORS.primary : '#6B7280' }}>
+            {formatCurrencyWithSign(distributional.average_gain_bottom_50)}
           </p>
         </div>
       </div>
@@ -691,9 +693,10 @@ function HeadlineCard({ label, value, subtext, positive }: {
 }
 
 function FiscalCard({ label, value }: { label: string; value: number }) {
-  const color = value >= 0 ? COLORS.positive : COLORS.negative;
-  const bg = value >= 0 ? '#ECFDF5' : '#FEF2F2';
-  const border = value >= 0 ? '#A7F3D0' : '#FECACA';
+  // Revenue gains shown in teal, costs shown in neutral grey (not red)
+  const color = value > 0 ? COLORS.primary : value < 0 ? '#4B5563' : '#6B7280';
+  const bg = value > 0 ? `${COLORS.primary}08` : value < 0 ? '#F3F4F6' : '#F9FAFB';
+  const border = value > 0 ? COLORS.primary : '#D1D5DB';
   return (
     <div className="rounded-lg p-5 border" style={{ backgroundColor: bg, borderColor: border }}>
       <p className="text-sm text-gray-700 mb-2">{label}</p>

@@ -335,22 +335,13 @@ async def run_analysis_from_options(request: FromOptionsRequest):
         poverty_response = PovertyImpactResponse(**poverty_dict)
         fiscal_response = FiscalCostResponse(**fiscal_dict)
 
+        # Build distributional response via **spread to include any extra fields (e.g., all_gain_more_than_5_pct)
+        dist_payload = {
+            k: v for k, v in dist_dict.items() if k != "decile_impacts"
+        }
         dist_response = DistributionalResponse(
             decile_impacts=[DecileImpactResponse(**d) for d in dist_dict["decile_impacts"]],
-            average_gain_all=dist_dict["average_gain_all"],
-            average_gain_bottom_50=dist_dict["average_gain_bottom_50"],
-            average_gain_top_10=dist_dict["average_gain_top_10"],
-            share_to_bottom_20_pct=dist_dict["share_to_bottom_20_pct"],
-            share_to_bottom_50_pct=dist_dict["share_to_bottom_50_pct"],
-            share_to_top_20_pct=dist_dict["share_to_top_20_pct"],
-            share_to_top_10_pct=dist_dict["share_to_top_10_pct"],
-            baseline_gini=dist_dict["baseline_gini"],
-            reform_gini=dist_dict["reform_gini"],
-            gini_change=dist_dict["gini_change"],
-            percent_gaining=dist_dict["percent_gaining"],
-            percent_losing=dist_dict["percent_losing"],
-            percent_unchanged=dist_dict["percent_unchanged"],
-            state=dist_dict.get("state"),
+            **dist_payload,
         )
 
         headline_stats = {

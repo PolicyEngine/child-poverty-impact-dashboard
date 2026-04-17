@@ -268,10 +268,12 @@ class PolicyEngineClient:
         }
 
         # Fiscal impact
+        # tax_revenue_impact is total (federal + state); federal = total - state
+        federal_revenue_impact = result.tax_revenue_impact - result.state_tax_revenue_impact
         fiscal_dict = {
-            "total_cost_billions": round(abs(result.budgetary_impact) / 1e9, 2),
-            "federal_cost_billions": round(abs(result.tax_revenue_impact) / 1e9, 2),
-            "state_cost_billions": round(abs(result.state_tax_revenue_impact) / 1e9, 2),
+            "total_cost_billions": round(-result.budgetary_impact / 1e9, 2),
+            "federal_cost_billions": round(-federal_revenue_impact / 1e9, 2),
+            "state_cost_billions": round(-result.state_tax_revenue_impact / 1e9, 2),
             "ctc_cost_billions": 0,  # Not broken out in API response
             "eitc_cost_billions": 0,
             "dependent_exemption_cost_billions": 0,
@@ -322,11 +324,17 @@ class PolicyEngineClient:
                 (lose_less[idx] if len(lose_less) > idx else 0)
             ) * 100
 
+            no_change_list = deciles.get("No change", [0]*10)
             decile_impacts.append({
                 "decile": i,
                 "average_gain": round(avg_gain, 2),
                 "percent_gaining": round(pct_gaining, 1),
                 "percent_losing": round(pct_losing, 1),
+                "gain_more_than_5_pct": round((gain_more[idx] if len(gain_more) > idx else 0) * 100, 1),
+                "gain_less_than_5_pct": round((gain_less[idx] if len(gain_less) > idx else 0) * 100, 1),
+                "no_change_pct": round((no_change_list[idx] if len(no_change_list) > idx else 0) * 100, 1),
+                "lose_less_than_5_pct": round((lose_less[idx] if len(lose_less) > idx else 0) * 100, 1),
+                "lose_more_than_5_pct": round((lose_more[idx] if len(lose_more) > idx else 0) * 100, 1),
                 "total_benefit_billions": round(avg_gain * result.households / 10 / 1e9, 3),
                 "share_of_total_benefit": round(
                     avg_gain / total_benefit * 100 if total_benefit != 0 else 0, 1
@@ -342,7 +350,6 @@ class PolicyEngineClient:
         gini_baseline = result.gini.get("baseline", 0)
         gini_reform = result.gini.get("reform", 0)
 
-        # Winners/losers from intra_decile.all
         all_intra = result.intra_decile.get("all", {})
         pct_gaining = (
             all_intra.get("Gain more than 5%", 0) +
@@ -375,6 +382,11 @@ class PolicyEngineClient:
             "percent_gaining": round(pct_gaining, 1),
             "percent_losing": round(pct_losing, 1),
             "percent_unchanged": round(pct_unchanged, 1),
+            "all_gain_more_than_5_pct": round(all_intra.get("Gain more than 5%", 0) * 100, 1),
+            "all_gain_less_than_5_pct": round(all_intra.get("Gain less than 5%", 0) * 100, 1),
+            "all_no_change_pct": round(all_intra.get("No change", 0) * 100, 1),
+            "all_lose_less_than_5_pct": round(all_intra.get("Lose less than 5%", 0) * 100, 1),
+            "all_lose_more_than_5_pct": round(all_intra.get("Lose more than 5%", 0) * 100, 1),
             "state": state,
         }
 
