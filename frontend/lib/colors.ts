@@ -1,5 +1,5 @@
 // PolicyEngine Design System Colors
-// These match the CSS variables from @policyengine/design-system/tokens.css
+// These match the CSS variables from @policyengine/ui-kit/legacy/tokens
 
 export const colors = {
   // Primary (Teal)
