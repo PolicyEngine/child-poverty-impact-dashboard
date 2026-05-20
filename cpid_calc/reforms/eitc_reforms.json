@@ -1,5 +1,5 @@
 {
-  "_comment": "EITC parameter paths. type=existing uses gov.states param, type=contrib uses contrib params for new/refundable EITC. null=no income tax.",
+  "_comment": "EITC parameter paths. type=existing modifies a single baseline param; type=contrib also flips a contributed in_effect flag (e.g. convert nonrefundable to refundable). null = no income tax OR uses a bracketed param that can't be modified by a single slider (MN, WI).",
 
   "AL": {
     "type": "contrib",
@@ -22,9 +22,9 @@
   },
   "CA": {
     "type": "existing",
-    "match": "gov.states.ca.tax.income.credits.eitc.match",
+    "match": "gov.states.ca.tax.income.credits.earned_income.adjustment.factor",
     "current_rate": 0.85,
-    "note": "CalEITC uses complex structure"
+    "note": "CalEITC is a separate computation, not a federal match; this scales the entire CalEITC by an adjustment factor."
   },
   "CO": {
     "type": "existing",
@@ -39,13 +39,14 @@
   "DC": {
     "type": "existing",
     "match": "gov.states.dc.tax.income.credits.eitc.with_children.match",
-    "current_rate": 0.70,
-    "note": "DC has complex with/without children structure"
+    "current_rate": 1.00,
+    "note": "DC EITC matches 100% of federal EITC for filers with qualifying children (2025+)."
   },
   "DE": {
     "type": "existing",
     "match": "gov.states.de.tax.income.credits.eitc.refundable",
-    "current_rate": 0.20
+    "current_rate": 0.045,
+    "note": "Adjusts the refundable DE EITC match. DE also has a separate 20% non-refundable option not modified here."
   },
   "FL": null,
   "GA": {
@@ -100,13 +101,13 @@
     "type": "existing",
     "match": "gov.states.me.tax.income.credits.eitc.rate.with_qualifying_child",
     "current_rate": 0.25,
-    "note": "ME has separate rates for with/without children"
+    "note": "ME has separate rates for with/without qualifying children; slider adjusts the with-children rate."
   },
   "MD": {
     "type": "existing",
     "match": "gov.states.md.tax.income.credits.eitc.refundable.married_or_has_child.match",
     "current_rate": 0.45,
-    "note": "MD has complex structure"
+    "note": "MD has complex structure; slider adjusts the refundable match for filers married or with children."
   },
   "MA": {
     "type": "existing",
@@ -118,12 +119,7 @@
     "match": "gov.states.mi.tax.income.credits.eitc.match",
     "current_rate": 0.30
   },
-  "MN": {
-    "type": "existing",
-    "match": "gov.states.mn.tax.income.credits.cwfc.wfc.phase_in",
-    "current_rate": 0.34,
-    "note": "MN has complex Working Families Credit structure"
-  },
+  "MN": null,
   "MS": {
     "type": "contrib",
     "in_effect": "gov.contrib.states.ms.child_poverty_impact_dashboard.eitc.in_effect",
@@ -133,15 +129,14 @@
   "MO": {
     "type": "contrib",
     "in_effect": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect",
-    "match": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.match",
+    "match": "gov.states.mo.tax.income.credits.wftc.match",
     "current_rate": 0.20,
-    "zero_out": "gov.states.mo.tax.income.credits.wftc.match",
-    "note": "MO has nonrefundable WFTC - zero it out when creating refundable"
+    "note": "MO WFTC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter."
   },
   "MT": {
     "type": "existing",
     "match": "gov.states.mt.tax.income.credits.eitc.match",
-    "current_rate": 0.03
+    "current_rate": 0.20
   },
   "NE": {
     "type": "existing",
@@ -169,7 +164,8 @@
     "type": "contrib",
     "in_effect": "gov.contrib.states.nc.eitc.in_effect",
     "match": "gov.contrib.states.nc.eitc.match",
-    "current_rate": 0
+    "current_rate": 0.10,
+    "note": "NC contrib EITC defaults to 10% match from 2026 once in_effect=True."
   },
   "ND": {
     "type": "contrib",
@@ -180,10 +176,9 @@
   "OH": {
     "type": "contrib",
     "in_effect": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.in_effect",
-    "match": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.match",
+    "match": "gov.states.oh.tax.income.credits.eitc.rate",
     "current_rate": 0.30,
-    "zero_out": "gov.states.oh.tax.income.credits.eitc.rate",
-    "note": "OH has nonrefundable EITC - zero it out when creating refundable"
+    "note": "OH EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter."
   },
   "OK": {
     "type": "existing",
@@ -194,12 +189,13 @@
     "type": "existing",
     "match": "gov.states.or.tax.income.credits.eitc.match.no_young_child",
     "current_rate": 0.09,
-    "note": "OR has different rates for young child"
+    "note": "OR has different rates with/without young children; slider adjusts the no-young-child rate."
   },
   "PA": {
     "type": "existing",
     "match": "gov.states.pa.tax.income.credits.eitc.match",
-    "current_rate": 0.25
+    "current_rate": 0.10,
+    "note": "Working Pennsylvanians Tax Credit (effective 2025)."
   },
   "RI": {
     "type": "existing",
@@ -210,7 +206,7 @@
     "type": "existing",
     "match": "gov.states.sc.tax.income.credits.eitc.rate",
     "current_rate": 1.25,
-    "note": "SC has 125% match rate"
+    "note": "SC has a 125% nonrefundable match."
   },
   "SD": null,
   "TN": null,
@@ -218,10 +214,9 @@
   "UT": {
     "type": "contrib",
     "in_effect": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.in_effect",
-    "match": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.match",
+    "match": "gov.states.ut.tax.income.credits.earned_income.rate",
     "current_rate": 0.20,
-    "zero_out": "gov.states.ut.tax.income.credits.earned_income.rate",
-    "note": "UT has nonrefundable EITC - zero it out when creating refundable"
+    "note": "UT EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter."
   },
   "VT": {
     "type": "existing",
@@ -240,11 +235,6 @@
     "match": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.match",
     "current_rate": 0
   },
-  "WI": {
-    "type": "existing",
-    "match": "gov.states.wi.tax.income.credits.earned_income.fraction",
-    "current_rate": 0.11,
-    "note": "WI has brackets by number of children - using 2-child rate"
-  },
+  "WI": null,
   "WY": null
 }
