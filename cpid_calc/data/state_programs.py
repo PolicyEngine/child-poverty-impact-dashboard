@@ -197,9 +197,9 @@ STATE_PROGRAMS: Dict[str, StatePrograms] = {
         ),
         eitc=StateEITC(
             name="DC EITC",
-            match_rate=0.70,
+            match_rate=1.00,
             refundable=True,
-            notes="One of the highest state EITC rates",
+            notes="DC matches 100% of federal EITC for filers with qualifying children (2025+).",
             pe_variable="dc_eitc",
         ),
         exemption=StateExemption(
@@ -801,7 +801,7 @@ STATE_PROGRAMS: Dict[str, StatePrograms] = {
         ctc=None,
         eitc=StateEITC(
             name="Montana EITC",
-            match_rate=0.10,
+            match_rate=0.20,
             refundable=True,
             pe_variable="mt_eitc",
         ),
@@ -925,7 +925,13 @@ STATE_PROGRAMS: Dict[str, StatePrograms] = {
             notes="Ages 0-4 only",
             pe_variable="ut_ctc",
         ),
-        eitc=None,
+        eitc=StateEITC(
+            name="Utah EITC",
+            match_rate=0.20,
+            refundable=False,
+            notes="Non-refundable; matches 20% of federal EITC.",
+            pe_variable="ut_eitc",
+        ),
         exemption=StateExemption(
             personal_amount=0,
             dependent_amount=2000,

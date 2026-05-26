@@ -371,6 +371,29 @@ def _get_ctc_options(programs: StatePrograms) -> List[ReformOption]:
     return options
 
 
+def _is_state_eitc_configurable(state: str) -> bool:
+    """Check whether a state's EITC can be modified by a single match-rate slider.
+
+    Returns False for states without income tax and for states whose EITC
+    parameter is a multi-bracket scale (currently MN and WI), where a single
+    scalar update would be ambiguous or incorrect.
+    """
+    import json
+    import os
+
+    json_path = os.path.join(
+        os.path.dirname(__file__), "eitc_reforms.json"
+    )
+    try:
+        with open(json_path) as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        return True
+
+    entry = cfg.get(state.upper())
+    return entry is not None and not str(state).startswith("_")
+
+
 def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
     """Generate one EITC reform option per state with configurable match rate slider."""
     state = programs.state_code.upper()
@@ -379,17 +402,41 @@ def _get_eitc_options(programs: StatePrograms) -> List[ReformOption]:
     if not programs.has_income_tax:
         return []
 
+    # Skip states whose EITC uses a bracketed parameter not modifiable by a slider
+    if not _is_state_eitc_configurable(state):
+        return []
+
     # Get current match rate if state has EITC, otherwise default to 0
     current_rate = 0
     if programs.eitc and programs.eitc.match_rate > 0:
         current_rate = int(programs.eitc.match_rate * 100)
 
     has_existing = programs.eitc is not None
+    is_nonrefundable = has_existing and programs.eitc.refundable is False
+
+    if is_nonrefundable:
+        action_word = "Convert and adjust"
+        description = (
+            f"Convert {programs.state_name}'s nonrefundable EITC to refundable and "
+            f"adjust the match rate. Current: {current_rate}% (nonrefundable)."
+        )
+    elif has_existing:
+        action_word = "Adjust"
+        description = (
+            f"Adjust {programs.state_name}'s state EITC as a percentage of the "
+            f"federal EITC. Current: {current_rate}%."
+        )
+    else:
+        action_word = "Create"
+        description = (
+            f"Create a refundable {programs.state_name} EITC as a percentage of "
+            "the federal EITC."
+        )
 
     return [ReformOption(
         id=f"{state.lower()}_eitc",
         name=f"{programs.state_name} EITC",
-        description=f"{'Adjust' if has_existing else 'Create'} state EITC as percentage of federal EITC. Current: {current_rate}%.",
+        description=description,
         category=ReformCategory.STATE_EITC,
         is_new_program=not has_existing,
         is_enhancement=has_existing,
