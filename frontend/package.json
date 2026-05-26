@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@policyengine/ui-kit": "^0.9.0",
@@ -24,13 +26,19 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "20.11.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^9",
     "eslint-config-next": "^16",
+    "jsdom": "^25.0.1",
     "postcss": "^8.5.4",
     "tailwindcss": "^4.2.4",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "vitest": "^3.2.4"
   }
 }
