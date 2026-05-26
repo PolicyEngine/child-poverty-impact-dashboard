@@ -72,7 +72,7 @@ export default function ComparePage() {
 
   const selectAll = () => {
     if (states) {
-      setSelectedStates(states.map((s) => s.state_code));
+      setSelectedStates(states.map((s: StateInfo) => s.state_code));
     }
   };
 
@@ -114,7 +114,7 @@ export default function ComparePage() {
             <div className="text-center py-8">Loading states...</div>
           ) : (
             <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-              {states?.map((state) => (
+              {states?.map((state: StateInfo) => (
                 <button
                   key={state.state_code}
                   onClick={() => toggleState(state.state_code)}
