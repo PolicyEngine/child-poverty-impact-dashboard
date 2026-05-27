@@ -373,7 +373,18 @@ export default function ReportBuilderPage() {
                 <div className="card">
                   <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Household Details</h3>
                   <HouseholdForm
-                    initialValues={config.household ? { ...config.household, state: config.state || 'CA' } : { state: config.state || 'CA' } as HouseholdInput}
+                    initialValues={
+                      config.household
+                        ? {
+                            ...config.household,
+                            state: config.state || 'CA',
+                            year: config.year ?? config.household.year,
+                          }
+                        : ({
+                            state: config.state || 'CA',
+                            year: config.year ?? 2026,
+                          } as HouseholdInput)
+                    }
                     onSubmit={(household) => handlePopulationSelect('household', household)}
                     isLoading={false}
                     submitLabel="Continue to Reform Selection"
