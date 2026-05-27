@@ -47,9 +47,6 @@ node_modules/
 out/
 .vercel
 *.tsbuildinfo
-# Repo uses bun.lock as the canonical frontend lockfile
-frontend/package-lock.json
-frontend/yarn.lock
 
 # Logs
 *.log
