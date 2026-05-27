@@ -26,7 +26,7 @@ interface ReportConfig {
   household: HouseholdInput | null;
   selectedReforms: string[];
   parameterValues: ParameterValues;
-  year: number;
+  year: number | null;
 }
 
 // Available years for analysis
@@ -81,7 +81,7 @@ export default function ReportBuilderPage() {
     household: null,
     selectedReforms: [],
     parameterValues: {},
-    year: 2025,
+    year: null,
   });
 
   // State data
@@ -279,18 +279,43 @@ export default function ReportBuilderPage() {
               </div>
 
               {/* Continue Button */}
-              <div className="flex justify-end">
-                <button
-                  onClick={() => config.state && setStep('population')}
-                  disabled={!config.state}
-                  className="btn btn-primary"
-                >
-                  Continue
-                  <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
+              {(() => {
+                const missing: string[] = [];
+                if (!config.state) missing.push('state');
+                if (!config.year) missing.push('year');
+                const canContinue = missing.length === 0;
+                const missingLabel =
+                  missing.length === 2
+                    ? 'Select a state and a year to continue.'
+                    : missing.length === 1
+                    ? `Select a ${missing[0]} to continue.`
+                    : '';
+
+                return (
+                  <div className="flex justify-end items-center gap-4">
+                    {!canContinue && (
+                      <p
+                        role="status"
+                        className="text-sm text-pe-gray-500"
+                      >
+                        {missingLabel}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => canContinue && setStep('population')}
+                      disabled={!canContinue}
+                      aria-disabled={!canContinue}
+                      title={canContinue ? undefined : missingLabel}
+                      className="btn btn-primary"
+                    >
+                      Continue
+                      <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -366,11 +391,11 @@ export default function ReportBuilderPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold text-pe-teal-800">
-                        Statewide Analysis for {config.state ? US_STATES[config.state] : 'Selected State'} ({config.year})
+                        Statewide Analysis for {config.state ? US_STATES[config.state] : 'Selected State'} ({config.year ?? '—'})
                       </h4>
                       <p className="text-sm text-pe-teal-700 mt-1">
                         This will run a microsimulation using the Enhanced CPS dataset to estimate
-                        poverty reduction, fiscal costs, and distributional impacts for tax year {config.year}.
+                        poverty reduction, fiscal costs, and distributional impacts for tax year {config.year ?? '—'}.
                       </p>
                       <button
                         onClick={() => handlePopulationSelect('statewide')}
@@ -446,7 +471,7 @@ export default function ReportBuilderPage() {
                       <div>
                         <p className="text-sm text-pe-gray-500">Location & Year</p>
                         <p className="font-semibold text-pe-gray-800">
-                          {config.state ? US_STATES[config.state] : 'Not selected'}, {config.year}
+                          {config.state ? US_STATES[config.state] : 'Not selected'}, {config.year ?? '—'}
                         </p>
                       </div>
                     </div>
