@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Providers } from './providers';
+import AppV2Header from '@/components/AppV2Header';
 
 export default function LayoutShell({
   children,
@@ -20,8 +21,11 @@ export default function LayoutShell({
 
   return (
     <Providers>
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-pe-gray-100">
+      {/* PolicyEngine app-v2 header (external nav) */}
+      <AppV2Header />
+
+      {/* Dashboard internal nav — sits just below the 58px-tall app-v2 header */}
+      <header className="sticky top-[58px] z-40 bg-white/80 backdrop-blur-xl border-b border-pe-gray-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
