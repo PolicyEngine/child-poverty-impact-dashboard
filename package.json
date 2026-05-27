@@ -1,0 +1,5 @@
+{
+  "name": "child-poverty-impact-dashboard-monorepo",
+  "private": true,
+  "comment": "Stub package.json at the repo root. The real frontend manifest lives at frontend/package.json. This file exists only so Vercel's monorepo finalizer (which lstats /vercel/path0/package.json after the .next output is copied up one level) doesn't ENOENT during the post-build step."
+}
