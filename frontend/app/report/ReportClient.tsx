@@ -405,8 +405,9 @@ export default function ReportBuilderPage() {
                         Statewide Analysis for {config.state ? US_STATES[config.state] : 'Selected State'} ({config.year ?? '—'})
                       </h4>
                       <p className="text-sm text-pe-teal-700 mt-1">
-                        This will run a microsimulation using the Enhanced CPS dataset to estimate
-                        poverty reduction, fiscal costs, and distributional impacts for tax year {config.year ?? '—'}.
+                        This will run a microsimulation to estimate poverty
+                        reduction, fiscal costs, and distributional impacts for
+                        tax year {config.year ?? '—'}.
                       </p>
                       <button
                         onClick={() => handlePopulationSelect('statewide')}

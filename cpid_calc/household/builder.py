@@ -128,8 +128,26 @@ def _build_adult_data(
             data["social_security"] = {year: config.income.social_security_income}
         if config.income.unemployment_income > 0:
             data["unemployment_compensation"] = {year: config.income.unemployment_income}
+        if config.income.pension_income > 0:
+            data["taxable_pension_income"] = {year: config.income.pension_income}
+        if config.income.capital_gains > 0:
+            data["long_term_capital_gains"] = {year: config.income.capital_gains}
+        if config.income.dividend_income > 0:
+            data["qualified_dividend_income"] = {year: config.income.dividend_income}
+        if config.income.taxable_interest_income > 0:
+            data["taxable_interest_income"] = {
+                year: config.income.taxable_interest_income
+            }
+        if config.income.taxable_retirement_distributions > 0:
+            data["taxable_pension_income"] = {
+                year: data.get("taxable_pension_income", {}).get(year, 0)
+                + config.income.taxable_retirement_distributions
+            }
         if config.income.investment_income > 0:
-            data["interest_income"] = {year: config.income.investment_income}
+            data["taxable_interest_income"] = {
+                year: data.get("taxable_interest_income", {}).get(year, 0)
+                + config.income.investment_income
+            }
 
     # Add income for spouse
     elif adult_index == 1:

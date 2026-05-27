@@ -35,6 +35,11 @@ class IncomeRequest(BaseModel):
     self_employment_income: float = Field(default=0, ge=0)
     social_security_income: float = Field(default=0, ge=0)
     unemployment_income: float = Field(default=0, ge=0)
+    pension_income: float = Field(default=0, ge=0)
+    capital_gains: float = Field(default=0, ge=0)
+    dividend_income: float = Field(default=0, ge=0)
+    taxable_interest_income: float = Field(default=0, ge=0)
+    taxable_retirement_distributions: float = Field(default=0, ge=0)
 
 
 class HouseholdRequest(BaseModel):
@@ -211,6 +216,11 @@ def _convert_household_request(request: HouseholdRequest):
         self_employment_income=request.income.self_employment_income,
         social_security_income=request.income.social_security_income,
         unemployment_income=request.income.unemployment_income,
+        pension_income=request.income.pension_income,
+        capital_gains=request.income.capital_gains,
+        dividend_income=request.income.dividend_income,
+        taxable_interest_income=request.income.taxable_interest_income,
+        taxable_retirement_distributions=request.income.taxable_retirement_distributions,
     )
 
     return HouseholdConfig(

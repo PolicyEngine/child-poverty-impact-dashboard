@@ -21,13 +21,23 @@ interface HouseholdFormProps {
 // list. Keys are intentionally restricted to the IncomeInput fields the
 // backend already understands.
 type OtherIncomeKey =
+  | 'capital_gains'
   | 'self_employment_income'
   | 'social_security_income'
+  | 'pension_income'
+  | 'dividend_income'
+  | 'taxable_interest_income'
+  | 'taxable_retirement_distributions'
   | 'unemployment_income';
 
 const OTHER_INCOME_OPTIONS: { key: OtherIncomeKey; label: string }[] = [
+  { key: 'capital_gains', label: 'Capital gains' },
   { key: 'self_employment_income', label: 'Self-employment income' },
   { key: 'social_security_income', label: 'Social Security' },
+  { key: 'pension_income', label: 'Pension income' },
+  { key: 'dividend_income', label: 'Dividend income' },
+  { key: 'taxable_interest_income', label: 'Taxable interest' },
+  { key: 'taxable_retirement_distributions', label: 'Retirement distributions' },
   { key: 'unemployment_income', label: 'Unemployment' },
 ];
 
@@ -185,7 +195,12 @@ export default function HouseholdForm({
     (household.income.spouse_employment_income || 0) +
     (household.income.self_employment_income || 0) +
     (household.income.social_security_income || 0) +
-    (household.income.unemployment_income || 0);
+    (household.income.unemployment_income || 0) +
+    (household.income.pension_income || 0) +
+    (household.income.capital_gains || 0) +
+    (household.income.dividend_income || 0) +
+    (household.income.taxable_interest_income || 0) +
+    (household.income.taxable_retirement_distributions || 0);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

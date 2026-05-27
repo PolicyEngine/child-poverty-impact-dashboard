@@ -47,6 +47,10 @@ class IncomeConfig:
     alimony_income: float = 0
     unemployment_income: float = 0
     disability_income: float = 0
+    capital_gains: float = 0
+    dividend_income: float = 0
+    taxable_interest_income: float = 0
+    taxable_retirement_distributions: float = 0
 
     # Benefits received
     snap_benefits: float = 0
@@ -76,7 +80,11 @@ class IncomeConfig:
             self.rental_income +
             self.alimony_income +
             self.unemployment_income +
-            self.disability_income
+            self.disability_income +
+            self.capital_gains +
+            self.dividend_income +
+            self.taxable_interest_income +
+            self.taxable_retirement_distributions
         )
 
 

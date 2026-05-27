@@ -23,6 +23,11 @@ export interface IncomeInput {
   self_employment_income?: number;
   social_security_income?: number;
   unemployment_income?: number;
+  pension_income?: number;
+  capital_gains?: number;
+  dividend_income?: number;
+  taxable_interest_income?: number;
+  taxable_retirement_distributions?: number;
 }
 
 export interface HouseholdInput {
