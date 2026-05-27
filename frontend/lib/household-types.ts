@@ -140,7 +140,10 @@ export interface IncomeSweepDataPoint {
 export interface IncomeSweepResponse {
   state: string;
   year: number;
+  /** Reform results at each income point (or baseline if no reform). */
   data_points: IncomeSweepDataPoint[];
+  /** Baseline (current-law) results at each income point. */
+  baseline_data_points?: IncomeSweepDataPoint[];
 }
 
 // Default values

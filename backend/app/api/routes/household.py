@@ -441,24 +441,27 @@ async def run_income_sweep_endpoint(
             year=config.year,
         )
 
+        def _point(income: float, results_dict: dict) -> dict:
+            return {
+                "income": income,
+                "net_income": results_dict["net_income"],
+                "federal_ctc": results_dict["federal_ctc"],
+                "state_ctc": results_dict["state_ctc"],
+                "federal_eitc": results_dict["federal_eitc"],
+                "state_eitc": results_dict["state_eitc"],
+                "snap_benefits": results_dict["snap_benefits"],
+                "total_benefits": results_dict["total_benefits"],
+                "effective_tax_rate": results_dict["effective_tax_rate"],
+                "in_poverty": results_dict["in_poverty"],
+            }
+
         return {
             "state": config.state,
             "year": config.year,
-            "data_points": [
-                {
-                    "income": r["income"],
-                    "net_income": r["results"]["net_income"],
-                    "federal_ctc": r["results"]["federal_ctc"],
-                    "state_ctc": r["results"]["state_ctc"],
-                    "federal_eitc": r["results"]["federal_eitc"],
-                    "state_eitc": r["results"]["state_eitc"],
-                    "snap_benefits": r["results"]["snap_benefits"],
-                    "total_benefits": r["results"]["total_benefits"],
-                    "effective_tax_rate": r["results"]["effective_tax_rate"],
-                    "in_poverty": r["results"]["in_poverty"],
-                }
-                for r in results
-            ]
+            "data_points": [_point(r["income"], r["reform"]) for r in results],
+            "baseline_data_points": [
+                _point(r["income"], r["baseline"]) for r in results
+            ],
         }
 
     except Exception as e:

@@ -281,15 +281,29 @@ class ModalClient:
 
             results = []
             for income in income_range:
-                config_copy = HouseholdConfig.from_dict(config.to_dict())
-                config_copy.income.employment_income = income
+                baseline_cfg = HouseholdConfig.from_dict(config.to_dict())
+                baseline_cfg.income.employment_income = income
+                baseline_results = run_household_simulation(
+                    baseline_cfg, reform=None, year=year
+                )
 
-                household_results = run_household_simulation(
-                    config_copy, reform=reform, year=year
+                if reform is None:
+                    results.append({
+                        "income": income,
+                        "baseline": baseline_results.to_dict(),
+                        "reform": baseline_results.to_dict(),
+                    })
+                    continue
+
+                reform_cfg = HouseholdConfig.from_dict(config.to_dict())
+                reform_cfg.income.employment_income = income
+                reform_results = run_household_simulation(
+                    reform_cfg, reform=reform, year=year
                 )
                 results.append({
                     "income": income,
-                    "results": household_results.to_dict(),
+                    "baseline": baseline_results.to_dict(),
+                    "reform": reform_results.to_dict(),
                 })
 
             return results
