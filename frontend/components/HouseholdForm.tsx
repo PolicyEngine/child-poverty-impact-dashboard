@@ -231,7 +231,7 @@ export default function HouseholdForm({
             onChange={(e) => handleMarriedChange(e.target.checked)}
             className="w-4 h-4"
           />
-          <span className="text-sm text-gray-700">Married filing jointly</span>
+          <span className="text-sm text-gray-700">Married</span>
         </label>
         <p className="mt-2 text-xs text-gray-500">
           Single filers with children file as head of household automatically.
