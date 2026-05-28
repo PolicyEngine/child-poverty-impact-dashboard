@@ -2,8 +2,8 @@
 API routes for household-level analysis.
 """
 
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException
+from typing import Annotated, List, Optional
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
@@ -402,10 +402,10 @@ async def calculate_impact(request: ReformSelectionRequest):
 @router.post("/income-sweep")
 async def run_income_sweep_endpoint(
     household: HouseholdRequest,
-    reform_option_ids: List[str] = None,
-    min_income: float = 0,
-    max_income: float = 150000,
-    step: float = 5000,
+    reform_option_ids: Annotated[list[str], Query()] = [],
+    min_income: Annotated[float, Query()] = 0,
+    max_income: Annotated[float, Query()] = 150000,
+    step: Annotated[float, Query()] = 5000,
 ):
     """Run analysis across income levels to show benefit phase-outs."""
     try:

@@ -148,6 +148,7 @@ export default function ReportResultsPage() {
   const [baselineResults, setBaselineResults] = useState<HouseholdResults | null>(null);
   const [incomeSweep, setIncomeSweep] = useState<IncomeSweepResponse | null>(null);
   const [sweepLoading, setSweepLoading] = useState(false);
+  const [sweepError, setSweepError] = useState<string | null>(null);
 
   // Results for statewide analysis
   const [statewideResults, setStatewideResults] = useState<AnalysisResponse | null>(null);
@@ -175,20 +176,29 @@ export default function ReportResultsPage() {
           setBaselineResults(baseline);
           setHouseholdResults(impact);
 
-          // Kick off the income sweep ($0–$400k @ $5k steps) in the
-          // background so the headline cards render immediately while
-          // the chart fills in once Modal returns.
+          // Kick off the income sweep ($0–$400k @ $10k steps — coarser
+          // than the calculator's chart so local single-process runs
+          // finish in a reasonable time; the chart shape doesn't need
+          // finer resolution) in the background so the headline cards
+          // render immediately while the chart fills in once it returns.
           setSweepLoading(true);
+          setSweepError(null);
           runIncomeSweep(
             parsedConfig.household,
             parsedConfig.selectedReforms,
             0,
             400_000,
-            5_000,
+            10_000,
           )
             .then((sweep) => setIncomeSweep(sweep))
-            .catch((err) => {
+            .catch((err: unknown) => {
+              const message =
+                (err as { response?: { data?: { detail?: string } }; message?: string })
+                  ?.response?.data?.detail ??
+                (err as { message?: string })?.message ??
+                'Income sweep failed';
               console.warn('Income sweep failed:', err);
+              setSweepError(String(message));
             })
             .finally(() => setSweepLoading(false));
         } else if (parsedConfig.populationType === 'statewide' && parsedConfig.state) {
@@ -318,6 +328,7 @@ export default function ReportResultsPage() {
                 baseline={baselineResults}
                 incomeSweep={incomeSweep}
                 sweepLoading={sweepLoading}
+                sweepError={sweepError}
               />
             )}
             {activeTab === 'poverty' && (
@@ -542,12 +553,14 @@ function HouseholdOverviewTab({
   baseline: _baseline,
   incomeSweep,
   sweepLoading,
+  sweepError,
 }: {
   config: ReportConfig;
   results: HouseholdImpact;
   baseline: HouseholdResults | null;
   incomeSweep: IncomeSweepResponse | null;
   sweepLoading: boolean;
+  sweepError: string | null;
 }) {
   const { baseline: baselineHH, reform, net_income_change } = results;
 
@@ -613,11 +626,20 @@ function HouseholdOverviewTab({
           Reform vs. current law across $0–$400k of employment income. Hover
           for the per-provision breakdown.
         </p>
-        {sweepLoading || chartData.length === 0 ? (
+        {sweepLoading ? (
           <div className="flex items-center justify-center py-16 text-pe-gray-500 text-sm">
-            {sweepLoading
-              ? 'Computing impact across the income range…'
-              : 'No chart data available.'}
+            Computing impact across the income range…
+          </div>
+        ) : sweepError ? (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <p className="font-semibold mb-1">
+              Chart unavailable for this reform
+            </p>
+            <p className="font-mono text-xs whitespace-pre-wrap">{sweepError}</p>
+          </div>
+        ) : chartData.length === 0 ? (
+          <div className="flex items-center justify-center py-16 text-pe-gray-500 text-sm">
+            No chart data available.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={360}>
