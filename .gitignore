@@ -60,6 +60,7 @@ Thumbs.db
 
 # Data files
 *.csv
+*.csv.gz
 *.h5
 *.parquet
 !cpid_calc/data/*.csv
