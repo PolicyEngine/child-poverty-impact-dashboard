@@ -185,14 +185,33 @@ class ModalClient:
                 household_config_dict, reform_config_dict, income_range, year
             )
 
-        result = await asyncio.to_thread(
-            functions["income_sweep"].remote,
-            household_config_dict,
-            reform_config_dict,
-            income_range,
-            year,
-        )
-        return result
+        try:
+            result = await asyncio.to_thread(
+                functions["income_sweep"].remote,
+                household_config_dict,
+                reform_config_dict,
+                income_range,
+                year,
+            )
+            return result
+        except Exception as exc:
+            # Modal install is present but the App isn't deployed (or any
+            # other Modal-side failure). Fall back to single-process local
+            # execution rather than 500ing the request. Disable Modal for
+            # subsequent calls on this client.
+            import modal.exception as _modal_exc
+            modal_errors = (
+                _modal_exc.ExecutionError,
+                _modal_exc.AuthError,
+                _modal_exc.NotFoundError,
+            )
+            if not isinstance(exc, modal_errors):
+                raise
+            self.enabled = False
+            self._modal_functions = {}
+            return await self._run_local_income_sweep(
+                household_config_dict, reform_config_dict, income_range, year
+            )
 
     # ===== LOCAL FALLBACK IMPLEMENTATIONS =====
 
