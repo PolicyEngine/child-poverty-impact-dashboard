@@ -11,6 +11,11 @@ import {
   getReformOptionsForState,
   getStateProgramsSummary,
 } from './state-programs';
+import {
+  calculateBaselineViaApi,
+  calculateImpactViaApi,
+  runIncomeSweepViaApi,
+} from './pe-api';
 
 const api = axios.create({
   baseURL: '/api',
@@ -36,22 +41,53 @@ export async function getReformOptions(
   return getReformOptionsForState(stateCode) as unknown as StateReformOptions;
 }
 
+/** Try the local FastAPI shim first (used by `make dev`); on 404 (the
+ *  Vercel deployment has no Python backend) fall back to direct
+ *  api.policyengine.org calls so production at least computes. */
+async function tryLocalThen<T>(
+  attempt: () => Promise<T>,
+  fallback: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await attempt();
+  } catch (err: unknown) {
+    const status =
+      (err as { response?: { status?: number } })?.response?.status;
+    const code = (err as { code?: string })?.code;
+    if (status === 404 || status === 500 || code === 'ERR_NETWORK') {
+      return await fallback();
+    }
+    throw err;
+  }
+}
+
 // Calculate baseline for household
-export async function calculateBaseline(household: HouseholdInput): Promise<HouseholdResults> {
-  const response = await api.post('/household/baseline', household);
-  return response.data;
+export async function calculateBaseline(
+  household: HouseholdInput,
+): Promise<HouseholdResults> {
+  return tryLocalThen(
+    async () => (await api.post('/household/baseline', household)).data,
+    () => calculateBaselineViaApi(household),
+  );
 }
 
 // Calculate impact of reforms
 export async function calculateImpact(
   household: HouseholdInput,
-  reformOptionIds: string[]
+  reformOptionIds: string[],
+  parameterValues?: Record<string, Record<string, number>>,
 ): Promise<HouseholdImpact> {
-  const response = await api.post('/household/impact', {
-    household,
-    reform_option_ids: reformOptionIds,
-  });
-  return response.data;
+  return tryLocalThen(
+    async () =>
+      (
+        await api.post('/household/impact', {
+          household,
+          reform_option_ids: reformOptionIds,
+        })
+      ).data,
+    () =>
+      calculateImpactViaApi(household, reformOptionIds, parameterValues),
+  );
 }
 
 // Run income sweep analysis
@@ -60,20 +96,35 @@ export async function runIncomeSweep(
   reformOptionIds?: string[],
   minIncome: number = 0,
   maxIncome: number = 150000,
-  step: number = 5000
+  step: number = 5000,
+  parameterValues?: Record<string, Record<string, number>>,
 ): Promise<IncomeSweepResponse> {
-  const params = new URLSearchParams({
-    min_income: minIncome.toString(),
-    max_income: maxIncome.toString(),
-    step: step.toString(),
-  });
-
-  if (reformOptionIds && reformOptionIds.length > 0) {
-    reformOptionIds.forEach((id) => params.append('reform_option_ids', id));
-  }
-
-  const response = await api.post(`/household/income-sweep?${params}`, household);
-  return response.data;
+  return tryLocalThen(
+    async () => {
+      const params = new URLSearchParams({
+        min_income: minIncome.toString(),
+        max_income: maxIncome.toString(),
+        step: step.toString(),
+      });
+      if (reformOptionIds && reformOptionIds.length > 0) {
+        reformOptionIds.forEach((id) => params.append('reform_option_ids', id));
+      }
+      const response = await api.post(
+        `/household/income-sweep?${params}`,
+        household,
+      );
+      return response.data;
+    },
+    () =>
+      runIncomeSweepViaApi(
+        household,
+        reformOptionIds ?? [],
+        parameterValues ?? {},
+        minIncome,
+        maxIncome,
+        step,
+      ),
+  );
 }
 
 export default api;
