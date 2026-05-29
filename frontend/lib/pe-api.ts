@@ -178,7 +178,8 @@ function buildSituation(
     tax_units: {
       tax_unit: {
         members: taxUnitMembers,
-        federal_ctc: { [year]: null },
+        // `ctc` is the federal Child Tax Credit in PE-US;
+        // `eitc` is the federal EITC. There is no `federal_ctc` variable.
         eitc: { [year]: null },
         ctc: { [year]: null },
       },
