@@ -22,22 +22,38 @@ A specialized analytical interface for modeling and comparing policy reforms acr
 
 ```
 child-poverty-impact-dashboard/
-├── backend/                 # FastAPI REST API
-│   └── app/
-│       ├── api/            # Route and model definitions
-│       ├── core/           # Configuration and data management
-│       └── services/       # Business logic
-├── frontend/               # Next.js/React application
-│   ├── app/               # Pages and layouts
-│   ├── components/        # React components
-│   ├── hooks/             # Custom React hooks
-│   └── lib/               # API client and types
-├── cpid_calc/             # Shared calculation package
-│   ├── calculations/      # Core calculation logic
-│   ├── reforms/           # Reform definitions
-│   └── data/              # Static data and constants
-└── tests/                 # Test suite
+├── frontend/                 # Next.js + ui-kit (Vercel)
+│   ├── app/                 # App-router pages
+│   ├── components/          # React components (wizard, header, charts)
+│   ├── data/                # Static state programs + EITC reform JSON
+│   └── lib/                 # API clients + state-programs registry
+├── scripts/
+│   └── modal_cpid_endpoint.py  # Modal-hosted compute backend
+├── backend/                 # Legacy FastAPI (still used for local dev)
+├── cpid_calc/               # Shared Python calculation package
+└── tests/
 ```
+
+The production frontend on Vercel has no Python runtime — heavy
+microsimulation work goes to **Modal** via the spawn-and-poll endpoint
+in `scripts/modal_cpid_endpoint.py`. Static lookups (state programs,
+reform options, EITC paths) live as JSON in `frontend/data/` so the
+wizard can render reform options without any backend hop.
+
+## Deploying the Modal backend
+
+```bash
+modal deploy scripts/modal_cpid_endpoint.py
+```
+
+Modal prints a persistent URL. Set it as `NEXT_PUBLIC_MODAL_CPID_URL`
+on the Vercel project (Production + Preview) and in
+`frontend/.env.local` for dev. When the env var is empty, the frontend
+falls back to the local FastAPI in `backend/` (handy for offline work).
+
+The Modal image pins `policyengine-us==1.715.2` for reproducibility —
+bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
+we want to refresh.
 
 ## Installation
 

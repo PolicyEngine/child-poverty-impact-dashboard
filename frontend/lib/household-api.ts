@@ -7,6 +7,10 @@ import type {
   StatePrograms,
   IncomeSweepResponse,
 } from './household-types';
+import {
+  getReformOptionsForState,
+  getStateProgramsSummary,
+} from './state-programs';
 
 const api = axios.create({
   baseURL: '/api',
@@ -15,16 +19,21 @@ const api = axios.create({
   },
 });
 
-// Get current state programs
+// Static lookup — moved off the FastAPI backend so the Vercel build
+// (no Python runtime) can resolve these without a network hop. Source
+// of truth: cpid_calc/data/state_programs.py + frontend/lib/state-programs.ts.
 export async function getStatePrograms(stateCode: string): Promise<StatePrograms> {
-  const response = await api.get(`/household/state-programs/${stateCode}`);
-  return response.data;
+  const summary = getStateProgramsSummary(stateCode);
+  if (!summary) {
+    throw new Error(`Unknown state code: ${stateCode}`);
+  }
+  return summary as StatePrograms;
 }
 
-// Get available reform options for a state
-export async function getReformOptions(stateCode: string): Promise<StateReformOptions> {
-  const response = await api.get(`/household/reform-options/${stateCode}`);
-  return response.data;
+export async function getReformOptions(
+  stateCode: string,
+): Promise<StateReformOptions> {
+  return getReformOptionsForState(stateCode) as unknown as StateReformOptions;
 }
 
 // Calculate baseline for household

@@ -1,0 +1,1474 @@
+{
+  "CA": {
+    "state_code": "CA",
+    "state_name": "California",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Young Child Tax Credit (CalYCTC)",
+      "max_amount": 1117,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 5,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 30931,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Tied to CalEITC eligibility, ages 0-5 only",
+      "pe_variable": "ca_yctc"
+    },
+    "eitc": {
+      "name": "California Earned Income Tax Credit (CalEITC)",
+      "match_rate": 0.85,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Own structure, not a federal match",
+      "pe_variable": "ca_eitc"
+    },
+    "exemption": {
+      "personal_amount": 144,
+      "dependent_amount": 446,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "CA Child and Dependent Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "CO": {
+    "state_code": "CO",
+    "state_name": "Colorado",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Colorado Child Tax Credit",
+      "max_amount": 1200,
+      "amount_young": 1200,
+      "amount_older": 1200,
+      "age_limit": 5,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": 25000,
+      "phaseout_rate": 0.02,
+      "notes": "Also has Family Affordability Credit",
+      "pe_variable": "co_ctc"
+    },
+    "eitc": {
+      "name": "Colorado EITC",
+      "match_rate": 0.5,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Increased to 50% in 2024, declines to 10% by 2034",
+      "pe_variable": "co_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": "No personal exemptions"
+    },
+    "cdcc": {
+      "name": "CO Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "CT": {
+    "state_code": "CT",
+    "state_name": "Connecticut",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Connecticut Child Tax Rebate",
+      "max_amount": 250,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 100000,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Per-child rebate program",
+      "pe_variable": "ct_child_tax_rebate"
+    },
+    "eitc": {
+      "name": "Connecticut EITC",
+      "match_rate": 0.305,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "ct_eitc"
+    },
+    "exemption": {
+      "personal_amount": 15000,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "CT Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "DC": {
+    "state_code": "DC",
+    "state_name": "District of Columbia",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "DC Child Tax Credit",
+      "max_amount": 420,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Also known as Keep Child Care Affordable Credit",
+      "pe_variable": "dc_ctc"
+    },
+    "eitc": {
+      "name": "DC EITC",
+      "match_rate": 1.0,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "DC matches 100% of federal EITC for filers with qualifying children (2025+).",
+      "pe_variable": "dc_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "DC Child Care Credit",
+      "max_percent": 0.32,
+      "max_expenses": 6000,
+      "refundable": true,
+      "notes": ""
+    }
+  },
+  "GA": {
+    "state_code": "GA",
+    "state_name": "Georgia",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Georgia Child Tax Credit",
+      "max_amount": 3000,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 5,
+      "young_child_age": 6,
+      "refundable": false,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "New program effective 2024",
+      "pe_variable": "ga_ctc"
+    },
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 2700,
+      "dependent_amount": 3000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "GA Child Care Credit",
+      "max_percent": 0.3,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "ID": {
+    "state_code": "ID",
+    "state_name": "Idaho",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Idaho Child Tax Credit",
+      "max_amount": 205,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": false,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Non-refundable credit",
+      "pe_variable": "id_ctc"
+    },
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "ID Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "IL": {
+    "state_code": "IL",
+    "state_name": "Illinois",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Illinois Child Tax Credit",
+      "max_amount": 300,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 60000,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "New program effective 2024",
+      "pe_variable": "il_ctc"
+    },
+    "eitc": {
+      "name": "Illinois EITC",
+      "match_rate": 0.2,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "il_eitc"
+    },
+    "exemption": {
+      "personal_amount": 2625,
+      "dependent_amount": 2625,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "IL Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "MA": {
+    "state_code": "MA",
+    "state_name": "Massachusetts",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Child and Family Tax Credit",
+      "max_amount": 440,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 12,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Combines child credit and dependent care",
+      "pe_variable": "ma_child_and_family_credit"
+    },
+    "eitc": {
+      "name": "Massachusetts EITC",
+      "match_rate": 0.4,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Increased to 40% in 2023",
+      "pe_variable": "ma_eitc"
+    },
+    "exemption": {
+      "personal_amount": 4400,
+      "dependent_amount": 1000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "MA Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "MD": {
+    "state_code": "MD",
+    "state_name": "Maryland",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Maryland Child Tax Credit",
+      "max_amount": 500,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 6000,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Low income threshold",
+      "pe_variable": "md_ctc"
+    },
+    "eitc": {
+      "name": "Maryland EITC",
+      "match_rate": 0.5,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Separate rates for childless (0.28-1.00)",
+      "pe_variable": "md_eitc"
+    },
+    "exemption": {
+      "personal_amount": 3200,
+      "dependent_amount": 3200,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "MD Child Care Credit",
+      "max_percent": 0.325,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "MN": {
+    "state_code": "MN",
+    "state_name": "Minnesota",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Child and Working Families Credits",
+      "max_amount": 1750,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Combined CTC and working family credit",
+      "pe_variable": "mn_child_and_working_families_credit"
+    },
+    "eitc": {
+      "name": "Minnesota Working Family Credit",
+      "match_rate": 0.34,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Part of combined credit",
+      "pe_variable": "mn_working_family_credit"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 4950,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "MN Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": true,
+      "notes": ""
+    }
+  },
+  "NJ": {
+    "state_code": "NJ",
+    "state_name": "New Jersey",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "New Jersey Child Tax Credit",
+      "max_amount": 1000,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 5,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 30000,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Ages 0-5 only",
+      "pe_variable": "nj_ctc"
+    },
+    "eitc": {
+      "name": "New Jersey EITC",
+      "match_rate": 0.4,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": 21,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "nj_eitc"
+    },
+    "exemption": {
+      "personal_amount": 1000,
+      "dependent_amount": 1500,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "NJ Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "NM": {
+    "state_code": "NM",
+    "state_name": "New Mexico",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "New Mexico Child Income Tax Credit",
+      "max_amount": 600,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Refundable credit per child",
+      "pe_variable": "nm_child_income_tax_credit"
+    },
+    "eitc": {
+      "name": "New Mexico EITC",
+      "match_rate": 0.25,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": 18,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "nm_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 4150,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "NM Child Care Credit",
+      "max_percent": 0.4,
+      "max_expenses": 6000,
+      "refundable": true,
+      "notes": ""
+    }
+  },
+  "NY": {
+    "state_code": "NY",
+    "state_name": "New York",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Empire State Child Credit",
+      "max_amount": 330,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Additional supplemental amounts available",
+      "pe_variable": "ny_ctc"
+    },
+    "eitc": {
+      "name": "New York EITC",
+      "match_rate": 0.3,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "30% match since 2003",
+      "pe_variable": "ny_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 1000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "NY Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": true,
+      "notes": ""
+    }
+  },
+  "OK": {
+    "state_code": "OK",
+    "state_name": "Oklahoma",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Oklahoma Child Care/Child Tax Credit",
+      "max_amount": 100,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": false,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "",
+      "pe_variable": "ok_ctc"
+    },
+    "eitc": {
+      "name": "Oklahoma EITC",
+      "match_rate": 0.05,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "5% match, one of the lowest",
+      "pe_variable": "ok_eitc"
+    },
+    "exemption": {
+      "personal_amount": 1000,
+      "dependent_amount": 1000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "OK Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "OR": {
+    "state_code": "OR",
+    "state_name": "Oregon",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Oregon Kids Credit",
+      "max_amount": 1000,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 5,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 30000,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Ages 0-5 only",
+      "pe_variable": "or_kids_credit"
+    },
+    "eitc": {
+      "name": "Oregon EITC",
+      "match_rate": 0.12,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Variable match based on age and children",
+      "pe_variable": "or_eitc"
+    },
+    "exemption": {
+      "personal_amount": 236,
+      "dependent_amount": 236,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "OR Child Care Credit",
+      "max_percent": 0.3,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "RI": {
+    "state_code": "RI",
+    "state_name": "Rhode Island",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Rhode Island Child Tax Rebate",
+      "max_amount": 250,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": 100000,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "",
+      "pe_variable": "ri_child_tax_rebate"
+    },
+    "eitc": {
+      "name": "Rhode Island EITC",
+      "match_rate": 0.15,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "ri_eitc"
+    },
+    "exemption": {
+      "personal_amount": 4700,
+      "dependent_amount": 4700,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "RI Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "VT": {
+    "state_code": "VT",
+    "state_name": "Vermont",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Vermont Child Tax Credit",
+      "max_amount": 1000,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 5,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Ages 0-5 only",
+      "pe_variable": "vt_ctc"
+    },
+    "eitc": {
+      "name": "Vermont EITC",
+      "match_rate": 0.38,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Enhanced structure available",
+      "pe_variable": "vt_eitc"
+    },
+    "exemption": {
+      "personal_amount": 4850,
+      "dependent_amount": 4850,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "VT Child Care Credit",
+      "max_percent": 0.24,
+      "max_expenses": 6000,
+      "refundable": true,
+      "notes": ""
+    }
+  },
+  "DE": {
+    "state_code": "DE",
+    "state_name": "Delaware",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Delaware EITC",
+      "match_rate": 0.045,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Non-refundable portion also available",
+      "pe_variable": "de_eitc"
+    },
+    "exemption": {
+      "personal_amount": 110,
+      "dependent_amount": 110,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "DE Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "HI": {
+    "state_code": "HI",
+    "state_name": "Hawaii",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Hawaii EITC",
+      "match_rate": 0.4,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "hi_eitc"
+    },
+    "exemption": {
+      "personal_amount": 1144,
+      "dependent_amount": 1144,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "HI Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "IN": {
+    "state_code": "IN",
+    "state_name": "Indiana",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Indiana EITC",
+      "match_rate": 0.1,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "in_eitc"
+    },
+    "exemption": {
+      "personal_amount": 1000,
+      "dependent_amount": 1500,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "IN Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "IA": {
+    "state_code": "IA",
+    "state_name": "Iowa",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Iowa EITC",
+      "match_rate": 0.15,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "ia_eitc"
+    },
+    "exemption": {
+      "personal_amount": 40,
+      "dependent_amount": 40,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "IA Child Care Credit",
+      "max_percent": 0.75,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "KS": {
+    "state_code": "KS",
+    "state_name": "Kansas",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Kansas EITC",
+      "match_rate": 0.17,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "ks_eitc"
+    },
+    "exemption": {
+      "personal_amount": 2250,
+      "dependent_amount": 2250,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "KS Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "LA": {
+    "state_code": "LA",
+    "state_name": "Louisiana",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Louisiana EITC",
+      "match_rate": 0.05,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "la_eitc"
+    },
+    "exemption": {
+      "personal_amount": 4500,
+      "dependent_amount": 1000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "LA Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": true,
+      "notes": ""
+    }
+  },
+  "ME": {
+    "state_code": "ME",
+    "state_name": "Maine",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Maine Dependent Exemption Tax Credit",
+      "max_amount": 300,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "",
+      "pe_variable": "me_dependent_exemption_credit"
+    },
+    "eitc": {
+      "name": "Maine EITC",
+      "match_rate": 0.25,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Different rates with/without children",
+      "pe_variable": "me_eitc"
+    },
+    "exemption": {
+      "personal_amount": 4700,
+      "dependent_amount": 4700,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "ME Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "MI": {
+    "state_code": "MI",
+    "state_name": "Michigan",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Michigan EITC",
+      "match_rate": 0.3,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "mi_eitc"
+    },
+    "exemption": {
+      "personal_amount": 5400,
+      "dependent_amount": 5400,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "MI Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "MO": {
+    "state_code": "MO",
+    "state_name": "Missouri",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Missouri Working Families Tax Credit",
+      "match_rate": 0.2,
+      "refundable": false,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "mo_wftc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": null
+  },
+  "MT": {
+    "state_code": "MT",
+    "state_name": "Montana",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Montana EITC",
+      "match_rate": 0.2,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "mt_eitc"
+    },
+    "exemption": {
+      "personal_amount": 2960,
+      "dependent_amount": 2960,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "MT Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "NE": {
+    "state_code": "NE",
+    "state_name": "Nebraska",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Nebraska Refundable Child Tax Credit",
+      "max_amount": 1000,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": true,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "",
+      "pe_variable": "ne_ctc"
+    },
+    "eitc": {
+      "name": "Nebraska EITC",
+      "match_rate": 0.1,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "",
+      "pe_variable": "ne_eitc"
+    },
+    "exemption": {
+      "personal_amount": 157,
+      "dependent_amount": 157,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "NE Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "OH": {
+    "state_code": "OH",
+    "state_name": "Ohio",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Ohio EITC",
+      "match_rate": 0.3,
+      "refundable": false,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Non-refundable only",
+      "pe_variable": "oh_eitc"
+    },
+    "exemption": {
+      "personal_amount": 2400,
+      "dependent_amount": 2500,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "OH Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "PA": {
+    "state_code": "PA",
+    "state_name": "Pennsylvania",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Working Pennsylvanians Tax Credit",
+      "match_rate": 0.1,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "New program effective 2025",
+      "pe_variable": "pa_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "PA Child Care Credit",
+      "max_percent": 0.3,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "SC": {
+    "state_code": "SC",
+    "state_name": "South Carolina",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "South Carolina EITC",
+      "match_rate": 1.25,
+      "refundable": false,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "125% match but non-refundable",
+      "pe_variable": "sc_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 4610,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "SC Child Care Credit",
+      "max_percent": 0.07,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "UT": {
+    "state_code": "UT",
+    "state_name": "Utah",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Utah Child Tax Credit",
+      "max_amount": 1000,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 4,
+      "young_child_age": 6,
+      "refundable": false,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "Ages 0-4 only",
+      "pe_variable": "ut_ctc"
+    },
+    "eitc": {
+      "name": "Utah EITC",
+      "match_rate": 0.2,
+      "refundable": false,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Non-refundable; matches 20% of federal EITC.",
+      "pe_variable": "ut_eitc"
+    },
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 2000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "UT Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "VA": {
+    "state_code": "VA",
+    "state_name": "Virginia",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Virginia EITC",
+      "match_rate": 0.2,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "15-20% refundable match",
+      "pe_variable": "va_eitc"
+    },
+    "exemption": {
+      "personal_amount": 930,
+      "dependent_amount": 930,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "VA Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "WA": {
+    "state_code": "WA",
+    "state_name": "Washington",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": {
+      "name": "Working Families Tax Credit",
+      "match_rate": 0.1,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "Rebate program (no income tax)",
+      "pe_variable": "wa_working_families_tax_credit"
+    },
+    "exemption": null,
+    "cdcc": null
+  },
+  "WI": {
+    "state_code": "WI",
+    "state_name": "Wisconsin",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": {
+      "name": "Wisconsin Earned Income Credit",
+      "match_rate": 0.18,
+      "refundable": true,
+      "has_childless_credit": true,
+      "age_min": null,
+      "age_max": null,
+      "notes": "4-43% based on number of children",
+      "pe_variable": "wi_eitc"
+    },
+    "exemption": {
+      "personal_amount": 700,
+      "dependent_amount": 700,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "WI Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "AK": {
+    "state_code": "AK",
+    "state_name": "Alaska",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "FL": {
+    "state_code": "FL",
+    "state_name": "Florida",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "NV": {
+    "state_code": "NV",
+    "state_name": "Nevada",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "SD": {
+    "state_code": "SD",
+    "state_name": "South Dakota",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "TN": {
+    "state_code": "TN",
+    "state_name": "Tennessee",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "TX": {
+    "state_code": "TX",
+    "state_name": "Texas",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "WY": {
+    "state_code": "WY",
+    "state_name": "Wyoming",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": null,
+    "cdcc": null
+  },
+  "AL": {
+    "state_code": "AL",
+    "state_name": "Alabama",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 1500,
+      "dependent_amount": 1000,
+      "has_age_based_amounts": true,
+      "notes": "Varies by AGI: $1000 (<$20K), $500 ($20-99K), $300 ($100K+)"
+    },
+    "cdcc": null
+  },
+  "AZ": {
+    "state_code": "AZ",
+    "state_name": "Arizona",
+    "has_income_tax": true,
+    "ctc": {
+      "name": "Arizona Dependent Tax Credit",
+      "max_amount": 100,
+      "amount_young": null,
+      "amount_older": null,
+      "age_limit": 17,
+      "young_child_age": 6,
+      "refundable": false,
+      "income_limit": null,
+      "phaseout_start": null,
+      "phaseout_rate": null,
+      "notes": "",
+      "pe_variable": "az_dependent_tax_credit"
+    },
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "AZ Child Care Credit",
+      "max_percent": 0.5,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "AR": {
+    "state_code": "AR",
+    "state_name": "Arkansas",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 29,
+      "dependent_amount": 29,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "AR Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "KY": {
+    "state_code": "KY",
+    "state_name": "Kentucky",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "KY Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "MS": {
+    "state_code": "MS",
+    "state_name": "Mississippi",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 6000,
+      "dependent_amount": 1500,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "MS Child Care Credit",
+      "max_percent": 0.25,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  },
+  "NC": {
+    "state_code": "NC",
+    "state_name": "North Carolina",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": null
+  },
+  "ND": {
+    "state_code": "ND",
+    "state_name": "North Dakota",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 0,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": null
+  },
+  "NH": {
+    "state_code": "NH",
+    "state_name": "New Hampshire",
+    "has_income_tax": false,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 2400,
+      "dependent_amount": 0,
+      "has_age_based_amounts": false,
+      "notes": "Interest/dividend income only"
+    },
+    "cdcc": null
+  },
+  "WV": {
+    "state_code": "WV",
+    "state_name": "West Virginia",
+    "has_income_tax": true,
+    "ctc": null,
+    "eitc": null,
+    "exemption": {
+      "personal_amount": 2000,
+      "dependent_amount": 2000,
+      "has_age_based_amounts": false,
+      "notes": ""
+    },
+    "cdcc": {
+      "name": "WV Child Care Credit",
+      "max_percent": 0.2,
+      "max_expenses": 6000,
+      "refundable": false,
+      "notes": ""
+    }
+  }
+}
