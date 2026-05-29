@@ -50,6 +50,9 @@ image = (
         "fastapi",
         "pydantic>=2",
     )
+    # Cache-bust marker — bump when we want Modal to rebuild the image
+    # even though pip deps haven't changed.
+    .env({"CPID_BUILD_REV": "2026-05-29-2"})
 )
 
 
@@ -62,11 +65,6 @@ _ALLOW_ORIGINS = [
 _ALLOW_ORIGIN_REGEX = (
     r"https://child-poverty-impact-dashboard-[a-z0-9-]+(?:-policy-engine)?\.vercel\.app"
 )
-
-
-# --- result jobs dict, persisted across the lifetime of the app -----
-
-JOBS = modal.Dict.from_name("cpid-jobs", create_if_missing=True)
 
 
 # --- household sweep ----------------------------------------------------
@@ -188,24 +186,30 @@ def compute_household_sweep(payload: dict) -> dict:
         ]
 
     reform = None
-    if policy_id and policy_id != "1":
+    if policy_id and str(policy_id) not in ("1", "2"):
         reform = Reform.from_api(str(policy_id), country_id="us")
     _log(f"reform loaded (policy_id={policy_id})")
 
     data_points: list[dict] = []
     baseline_data_points: list[dict] = []
+    import traceback as _tb
     for income in incomes:
-        situation = _build_household_situation(payload, income)
-        sim_baseline = Simulation(situation=situation)
-        sim_reform = (
-            Simulation(situation=situation, reform=reform)
-            if reform is not None
-            else sim_baseline
-        )
-        point = _household_point(sim_baseline, sim_reform, year)
-        # Flatten into the wire shape the React client uses today.
-        baseline_data_points.append({"income": float(income), **point["baseline"]})
-        data_points.append({"income": float(income), **point["reform"]})
+        try:
+            situation = _build_household_situation(payload, income)
+            sim_baseline = Simulation(situation=situation)
+            sim_reform = (
+                Simulation(situation=situation, reform=reform)
+                if reform is not None
+                else sim_baseline
+            )
+            point = _household_point(sim_baseline, sim_reform, year)
+            baseline_data_points.append({"income": float(income), **point["baseline"]})
+            data_points.append({"income": float(income), **point["reform"]})
+        except Exception as exc:
+            raise RuntimeError(
+                f"Failed at income={income}: {type(exc).__name__}: {exc}\n"
+                f"Traceback:\n{_tb.format_exc()}"
+            ) from exc
 
     _log(f"sweep done ({len(incomes)} points)")
 
@@ -239,7 +243,7 @@ def compute_economy(payload: dict) -> dict:
 
     reform = (
         Reform.from_api(str(policy_id), country_id="us")
-        if policy_id and policy_id != "1"
+        if policy_id and str(policy_id) not in ("1", "2")
         else None
     )
     _log(f"reform loaded (policy_id={policy_id})")
@@ -343,7 +347,6 @@ def compute_economy(payload: dict) -> dict:
 def web():
     from fastapi import FastAPI, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
-    from pydantic import BaseModel
 
     api = FastAPI()
     api.add_middleware(
@@ -355,71 +358,37 @@ def web():
         allow_headers=["*"],
     )
 
-    class EconomyStart(BaseModel):
-        policy_id: int | str
-        year: int
-        state: str | None = None
-        region: str = "us"
-
-    class HouseholdStart(BaseModel):
-        policy_id: int | str
-        year: int
-        state: str
-        married: bool = False
-        head_age: int = 35
-        spouse_age: int | None = None
-        dependent_ages: list[int] = []
-        income_range: list[float] = []
-        spouse_employment_income: float = 0
-        self_employment_income: float = 0
-        social_security: float = 0
-        unemployment_compensation: float = 0
-        taxable_pension_income: float = 0
-        long_term_capital_gains: float = 0
-        qualified_dividend_income: float = 0
-        taxable_interest_income: float = 0
-
-    def _spawn(kind: str, fn, payload: dict) -> str:
-        call = fn.spawn(payload)
-        job_id = call.object_id
-        JOBS[job_id] = {"kind": kind, "status": "computing"}
-        return job_id
-
+    # NOTE: `payload: dict` (not a Pydantic model) — matches the
+    # refundable-credit-conversion shape so FastAPI's body-vs-query
+    # detection doesn't trip over the polymorphic policy_id field.
     @api.post("/economy/start")
-    def economy_start(payload: EconomyStart):
-        job_id = _spawn("economy", compute_economy, payload.model_dump())
-        return {"job_id": job_id}
+    def economy_start(payload: dict) -> dict:
+        call = compute_economy.spawn(payload)
+        return {"job_id": call.object_id}
 
     @api.post("/household/start")
-    def household_start(payload: HouseholdStart):
-        job_id = _spawn("household", compute_household_sweep, payload.model_dump())
-        return {"job_id": job_id}
+    def household_start(payload: dict) -> dict:
+        call = compute_household_sweep.spawn(payload)
+        return {"job_id": call.object_id}
 
     @api.get("/economy/status/{job_id}")
     def economy_status(job_id: str):
-        return _status(job_id, expected_kind="economy")
+        return _status(job_id)
 
     @api.get("/household/status/{job_id}")
     def household_status(job_id: str):
-        return _status(job_id, expected_kind="household")
+        return _status(job_id)
 
-    def _status(job_id: str, expected_kind: str) -> dict:
-        record = JOBS.get(job_id)
-        if record is None:
-            raise HTTPException(status_code=404, detail="Unknown job_id.")
-        if record.get("kind") != expected_kind:
-            raise HTTPException(status_code=400, detail="Job kind mismatch.")
+    def _status(job_id: str) -> dict:
         try:
             call = modal.FunctionCall.from_id(job_id)
             result = call.get(timeout=0)
-            JOBS[job_id] = {**record, "status": "ok", "result": result}
             return {"status": "ok", "result": result}
         except modal.exception.OutputExpiredError:
             raise HTTPException(status_code=410, detail="Result expired.")
         except TimeoutError:
             return {"status": "computing"}
         except Exception as exc:
-            JOBS[job_id] = {**record, "status": "error", "message": str(exc)}
             return {"status": "error", "message": str(exc)}
 
     @api.get("/healthz")

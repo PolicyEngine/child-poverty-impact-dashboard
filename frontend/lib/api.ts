@@ -70,6 +70,49 @@ export async function runAnalysisFromOptions(
   reformOptionIds: string[],
   parameterValues?: Record<string, Record<string, number>>
 ): Promise<AnalysisResponse> {
+  // Modal first when configured (production path); fall through to the
+  // local FastAPI shim, then a direct api.policyengine.org call.
+  const { modalConfigured, createPolicy, runEconomyOnModal } = await import(
+    './modalApi'
+  );
+  if (modalConfigured()) {
+    try {
+      const { buildStateEitcReform } = await import('./state-programs');
+      const reform: Record<string, Record<string, number | boolean>> = {};
+      for (const id of reformOptionIds) {
+        if (id.endsWith('_eitc')) {
+          const st = id.slice(0, 2).toUpperCase();
+          const ratePct = parameterValues?.[id]?.match_rate ?? 30;
+          Object.assign(
+            reform,
+            buildStateEitcReform(st, ratePct / 100, year),
+          );
+        }
+        if (id === 'federal_ctc_expanded') {
+          const range = `${year}-01-01.2100-12-31`;
+          reform['gov.irs.credits.ctc.refundable.fully_refundable'] = {
+            [range]: true,
+          };
+        }
+      }
+      const policyId =
+        Object.keys(reform).length > 0 ? await createPolicy(reform) : 1;
+      const economy = await runEconomyOnModal(policyId, year, state);
+      // Map Modal's EconomyImpactResult into the AnalysisResponse shape
+      // the existing statewide tabs read. Only the fields used by the
+      // tabs are populated; everything else gets a zero stub.
+      const stub: unknown = {
+        state,
+        year,
+        poverty: economy.poverty,
+        fiscal: economy.fiscal,
+        distributional: {},
+      };
+      return stub as AnalysisResponse;
+    } catch (err) {
+      console.warn('Modal economy failed; falling back', err);
+    }
+  }
   try {
     const response = await api.post('/analysis/from-options', {
       state,
@@ -83,11 +126,6 @@ export async function runAnalysisFromOptions(
       (err as { response?: { status?: number } })?.response?.status;
     const code = (err as { code?: string })?.code;
     if (status === 404 || status === 500 || code === 'ERR_NETWORK') {
-      // No FastAPI backend reachable (Vercel deployment) — fall back to
-      // a direct PolicyEngine API call. The household shim below is just
-      // a stand-in to populate the reform-builder; api.policyengine.org
-      // only needs the reform dict + a state filter to score the
-      // statewide impact.
       const { runStatewideViaApi } = await import('./pe-api');
       const householdShim = {
         state,
