@@ -79,8 +79,9 @@ const formatPercentWithSign = (value: number): string => {
   return `${sign}${value.toFixed(1)}%`;
 };
 
-// Tab types
-type TabKey = 'overview' | 'poverty' | 'fiscal' | 'distributional';
+// Tab types — household is conditional (only when the wizard's
+// household step was filled in); the rest are statewide and always run.
+type TabKey = 'household' | 'overview' | 'poverty' | 'fiscal' | 'distributional';
 
 interface ReportConfig {
   state: string | null;
@@ -96,6 +97,16 @@ interface TabConfig {
   label: string;
   icon: React.ReactNode;
 }
+
+const HOUSEHOLD_TAB: TabConfig = {
+  key: 'household',
+  label: 'Household',
+  icon: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  ),
+};
 
 const TABS: TabConfig[] = [
   {
@@ -138,7 +149,7 @@ const TABS: TabConfig[] = [
 
 export default function ReportResultsPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  const [activeTab, setActiveTab] = useState<TabKey>('household');
   const [config, setConfig] = useState<ReportConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -167,20 +178,37 @@ export default function ReportResultsPage() {
         const parsedConfig: ReportConfig = JSON.parse(storedConfig);
         setConfig(parsedConfig);
 
+        if (!parsedConfig.state) {
+          setError('Invalid report configuration. Please start a new report.');
+          return;
+        }
+
+        // Statewide analysis always runs — that's the default impact
+        // view. The household analysis is opt-in via the wizard's
+        // household step (populationType === 'household').
+        const statewidePromise = runAnalysisFromOptions(
+          parsedConfig.state,
+          parsedConfig.year,
+          parsedConfig.selectedReforms,
+          parsedConfig.parameterValues,
+        )
+          .then((results) => setStatewideResults(results))
+          .catch((err: unknown) => {
+            console.error('Statewide analysis failed:', err);
+            throw err;
+          });
+
         if (parsedConfig.populationType === 'household' && parsedConfig.household) {
-          // Run household analysis
-          const [baseline, impact] = await Promise.all([
+          const householdPromise = Promise.all([
             calculateBaseline(parsedConfig.household),
             calculateImpact(parsedConfig.household, parsedConfig.selectedReforms),
-          ]);
-          setBaselineResults(baseline);
-          setHouseholdResults(impact);
+          ]).then(([baseline, impact]) => {
+            setBaselineResults(baseline);
+            setHouseholdResults(impact);
+          });
 
-          // Kick off the income sweep ($0–$400k @ $10k steps — coarser
-          // than the calculator's chart so local single-process runs
-          // finish in a reasonable time; the chart shape doesn't need
-          // finer resolution) in the background so the headline cards
-          // render immediately while the chart fills in once it returns.
+          // Background income sweep ($0–$400k @ $10k steps) so the
+          // overview cards land immediately while the chart fills in.
           setSweepLoading(true);
           setSweepError(null);
           runIncomeSweep(
@@ -201,17 +229,10 @@ export default function ReportResultsPage() {
               setSweepError(String(message));
             })
             .finally(() => setSweepLoading(false));
-        } else if (parsedConfig.populationType === 'statewide' && parsedConfig.state) {
-          // Run statewide analysis
-          const results = await runAnalysisFromOptions(
-            parsedConfig.state,
-            parsedConfig.year,
-            parsedConfig.selectedReforms,
-            parsedConfig.parameterValues
-          );
-          setStatewideResults(results);
+
+          await Promise.all([statewidePromise, householdPromise]);
         } else {
-          setError('Invalid report configuration. Please start a new report.');
+          await statewidePromise;
         }
       } catch (err: any) {
         console.error('Error running analysis:', err);
@@ -233,14 +254,23 @@ export default function ReportResultsPage() {
     return <ErrorState error={error} />;
   }
 
-  // Check if we have valid results based on population type
-  const hasResults = config && (
-    (config.populationType === 'household' && householdResults) ||
-    (config.populationType === 'statewide' && statewideResults)
-  );
+  // Statewide always runs; household is optional. Treat the page as
+  // having results once the always-on statewide leg has returned.
+  const hasResults = config && statewideResults;
+  const showHouseholdTab =
+    !!config &&
+    config.populationType === 'household' &&
+    !!config.household;
 
   if (!hasResults) {
     return <ErrorState error="No results available" />;
+  }
+
+  // Default-active tab: 'household' when available, otherwise drop to
+  // 'overview'. Without this the initial state of 'household' would
+  // render nothing on skipped-household runs.
+  if (!showHouseholdTab && activeTab === 'household') {
+    setActiveTab('overview');
   }
 
   return (
@@ -286,7 +316,7 @@ export default function ReportResultsPage() {
       <div className="bg-white border-b border-pe-gray-100 sticky top-16 z-40">
         <div className="max-w-6xl mx-auto px-6">
           <nav className="flex gap-1">
-            {TABS.map((tab) => (
+            {(showHouseholdTab ? [HOUSEHOLD_TAB, ...TABS] : TABS).map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -318,67 +348,39 @@ export default function ReportResultsPage() {
 
       {/* Tab Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {config!.populationType === 'household' && householdResults ? (
-          // Household Results
-          <>
-            {activeTab === 'overview' && (
-              <HouseholdOverviewTab
-                config={config!}
-                results={householdResults}
-                baseline={baselineResults}
-                incomeSweep={incomeSweep}
-                sweepLoading={sweepLoading}
-                sweepError={sweepError}
-              />
-            )}
-            {activeTab === 'poverty' && (
-              <HouseholdPovertyTab
-                config={config!}
-                results={householdResults}
-              />
-            )}
-            {activeTab === 'fiscal' && (
-              <HouseholdFiscalTab
-                config={config!}
-                results={householdResults}
-              />
-            )}
-            {activeTab === 'distributional' && (
-              <HouseholdDistributionalTab config={config!} />
-            )}
-          </>
-        ) : statewideResults ? (
-          // Statewide Results
-          <>
-            {activeTab === 'overview' && (
-              <StatewideOverview
-                results={statewideResults}
-                state={config!.state}
-                year={config!.year}
-              />
-            )}
-            {activeTab === 'poverty' && (
-              <StatewidePoverty
-                results={statewideResults}
-                state={config!.state}
-                year={config!.year}
-              />
-            )}
-            {activeTab === 'fiscal' && (
-              <StatewideFiscal
-                results={statewideResults}
-                state={config!.state}
-                year={config!.year}
-              />
-            )}
-            {activeTab === 'distributional' && (
-              <StatewideDistributional
-                results={statewideResults}
-                state={config!.state}
-                year={config!.year}
-              />
-            )}
-          </>
+        {activeTab === 'household' && showHouseholdTab && householdResults ? (
+          <HouseholdOverviewTab
+            config={config!}
+            results={householdResults}
+            baseline={baselineResults}
+            incomeSweep={incomeSweep}
+            sweepLoading={sweepLoading}
+            sweepError={sweepError}
+          />
+        ) : activeTab === 'overview' && statewideResults ? (
+          <StatewideOverview
+            results={statewideResults}
+            state={config!.state}
+            year={config!.year}
+          />
+        ) : activeTab === 'poverty' && statewideResults ? (
+          <StatewidePoverty
+            results={statewideResults}
+            state={config!.state}
+            year={config!.year}
+          />
+        ) : activeTab === 'fiscal' && statewideResults ? (
+          <StatewideFiscal
+            results={statewideResults}
+            state={config!.state}
+            year={config!.year}
+          />
+        ) : activeTab === 'distributional' && statewideResults ? (
+          <StatewideDistributional
+            results={statewideResults}
+            state={config!.state}
+            year={config!.year}
+          />
         ) : null}
       </div>
     </div>

@@ -17,11 +17,18 @@ import {
   getReformOptions,
 } from '@/lib/household-api';
 
-type Step = 'state' | 'population' | 'reform' | 'review';
+// RCC-style flow: pick a state + year, pick a reform, then optionally
+// specify a household example (or skip and go straight to the statewide
+// impacts). The Review step from the old flow is gone — the wizard now
+// hands off to the results page as soon as the user clicks Run.
+type Step = 'state' | 'reform' | 'household';
 type PopulationType = 'household' | 'statewide';
 
 interface ReportConfig {
   state: string | null;
+  /** When the user skips the household step, populationType is 'statewide'
+   *  and household stays null. The results page uses that to hide the
+   *  Household tab. */
   populationType: PopulationType;
   household: HouseholdInput | null;
   selectedReforms: string[];
@@ -44,15 +51,6 @@ const STEPS: { key: Step; label: string; icon: React.ReactNode }[] = [
     ),
   },
   {
-    key: 'population',
-    label: 'Population',
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-  {
     key: 'reform',
     label: 'Reform',
     icon: (
@@ -62,11 +60,11 @@ const STEPS: { key: Step; label: string; icon: React.ReactNode }[] = [
     ),
   },
   {
-    key: 'review',
-    label: 'Review',
+    key: 'household',
+    label: 'Household (optional)',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
   },
@@ -123,11 +121,6 @@ export default function ReportBuilderPage() {
 
   const currentStepIndex = STEPS.findIndex(s => s.key === step);
 
-  const handlePopulationSelect = (type: PopulationType, household?: HouseholdInput) => {
-    setConfig(c => ({ ...c, populationType: type, household: household || null }));
-    setStep('reform');
-  };
-
   const handleReformChange = (selectedReforms: string[]) => {
     setConfig(c => ({ ...c, selectedReforms }));
   };
@@ -145,15 +138,31 @@ export default function ReportBuilderPage() {
     }));
   };
 
-  const handleRunReport = async () => {
+  /** Persist the config and hand off to the results page. The optional
+   *  `householdOverride` argument lets the household step pass the
+   *  freshly-submitted household form without waiting for setConfig's
+   *  setState to flush. */
+  const handleRunReport = async (overrides?: {
+    skipHousehold?: boolean;
+    household?: HouseholdInput;
+  }) => {
     setIsRunning(true);
-    // Store config in sessionStorage for results page
-    sessionStorage.setItem('reportConfig', JSON.stringify(config));
-    // Navigate to results
+    const skipHousehold = overrides?.skipHousehold ?? false;
+    const householdOverride = overrides?.household ?? null;
+    const populationType: PopulationType = skipHousehold
+      ? 'statewide'
+      : 'household';
+    const household = skipHousehold ? null : householdOverride ?? config.household;
+    const payload = {
+      ...config,
+      populationType,
+      household,
+    };
+    sessionStorage.setItem('reportConfig', JSON.stringify(payload));
     router.push('/report/results');
   };
 
-  const canProceedToReview = config.selectedReforms.length > 0;
+  const canProceedToHousehold = config.selectedReforms.length > 0;
 
   return (
     <div className="min-h-screen bg-pe-gray-50/30">
@@ -302,7 +311,7 @@ export default function ReportBuilderPage() {
                       </p>
                     )}
                     <button
-                      onClick={() => canContinue && setStep('population')}
+                      onClick={() => canContinue && setStep('reform')}
                       disabled={!canContinue}
                       aria-disabled={!canContinue}
                       title={canContinue ? undefined : missingLabel}
@@ -319,255 +328,100 @@ export default function ReportBuilderPage() {
             </div>
           )}
 
-          {/* Step 2: Population Selection */}
-          {step === 'population' && (
+          {/* Step 2: Reform Selection */}
+          {step === 'reform' && (
             <div className="space-y-6">
               <div className="card">
-                <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Select Population Type</h2>
+                <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">
+                  Select reform options
+                </h2>
                 <p className="text-pe-gray-500 mb-6">
-                  Choose whether to analyze an individual household or the entire state population.
+                  Choose one or more policy reforms to analyze.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setConfig(c => ({ ...c, populationType: 'household' }))}
-                    className={`p-6 rounded-xl border-2 text-left transition-all ${
-                      config.populationType === 'household'
-                        ? 'border-pe-teal-500 bg-pe-teal-50'
-                        : 'border-pe-gray-200 hover:border-pe-teal-300'
-                    }`}
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-pe-teal-100 flex items-center justify-center mb-4">
-                      <svg className="w-6 h-6 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">Individual Household</h3>
-                    <p className="text-sm text-pe-gray-500">
-                      Enter specific household details to see personalized impact calculations.
-                    </p>
-                  </button>
+                <ReformOptionsSelector
+                  stateCode={config.state || 'CA'}
+                  statePrograms={statePrograms || undefined}
+                  reformOptions={reformOptions || undefined}
+                  selectedOptions={config.selectedReforms}
+                  onSelectionChange={handleReformChange}
+                  parameterValues={config.parameterValues}
+                  onParameterChange={handleParameterChange}
+                  isLoading={loadingState}
+                />
 
+                <div className="flex justify-between items-center mt-8 pt-6 border-t border-pe-gray-100">
+                  <button onClick={() => setStep('state')} className="btn btn-ghost">
+                    Back
+                  </button>
                   <button
-                    onClick={() => setConfig(c => ({ ...c, populationType: 'statewide' }))}
-                    className={`p-6 rounded-xl border-2 text-left transition-all ${
-                      config.populationType === 'statewide'
-                        ? 'border-pe-teal-500 bg-pe-teal-50'
-                        : 'border-pe-gray-200 hover:border-pe-teal-300'
-                    }`}
+                    onClick={() => setStep('household')}
+                    disabled={!canProceedToHousehold}
+                    className="btn btn-primary"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-pe-teal-100 flex items-center justify-center mb-4">
-                      <svg className="w-6 h-6 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-pe-gray-800 mb-2">Statewide Population</h3>
-                    <p className="text-sm text-pe-gray-500">
-                      Run microsimulation to estimate aggregate impacts across the entire state.
-                    </p>
+                    Continue
+                    <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </div>
-              </div>
-
-              {config.populationType === 'household' && (
-                <div className="card">
-                  <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Household Details</h3>
-                  <HouseholdForm
-                    initialValues={
-                      config.household
-                        ? {
-                            ...config.household,
-                            state: config.state || 'CA',
-                            year: config.year ?? config.household.year,
-                          }
-                        : ({
-                            state: config.state || 'CA',
-                            year: config.year ?? 2026,
-                          } as HouseholdInput)
-                    }
-                    onSubmit={(household) => handlePopulationSelect('household', household)}
-                    isLoading={false}
-                    submitLabel="Continue to Reform Selection"
-                  />
-                </div>
-              )}
-
-              {config.populationType === 'statewide' && (
-                <div className="card bg-pe-teal-50 border-pe-teal-200">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-pe-teal-100 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-pe-teal-800">
-                        Statewide Analysis for {config.state ? US_STATES[config.state] : 'Selected State'} ({config.year ?? '—'})
-                      </h4>
-                      <p className="text-sm text-pe-teal-700 mt-1">
-                        This will run a microsimulation to estimate poverty
-                        reduction, fiscal costs, and distributional impacts for
-                        tax year {config.year ?? '—'}.
-                      </p>
-                      <button
-                        onClick={() => handlePopulationSelect('statewide')}
-                        className="btn btn-primary mt-4"
-                      >
-                        Continue to Reform Selection
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 3: Reform Selection */}
-          {step === 'reform' && (
-            <div className="card">
-              <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Select Reform Options</h2>
-              <p className="text-pe-gray-500 mb-6">
-                Choose one or more policy reforms to analyze. Reforms can be combined.
-              </p>
-
-              <ReformOptionsSelector
-                stateCode={config.state || 'CA'}
-                statePrograms={statePrograms || undefined}
-                reformOptions={reformOptions || undefined}
-                selectedOptions={config.selectedReforms}
-                onSelectionChange={handleReformChange}
-                parameterValues={config.parameterValues}
-                onParameterChange={handleParameterChange}
-                isLoading={loadingState}
-              />
-
-              <div className="flex justify-between items-center mt-8 pt-6 border-t border-pe-gray-100">
-                <button
-                  onClick={() => setStep('population')}
-                  className="btn btn-ghost"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  onClick={() => setStep('review')}
-                  disabled={!canProceedToReview}
-                  className="btn btn-primary"
-                >
-                  Continue to Review
-                  <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
               </div>
             </div>
           )}
 
-          {/* Step 4: Review */}
-          {step === 'review' && (
+          {/* Step 3: Optional household example */}
+          {step === 'household' && (
             <div className="space-y-6">
-              <div className="card">
-                <h2 className="text-xl font-semibold text-pe-gray-800 mb-6">Review Your Report</h2>
-
-                <div className="space-y-4">
-                  {/* State & Year */}
-                  <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-pe-teal-100 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm text-pe-gray-500">Location & Year</p>
-                        <p className="font-semibold text-pe-gray-800">
-                          {config.state ? US_STATES[config.state] : 'Not selected'}, {config.year ?? '—'}
-                        </p>
-                      </div>
-                    </div>
-                    <button onClick={() => setStep('state')} className="text-pe-teal-600 text-sm hover:underline">
-                      Edit
-                    </button>
-                  </div>
-
-                  {/* Population */}
-                  <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-pe-teal-100 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm text-pe-gray-500">Population</p>
-                        <p className="font-semibold text-pe-gray-800">
-                          {config.populationType === 'household'
-                            ? `Household: ${config.household?.adults.length || 0} adult(s), ${config.household?.children.length || 0} child(ren)`
-                            : 'Statewide microsimulation'}
-                        </p>
-                      </div>
-                    </div>
-                    <button onClick={() => setStep('population')} className="text-pe-teal-600 text-sm hover:underline">
-                      Edit
-                    </button>
-                  </div>
-
-                  {/* Reforms */}
-                  <div className="flex items-center justify-between p-4 bg-pe-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-pe-teal-100 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm text-pe-gray-500">Reforms Selected</p>
-                        <p className="font-semibold text-pe-gray-800">
-                          {config.selectedReforms.length} reform(s)
-                        </p>
-                      </div>
-                    </div>
-                    <button onClick={() => setStep('reform')} className="text-pe-teal-600 text-sm hover:underline">
-                      Edit
-                    </button>
-                  </div>
+              <div className="card bg-pe-teal-50 border-pe-teal-200">
+                <h2 className="text-xl font-semibold text-pe-teal-800">
+                  Add a household example (optional)
+                </h2>
+                <p className="text-sm text-pe-teal-700 mt-1">
+                  Specify a household to also see how the reform affects that
+                  family's net income, CTC, EITC, and SNAP. Skip to go
+                  straight to the statewide impacts — the microsimulation
+                  always runs.
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => handleRunReport({ skipHousehold: true })}
+                    disabled={isRunning}
+                    className="btn btn-secondary"
+                  >
+                    Skip and run statewide only
+                  </button>
                 </div>
               </div>
 
-              {/* Run Button */}
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={() => setStep('reform')}
-                  className="btn btn-ghost"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
+              <div className="card">
+                <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">
+                  Household details
+                </h3>
+                <HouseholdForm
+                  initialValues={
+                    config.household
+                      ? {
+                          ...config.household,
+                          state: config.state || 'CA',
+                          year: config.year ?? config.household.year,
+                        }
+                      : ({
+                          state: config.state || 'CA',
+                          year: config.year ?? 2026,
+                        } as HouseholdInput)
+                  }
+                  onSubmit={(household) => {
+                    setConfig((c) => ({ ...c, household }));
+                    handleRunReport({ skipHousehold: false, household });
+                  }}
+                  isLoading={isRunning}
+                  submitLabel="Run analysis"
+                />
+              </div>
+
+              <div>
+                <button onClick={() => setStep('reform')} className="btn btn-ghost">
                   Back
-                </button>
-                <button
-                  onClick={handleRunReport}
-                  disabled={isRunning}
-                  className="btn btn-primary btn-lg"
-                >
-                  {isRunning ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Running Analysis...
-                    </>
-                  ) : (
-                    <>
-                      Run Report
-                      <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </>
-                  )}
                 </button>
               </div>
             </div>
