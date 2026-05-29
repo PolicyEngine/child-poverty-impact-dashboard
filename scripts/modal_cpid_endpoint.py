@@ -52,7 +52,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-05-29-2"})
+    .env({"CPID_BUILD_REV": "2026-05-29-4-1800s-16gb"})
 )
 
 
@@ -224,7 +224,7 @@ def compute_household_sweep(payload: dict) -> dict:
 # --- statewide economy --------------------------------------------------
 
 
-@app.function(image=image, timeout=600, memory=8192)
+@app.function(image=image, timeout=1800, memory=16384)
 def compute_economy(payload: dict) -> dict:
     """Compute statewide microsim impact (poverty, fiscal, distributional)."""
     import time
@@ -240,57 +240,50 @@ def compute_economy(payload: dict) -> dict:
     policy_id = payload.get("policy_id")
     year = int(payload["year"])
     state_code = payload.get("state")
+    if not state_code:
+        raise ValueError("`state` is required.")
+
+    # State-specific calibrated CPS dataset (uppercase code). Same dataset
+    # the SC / MO / RCC dashboards use — _not_ the national ECPS, which
+    # would be slower and less accurate for state-level totals.
+    state_dataset = (
+        f"hf://policyengine/policyengine-us-data/states/{state_code.upper()}.h5"
+    )
 
     reform = (
         Reform.from_api(str(policy_id), country_id="us")
         if policy_id and str(policy_id) not in ("1", "2")
         else None
     )
-    _log(f"reform loaded (policy_id={policy_id})")
+    _log(f"reform loaded (policy_id={policy_id}) on dataset={state_dataset}")
 
-    sim_baseline = Microsimulation()
+    sim_baseline = Microsimulation(dataset=state_dataset)
     sim_reform = (
-        Microsimulation(reform=reform) if reform is not None else sim_baseline
+        Microsimulation(dataset=state_dataset, reform=reform)
+        if reform is not None
+        else sim_baseline
     )
     _log("microsims built")
 
-    # State filter.
-    state_mask = None
-    if state_code:
-        state_arr = np.array(
-            sim_baseline.calculate("state_code_str", period=year, map_to="person")
-        )
-        state_mask = state_arr == state_code
-
-    def _sum(sim, name: str, mask=None) -> float:
+    # State-specific .h5 already contains only this state's households,
+    # so all sums and rates run unmasked across the whole sim.
+    def _sum(sim, name: str) -> float:
         arr = np.array(sim.calculate(name, period=year, map_to="household"))
         weight = np.array(sim.calculate("household_weight", period=year))
-        if mask is not None:
-            # Map the per-person mask down to households via any-membership.
-            person_household = np.array(
-                sim.calculate("household_id", period=year, map_to="person")
-            )
-            household_ids = np.array(
-                sim.calculate("household_id", period=year)
-            )
-            in_state_households = np.unique(person_household[mask])
-            household_mask = np.isin(household_ids, in_state_households)
-            arr = arr * household_mask
-            weight = weight * household_mask
         return float((arr * weight).sum())
 
-    federal_baseline = _sum(sim_baseline, "income_tax", state_mask)
-    federal_reform = _sum(sim_reform, "income_tax", state_mask)
+    federal_baseline = _sum(sim_baseline, "income_tax")
+    federal_reform = _sum(sim_reform, "income_tax")
     federal_tax_change = federal_reform - federal_baseline
     _log("federal_tax done")
 
-    state_baseline = _sum(sim_baseline, "state_income_tax", state_mask)
-    state_reform = _sum(sim_reform, "state_income_tax", state_mask)
+    state_baseline = _sum(sim_baseline, "state_income_tax")
+    state_reform = _sum(sim_reform, "state_income_tax")
     state_tax_change = state_reform - state_baseline
     _log("state_tax done")
 
-    benefit_baseline = _sum(sim_baseline, "household_benefits", state_mask)
-    benefit_reform = _sum(sim_reform, "household_benefits", state_mask)
+    benefit_baseline = _sum(sim_baseline, "household_benefits")
+    benefit_reform = _sum(sim_reform, "household_benefits")
     benefit_change = benefit_reform - benefit_baseline
     _log("benefits done")
 
@@ -304,12 +297,12 @@ def compute_economy(payload: dict) -> dict:
     person_weight = np.array(
         sim_baseline.calculate("person_weight", period=year)
     )
-    person_mask = state_mask if state_mask is not None else np.ones_like(age_arr, dtype=bool)
-    child_mask = (age_arr < 18) & person_mask
+    child_mask = age_arr < 18
     total_children = float(person_weight[child_mask].sum())
 
     pov_bl_arr = np.array(pov_baseline).astype(bool)
     pov_rf_arr = np.array(pov_reform).astype(bool)
+    all_mask = np.ones_like(age_arr, dtype=bool)
 
     def _rate(arr, mask):
         w = person_weight[mask]
@@ -328,8 +321,8 @@ def compute_economy(payload: dict) -> dict:
             "total_budgetary_impact": federal_tax_change + state_tax_change - benefit_change,
         },
         "poverty": {
-            "overall_baseline_rate": _rate(pov_bl_arr, person_mask),
-            "overall_reform_rate": _rate(pov_rf_arr, person_mask),
+            "overall_baseline_rate": _rate(pov_bl_arr, all_mask),
+            "overall_reform_rate": _rate(pov_rf_arr, all_mask),
             "child_baseline_rate": _rate(pov_bl_arr, child_mask),
             "child_reform_rate": _rate(pov_rf_arr, child_mask),
             "children_lifted": float(
