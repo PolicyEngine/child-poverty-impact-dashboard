@@ -3,17 +3,51 @@
 import { useState } from 'react';
 import type {
   HouseholdInput,
-  PersonInput,
   ChildInput,
   FilingStatus,
+  IncomeInput,
 } from '@/lib/household-types';
-import { US_STATES, defaultHousehold } from '@/lib/household-types';
+import { defaultHousehold } from '@/lib/household-types';
 
 interface HouseholdFormProps {
   initialValues?: Partial<HouseholdInput>;
   onSubmit: (household: HouseholdInput) => void;
   isLoading?: boolean;
   submitLabel?: string;
+}
+
+// Selectable "other income" sources. employment_income (and the
+// spouse counterpart when married) are always present and not in this
+// list. Keys are intentionally restricted to the IncomeInput fields the
+// backend already understands.
+type OtherIncomeKey =
+  | 'capital_gains'
+  | 'self_employment_income'
+  | 'social_security_income'
+  | 'pension_income'
+  | 'dividend_income'
+  | 'taxable_interest_income'
+  | 'taxable_retirement_distributions'
+  | 'unemployment_income';
+
+const OTHER_INCOME_OPTIONS: { key: OtherIncomeKey; label: string }[] = [
+  { key: 'capital_gains', label: 'Capital gains' },
+  { key: 'self_employment_income', label: 'Self-employment income' },
+  { key: 'social_security_income', label: 'Social Security' },
+  { key: 'pension_income', label: 'Pension income' },
+  { key: 'dividend_income', label: 'Dividend income' },
+  { key: 'taxable_interest_income', label: 'Taxable interest' },
+  { key: 'taxable_retirement_distributions', label: 'Retirement distributions' },
+  { key: 'unemployment_income', label: 'Unemployment' },
+];
+
+function deriveFilingStatus(
+  married: boolean,
+  hasChildren: boolean,
+): FilingStatus {
+  if (married) return 'married_filing_jointly';
+  if (hasChildren) return 'head_of_household';
+  return 'single';
 }
 
 export default function HouseholdForm({
@@ -27,8 +61,30 @@ export default function HouseholdForm({
     ...initialValues,
   });
 
+  // Marital toggle drives filing_status. Initialize from any incoming
+  // filing_status so existing households round-trip correctly.
+  const [married, setMarried] = useState(
+    initialValues?.filing_status?.startsWith('married') ?? false,
+  );
+
+  // Track which optional income sources the user has surfaced. Pre-populate
+  // any non-zero values that came in via initialValues.
+  const [selectedOtherIncome, setSelectedOtherIncome] = useState<OtherIncomeKey[]>(
+    () =>
+      OTHER_INCOME_OPTIONS
+        .filter(({ key }) => (initialValues?.income?.[key] ?? 0) > 0)
+        .map(({ key }) => key),
+  );
+
   const updateHousehold = (updates: Partial<HouseholdInput>) => {
     setHousehold((prev) => ({ ...prev, ...updates }));
+  };
+
+  const updateIncome = (updates: Partial<IncomeInput>) => {
+    setHousehold((prev) => ({
+      ...prev,
+      income: { ...prev.income, ...updates },
+    }));
   };
 
   const addChild = () => {
@@ -49,48 +105,102 @@ export default function HouseholdForm({
     setHousehold((prev) => ({
       ...prev,
       children: prev.children.map((child, i) =>
-        i === index ? { ...child, ...updates } : child
+        i === index ? { ...child, ...updates } : child,
       ),
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(household);
+  const handleMarriedChange = (next: boolean) => {
+    setMarried(next);
+    if (next) {
+      // Ensure a spouse adult exists; clear single-only state.
+      setHousehold((prev) => ({
+        ...prev,
+        adults: prev.adults.length >= 2 ? prev.adults : [...prev.adults, { age: 30 }],
+      }));
+    } else {
+      // Drop the spouse + their employment income.
+      setHousehold((prev) => ({
+        ...prev,
+        adults: [prev.adults[0] ?? { age: 30 }],
+        income: { ...prev.income, spouse_employment_income: 0 },
+      }));
+    }
   };
+
+  const addOtherIncome = (key: OtherIncomeKey) => {
+    if (selectedOtherIncome.includes(key)) return;
+    setSelectedOtherIncome((prev) => [...prev, key]);
+    updateIncome({ [key]: 0 } as Partial<IncomeInput>);
+  };
+
+  const removeOtherIncome = (key: OtherIncomeKey) => {
+    setSelectedOtherIncome((prev) => prev.filter((k) => k !== key));
+    updateIncome({ [key]: 0 } as Partial<IncomeInput>);
+  };
+
+  const availableOtherIncome = OTHER_INCOME_OPTIONS.filter(
+    (opt) => !selectedOtherIncome.includes(opt.key),
+  );
 
   // Quick presets
   const applyPreset = (preset: 'single' | 'single_parent' | 'married') => {
     switch (preset) {
       case 'single':
-        setHousehold({
-          ...household,
+        setMarried(false);
+        setHousehold((prev) => ({
+          ...prev,
           filing_status: 'single',
           adults: [{ age: 30 }],
           children: [],
           income: { employment_income: 40000 },
-        });
+        }));
+        setSelectedOtherIncome([]);
         break;
       case 'single_parent':
-        setHousehold({
-          ...household,
+        setMarried(false);
+        setHousehold((prev) => ({
+          ...prev,
           filing_status: 'head_of_household',
           adults: [{ age: 35 }],
           children: [{ age: 5 }, { age: 8 }],
           income: { employment_income: 35000 },
-        });
+        }));
+        setSelectedOtherIncome([]);
         break;
       case 'married':
-        setHousehold({
-          ...household,
+        setMarried(true);
+        setHousehold((prev) => ({
+          ...prev,
           filing_status: 'married_filing_jointly',
           adults: [{ age: 35 }, { age: 33 }],
           children: [{ age: 3 }, { age: 7 }],
           income: { employment_income: 60000, spouse_employment_income: 30000 },
-        });
+        }));
+        setSelectedOtherIncome([]);
         break;
     }
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      ...household,
+      filing_status: deriveFilingStatus(married, household.children.length > 0),
+    });
+  };
+
+  const totalIncome =
+    (household.income.employment_income || 0) +
+    (household.income.spouse_employment_income || 0) +
+    (household.income.self_employment_income || 0) +
+    (household.income.social_security_income || 0) +
+    (household.income.unemployment_income || 0) +
+    (household.income.pension_income || 0) +
+    (household.income.capital_gains || 0) +
+    (household.income.dividend_income || 0) +
+    (household.income.taxable_interest_income || 0) +
+    (household.income.taxable_retirement_distributions || 0);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -122,55 +232,25 @@ export default function HouseholdForm({
         </div>
       </div>
 
-      {/* State Selection */}
+      {/* Marital Status */}
       <div className="card">
-        <h3 className="section-title">Location</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="label">State</label>
-            <select
-              className="input"
-              value={household.state}
-              onChange={(e) => updateHousehold({ state: e.target.value })}
-            >
-              {Object.entries(US_STATES).map(([code, name]) => (
-                <option key={code} value={code}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="label">Tax Year</label>
-            <select
-              className="input"
-              value={household.year}
-              onChange={(e) => updateHousehold({ year: parseInt(e.target.value) })}
-            >
-              {[2024, 2025, 2026].map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Filing Status */}
-      <div className="card">
-        <h3 className="section-title">Filing Status</h3>
-        <select
-          className="input"
-          value={household.filing_status}
-          onChange={(e) => updateHousehold({ filing_status: e.target.value as FilingStatus })}
+        <h3 className="section-title">Marital Status</h3>
+        <label
+          htmlFor="married"
+          className="flex items-center gap-3 w-full p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors"
         >
-          <option value="single">Single</option>
-          <option value="married_filing_jointly">Married Filing Jointly</option>
-          <option value="married_filing_separately">Married Filing Separately</option>
-          <option value="head_of_household">Head of Household</option>
-          <option value="surviving_spouse">Surviving Spouse</option>
-        </select>
+          <input
+            type="checkbox"
+            id="married"
+            checked={married}
+            onChange={(e) => handleMarriedChange(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <span className="text-sm text-gray-700">Married</span>
+        </label>
+        <p className="mt-2 text-xs text-gray-500">
+          Single filers with children file as head of household automatically.
+        </p>
       </div>
 
       {/* Adults */}
@@ -199,19 +279,6 @@ export default function HouseholdForm({
               </div>
             </div>
           ))}
-
-          {household.adults.length === 1 &&
-            household.filing_status.includes('married') && (
-              <button
-                type="button"
-                onClick={() =>
-                  updateHousehold({ adults: [...household.adults, { age: 30 }] })
-                }
-                className="btn btn-secondary text-sm"
-              >
-                + Add Spouse
-              </button>
-            )}
         </div>
       </div>
 
@@ -230,7 +297,7 @@ export default function HouseholdForm({
 
         {household.children.length === 0 ? (
           <p className="text-gray-500 text-sm">
-            No children added. Click "Add Child" to add dependents.
+            No children added. Click &quot;Add Child&quot; to add dependents.
           </p>
         ) : (
           <div className="space-y-4">
@@ -316,18 +383,15 @@ export default function HouseholdForm({
                 value={household.income.employment_income}
                 min={0}
                 onChange={(e) =>
-                  updateHousehold({
-                    income: {
-                      ...household.income,
-                      employment_income: parseInt(e.target.value) || 0,
-                    },
+                  updateIncome({
+                    employment_income: parseInt(e.target.value) || 0,
                   })
                 }
               />
             </div>
           </div>
 
-          {household.adults.length > 1 && (
+          {married && (
             <div>
               <label className="label">Spouse Employment Income</label>
               <div className="relative">
@@ -340,82 +404,85 @@ export default function HouseholdForm({
                   value={household.income.spouse_employment_income || 0}
                   min={0}
                   onChange={(e) =>
-                    updateHousehold({
-                      income: {
-                        ...household.income,
-                        spouse_employment_income: parseInt(e.target.value) || 0,
-                      },
+                    updateIncome({
+                      spouse_employment_income: parseInt(e.target.value) || 0,
                     })
                   }
                 />
               </div>
             </div>
           )}
-
-          <div>
-            <label className="label">Self-Employment Income</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                $
-              </span>
-              <input
-                type="number"
-                className="input pl-7"
-                value={household.income.self_employment_income || 0}
-                min={0}
-                onChange={(e) =>
-                  updateHousehold({
-                    income: {
-                      ...household.income,
-                      self_employment_income: parseInt(e.target.value) || 0,
-                    },
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="label">Other Income (SS, Unemployment, etc.)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                $
-              </span>
-              <input
-                type="number"
-                className="input pl-7"
-                value={
-                  (household.income.social_security_income || 0) +
-                  (household.income.unemployment_income || 0)
-                }
-                min={0}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value) || 0;
-                  updateHousehold({
-                    income: {
-                      ...household.income,
-                      social_security_income: val,
-                    },
-                  });
-                }}
-              />
-            </div>
-          </div>
         </div>
+
+        {/* Other income source selector */}
+        {availableOtherIncome.length > 0 && (
+          <div className="mt-4">
+            <label className="label">Add other income source</label>
+            <select
+              className="input"
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  addOtherIncome(e.target.value as OtherIncomeKey);
+                }
+              }}
+            >
+              <option value="">+ Add other income source</option>
+              {availableOtherIncome.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Selected other income rows */}
+        {selectedOtherIncome.length > 0 && (
+          <div className="mt-4 space-y-3">
+            {selectedOtherIncome.map((key) => {
+              const label = OTHER_INCOME_OPTIONS.find((o) => o.key === key)?.label ?? key;
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <label className="label">{label}</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        className="input pl-7"
+                        value={household.income[key] || 0}
+                        min={0}
+                        onChange={(e) =>
+                          updateIncome({
+                            [key]: parseInt(e.target.value) || 0,
+                          } as Partial<IncomeInput>)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeOtherIncome(key)}
+                    aria-label={`Remove ${label}`}
+                    className="mt-6 p-2 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="mt-4 p-3 bg-gray-50 rounded">
           <div className="flex justify-between">
             <span className="text-gray-600">Total Annual Income:</span>
-            <span className="font-semibold">
-              $
-              {(
-                (household.income.employment_income || 0) +
-                (household.income.spouse_employment_income || 0) +
-                (household.income.self_employment_income || 0) +
-                (household.income.social_security_income || 0) +
-                (household.income.unemployment_income || 0)
-              ).toLocaleString()}
-            </span>
+            <span className="font-semibold">${totalIncome.toLocaleString()}</span>
           </div>
         </div>
       </div>

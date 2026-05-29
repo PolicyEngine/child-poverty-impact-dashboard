@@ -3,9 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { calculateImpact, calculateBaseline } from '@/lib/household-api';
+import { calculateImpact, calculateBaseline, runIncomeSweep } from '@/lib/household-api';
 import { runAnalysisFromOptions } from '@/lib/api';
-import type { HouseholdInput, HouseholdImpact, HouseholdResults } from '@/lib/household-types';
+import type {
+  HouseholdInput,
+  HouseholdImpact,
+  HouseholdResults,
+  IncomeSweepResponse,
+} from '@/lib/household-types';
 import type { AnalysisResponse } from '@/lib/types';
 import { US_STATES } from '@/lib/household-types';
 import {
@@ -141,6 +146,9 @@ export default function ReportResultsPage() {
   // Results for household analysis
   const [householdResults, setHouseholdResults] = useState<HouseholdImpact | null>(null);
   const [baselineResults, setBaselineResults] = useState<HouseholdResults | null>(null);
+  const [incomeSweep, setIncomeSweep] = useState<IncomeSweepResponse | null>(null);
+  const [sweepLoading, setSweepLoading] = useState(false);
+  const [sweepError, setSweepError] = useState<string | null>(null);
 
   // Results for statewide analysis
   const [statewideResults, setStatewideResults] = useState<AnalysisResponse | null>(null);
@@ -167,6 +175,32 @@ export default function ReportResultsPage() {
           ]);
           setBaselineResults(baseline);
           setHouseholdResults(impact);
+
+          // Kick off the income sweep ($0–$400k @ $10k steps — coarser
+          // than the calculator's chart so local single-process runs
+          // finish in a reasonable time; the chart shape doesn't need
+          // finer resolution) in the background so the headline cards
+          // render immediately while the chart fills in once it returns.
+          setSweepLoading(true);
+          setSweepError(null);
+          runIncomeSweep(
+            parsedConfig.household,
+            parsedConfig.selectedReforms,
+            0,
+            400_000,
+            10_000,
+          )
+            .then((sweep) => setIncomeSweep(sweep))
+            .catch((err: unknown) => {
+              const message =
+                (err as { response?: { data?: { detail?: string } }; message?: string })
+                  ?.response?.data?.detail ??
+                (err as { message?: string })?.message ??
+                'Income sweep failed';
+              console.warn('Income sweep failed:', err);
+              setSweepError(String(message));
+            })
+            .finally(() => setSweepLoading(false));
         } else if (parsedConfig.populationType === 'statewide' && parsedConfig.state) {
           // Run statewide analysis
           const results = await runAnalysisFromOptions(
@@ -292,6 +326,9 @@ export default function ReportResultsPage() {
                 config={config!}
                 results={householdResults}
                 baseline={baselineResults}
+                incomeSweep={incomeSweep}
+                sweepLoading={sweepLoading}
+                sweepError={sweepError}
               />
             )}
             {activeTab === 'poverty' && (
@@ -401,90 +438,234 @@ function ErrorState({ error }: { error: string }) {
 // HOUSEHOLD ANALYSIS COMPONENTS
 // ============================================================================
 
+// Provisions surfaced as change cards on the household overview. Federal/state
+// income tax are intentionally omitted per design — only programs that move
+// with reforms appear here.
+const PROVISION_FIELDS: {
+  key: 'federal_ctc' | 'federal_eitc' | 'state_ctc' | 'state_eitc' | 'snap_benefits';
+  label: string;
+}[] = [
+  { key: 'federal_ctc', label: 'Federal CTC' },
+  { key: 'federal_eitc', label: 'Federal EITC' },
+  { key: 'state_ctc', label: 'State CTC' },
+  { key: 'state_eitc', label: 'State EITC' },
+  { key: 'snap_benefits', label: 'SNAP' },
+];
+
+function ChangeCard({
+  label,
+  change,
+  highlight = false,
+}: {
+  label: string;
+  change: number;
+  highlight?: boolean;
+}) {
+  const beneficial = change > 0;
+  const harmful = change < 0;
+  const sign = change > 0 ? '+' : change < 0 ? '-' : '';
+  const formatted = `${sign}$${Math.abs(Math.round(change)).toLocaleString()}`;
+  return (
+    <div
+      className={`rounded-lg border p-5 ${
+        beneficial
+          ? 'bg-green-50 border-green-200'
+          : harmful
+          ? 'bg-red-50 border-red-200'
+          : 'bg-gray-50 border-gray-200'
+      } ${highlight ? 'sm:col-span-2 lg:col-span-1 ring-1 ring-pe-teal-200' : ''}`}
+    >
+      <p className="text-sm text-pe-gray-600 mb-1">{label}</p>
+      <p
+        className={`text-2xl font-bold ${
+          beneficial ? 'text-green-700' : harmful ? 'text-red-700' : 'text-pe-gray-500'
+        }`}
+      >
+        {formatted}
+        <span className="text-sm font-medium text-pe-gray-500 ml-1">/year</span>
+      </p>
+    </div>
+  );
+}
+
+interface ChartPoint {
+  income: number;
+  net_income_change: number;
+  federal_ctc_change: number;
+  federal_eitc_change: number;
+  state_ctc_change: number;
+  state_eitc_change: number;
+  snap_change: number;
+}
+
+function NetIncomeChangeTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: ChartPoint }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0].payload;
+  const fmt = (v: number) => {
+    if (v === 0) return '$0';
+    const sign = v > 0 ? '+' : '-';
+    return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}`;
+  };
+  return (
+    <div className="bg-white border border-pe-gray-200 rounded-md shadow-lg px-3 py-2 text-xs min-w-[220px]">
+      <p className="font-semibold text-pe-gray-800 mb-1">
+        Employment income: ${Math.round(p.income).toLocaleString()}
+      </p>
+      <div className="space-y-0.5 text-pe-gray-600">
+        <div className="flex justify-between gap-3">
+          <span>Federal CTC</span>
+          <span>{fmt(p.federal_ctc_change)}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>Federal EITC</span>
+          <span>{fmt(p.federal_eitc_change)}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>State CTC</span>
+          <span>{fmt(p.state_ctc_change)}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>State EITC</span>
+          <span>{fmt(p.state_eitc_change)}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>SNAP</span>
+          <span>{fmt(p.snap_change)}</span>
+        </div>
+      </div>
+      <div className="border-t border-pe-gray-200 mt-1 pt-1 flex justify-between gap-3 font-semibold text-pe-gray-800">
+        <span>Net income change</span>
+        <span>{fmt(p.net_income_change)}</span>
+      </div>
+    </div>
+  );
+}
+
 function HouseholdOverviewTab({
   config,
   results,
-  baseline
+  baseline: _baseline,
+  incomeSweep,
+  sweepLoading,
+  sweepError,
 }: {
   config: ReportConfig;
   results: HouseholdImpact;
   baseline: HouseholdResults | null;
+  incomeSweep: IncomeSweepResponse | null;
+  sweepLoading: boolean;
+  sweepError: string | null;
 }) {
-  const { baseline: baselineHH, reform, net_income_change, percent_income_change, poverty_status_change } = results;
+  const { baseline: baselineHH, reform, net_income_change } = results;
+
+  const chartData: ChartPoint[] = (() => {
+    if (!incomeSweep?.baseline_data_points) return [];
+    const reformPoints = incomeSweep.data_points;
+    const basePoints = incomeSweep.baseline_data_points;
+    const length = Math.min(reformPoints.length, basePoints.length);
+    const out: ChartPoint[] = [];
+    for (let i = 0; i < length; i++) {
+      const r = reformPoints[i];
+      const b = basePoints[i];
+      out.push({
+        income: r.income,
+        net_income_change: r.net_income - b.net_income,
+        federal_ctc_change: r.federal_ctc - b.federal_ctc,
+        federal_eitc_change: r.federal_eitc - b.federal_eitc,
+        state_ctc_change: r.state_ctc - b.state_ctc,
+        state_eitc_change: r.state_eitc - b.state_eitc,
+        snap_change: r.snap_benefits - b.snap_benefits,
+      });
+    }
+    return out;
+  })();
 
   return (
     <div className="space-y-6">
-      {/* Summary Card */}
+      {/* Summary intro */}
       <div className="card bg-gradient-to-br from-pe-teal-50 to-white">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-pe-teal-100 flex items-center justify-center">
-            <svg className="w-6 h-6 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-pe-gray-800">Analysis Complete</h2>
-            <p className="text-pe-gray-600 mt-1">
-              Household analysis for {config.state ? US_STATES[config.state] : 'selected state'}
-            </p>
-          </div>
-        </div>
+        <h2 className="text-lg font-semibold text-pe-gray-800">
+          Household impact{' '}
+          {config.state ? `in ${US_STATES[config.state]}` : ''}{' '}
+          ({config.year})
+        </h2>
+        <p className="text-pe-gray-600 mt-1 text-sm">
+          Change in each affected provision and total net income compared to
+          current law.
+        </p>
       </div>
 
-      {/* Headline Metrics */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          label="Net Income Change"
-          value={`${net_income_change >= 0 ? '+' : ''}$${Math.abs(net_income_change).toLocaleString()}`}
-          subtext="Annual"
-          color={net_income_change >= 0 ? 'green' : 'red'}
-        />
-        <MetricCard
-          label="Percent Change"
-          value={`${percent_income_change >= 0 ? '+' : ''}${percent_income_change.toFixed(1)}%`}
-          subtext="Household income"
-          color={percent_income_change >= 0 ? 'green' : 'red'}
-        />
-        <MetricCard
-          label="CTC Change"
-          value={`${results.ctc_change >= 0 ? '+' : ''}$${Math.abs(results.ctc_change).toLocaleString()}`}
-          subtext="Child Tax Credit"
-          color="blue"
-        />
-        <MetricCard
-          label="Poverty Status"
-          value={poverty_status_change === 'lifted' ? 'Lifted' : poverty_status_change === 'fell_into' ? 'Fell Into' : 'Unchanged'}
-          subtext={poverty_status_change === 'lifted' ? 'Out of poverty' : poverty_status_change === 'fell_into' ? 'Into poverty' : 'No change'}
-          color={poverty_status_change === 'lifted' ? 'green' : poverty_status_change === 'fell_into' ? 'red' : 'gray'}
+      {/* Per-provision change cards (federal/state income tax intentionally excluded) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {PROVISION_FIELDS.map(({ key, label }) => (
+          <ChangeCard
+            key={key}
+            label={label}
+            change={(reform[key] as number) - (baselineHH[key] as number)}
+          />
+        ))}
+        <ChangeCard
+          label="Net income"
+          change={net_income_change}
+          highlight
         />
       </div>
 
-      {/* Comparison Table */}
+      {/* Net income change chart */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-pe-gray-800 mb-4">Baseline vs Reform Comparison</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-pe-gray-100">
-                <th className="text-left py-3 px-4 text-pe-gray-500 font-medium">Metric</th>
-                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Baseline</th>
-                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Reform</th>
-                <th className="text-right py-3 px-4 text-pe-gray-500 font-medium">Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              <ComparisonRow label="Net Income" baseline={baselineHH.net_income} reform={reform.net_income} format="currency" />
-              <ComparisonRow label="Federal CTC" baseline={baselineHH.federal_ctc} reform={reform.federal_ctc} format="currency" />
-              <ComparisonRow label="Federal EITC" baseline={baselineHH.federal_eitc} reform={reform.federal_eitc} format="currency" />
-              <ComparisonRow label="State CTC" baseline={baselineHH.state_ctc} reform={reform.state_ctc} format="currency" />
-              <ComparisonRow label="State EITC" baseline={baselineHH.state_eitc} reform={reform.state_eitc} format="currency" />
-              <ComparisonRow label="SNAP Benefits" baseline={baselineHH.snap_benefits} reform={reform.snap_benefits} format="currency" />
-              <ComparisonRow label="Total Benefits" baseline={baselineHH.total_benefits} reform={reform.total_benefits} format="currency" />
-              <ComparisonRow label="Federal Tax" baseline={baselineHH.federal_income_tax} reform={reform.federal_income_tax} format="currency" invertColor />
-              <ComparisonRow label="Effective Tax Rate" baseline={baselineHH.effective_tax_rate * 100} reform={reform.effective_tax_rate * 100} format="percent" invertColor />
-            </tbody>
-          </table>
-        </div>
+        <h3 className="text-lg font-semibold text-pe-gray-800">
+          Change in net income by employment income
+        </h3>
+        <p className="text-sm text-pe-gray-500 mb-4">
+          Reform vs. current law across $0–$400k of employment income. Hover
+          for the per-provision breakdown.
+        </p>
+        {sweepLoading ? (
+          <div className="flex items-center justify-center py-16 text-pe-gray-500 text-sm">
+            Computing impact across the income range…
+          </div>
+        ) : sweepError ? (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <p className="font-semibold mb-1">
+              Chart unavailable for this reform
+            </p>
+            <p className="font-mono text-xs whitespace-pre-wrap">{sweepError}</p>
+          </div>
+        ) : chartData.length === 0 ? (
+          <div className="flex items-center justify-center py-16 text-pe-gray-500 text-sm">
+            No chart data available.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={360}>
+            <BarChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis
+                dataKey="income"
+                type="number"
+                domain={[0, 400_000]}
+                tickFormatter={(v: number) =>
+                  v >= 1000 ? `$${Math.round(v / 1000)}k` : `$${v}`
+                }
+                stroke="#6B7280"
+                ticks={[0, 50_000, 100_000, 150_000, 200_000, 250_000, 300_000, 350_000, 400_000]}
+              />
+              <YAxis
+                tickFormatter={(v: number) => formatCurrencyWithSign(v)}
+                stroke="#6B7280"
+                width={80}
+              />
+              <ReferenceLine y={0} stroke="#9CA3AF" />
+              <Tooltip content={<NetIncomeChangeTooltip />} cursor={{ fill: 'rgba(49,151,149,0.08)' }} />
+              <Bar dataKey="net_income_change" fill={COLORS.primary} maxBarSize={6} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

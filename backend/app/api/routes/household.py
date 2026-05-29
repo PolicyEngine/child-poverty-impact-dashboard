@@ -2,8 +2,8 @@
 API routes for household-level analysis.
 """
 
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException
+from typing import Annotated, List, Optional
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
@@ -35,6 +35,11 @@ class IncomeRequest(BaseModel):
     self_employment_income: float = Field(default=0, ge=0)
     social_security_income: float = Field(default=0, ge=0)
     unemployment_income: float = Field(default=0, ge=0)
+    pension_income: float = Field(default=0, ge=0)
+    capital_gains: float = Field(default=0, ge=0)
+    dividend_income: float = Field(default=0, ge=0)
+    taxable_interest_income: float = Field(default=0, ge=0)
+    taxable_retirement_distributions: float = Field(default=0, ge=0)
 
 
 class HouseholdRequest(BaseModel):
@@ -211,6 +216,11 @@ def _convert_household_request(request: HouseholdRequest):
         self_employment_income=request.income.self_employment_income,
         social_security_income=request.income.social_security_income,
         unemployment_income=request.income.unemployment_income,
+        pension_income=request.income.pension_income,
+        capital_gains=request.income.capital_gains,
+        dividend_income=request.income.dividend_income,
+        taxable_interest_income=request.income.taxable_interest_income,
+        taxable_retirement_distributions=request.income.taxable_retirement_distributions,
     )
 
     return HouseholdConfig(
@@ -392,10 +402,10 @@ async def calculate_impact(request: ReformSelectionRequest):
 @router.post("/income-sweep")
 async def run_income_sweep_endpoint(
     household: HouseholdRequest,
-    reform_option_ids: List[str] = None,
-    min_income: float = 0,
-    max_income: float = 150000,
-    step: float = 5000,
+    reform_option_ids: Annotated[list[str], Query()] = [],
+    min_income: Annotated[float, Query()] = 0,
+    max_income: Annotated[float, Query()] = 150000,
+    step: Annotated[float, Query()] = 5000,
 ):
     """Run analysis across income levels to show benefit phase-outs."""
     try:
@@ -431,24 +441,27 @@ async def run_income_sweep_endpoint(
             year=config.year,
         )
 
+        def _point(income: float, results_dict: dict) -> dict:
+            return {
+                "income": income,
+                "net_income": results_dict["net_income"],
+                "federal_ctc": results_dict["federal_ctc"],
+                "state_ctc": results_dict["state_ctc"],
+                "federal_eitc": results_dict["federal_eitc"],
+                "state_eitc": results_dict["state_eitc"],
+                "snap_benefits": results_dict["snap_benefits"],
+                "total_benefits": results_dict["total_benefits"],
+                "effective_tax_rate": results_dict["effective_tax_rate"],
+                "in_poverty": results_dict["in_poverty"],
+            }
+
         return {
             "state": config.state,
             "year": config.year,
-            "data_points": [
-                {
-                    "income": r["income"],
-                    "net_income": r["results"]["net_income"],
-                    "federal_ctc": r["results"]["federal_ctc"],
-                    "state_ctc": r["results"]["state_ctc"],
-                    "federal_eitc": r["results"]["federal_eitc"],
-                    "state_eitc": r["results"]["state_eitc"],
-                    "snap_benefits": r["results"]["snap_benefits"],
-                    "total_benefits": r["results"]["total_benefits"],
-                    "effective_tax_rate": r["results"]["effective_tax_rate"],
-                    "in_poverty": r["results"]["in_poverty"],
-                }
-                for r in results
-            ]
+            "data_points": [_point(r["income"], r["reform"]) for r in results],
+            "baseline_data_points": [
+                _point(r["income"], r["baseline"]) for r in results
+            ],
         }
 
     except Exception as e:

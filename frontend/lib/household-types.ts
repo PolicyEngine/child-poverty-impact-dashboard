@@ -23,6 +23,11 @@ export interface IncomeInput {
   self_employment_income?: number;
   social_security_income?: number;
   unemployment_income?: number;
+  pension_income?: number;
+  capital_gains?: number;
+  dividend_income?: number;
+  taxable_interest_income?: number;
+  taxable_retirement_distributions?: number;
 }
 
 export interface HouseholdInput {
@@ -135,7 +140,10 @@ export interface IncomeSweepDataPoint {
 export interface IncomeSweepResponse {
   state: string;
   year: number;
+  /** Reform results at each income point (or baseline if no reform). */
   data_points: IncomeSweepDataPoint[];
+  /** Baseline (current-law) results at each income point. */
+  baseline_data_points?: IncomeSweepDataPoint[];
 }
 
 // Default values
