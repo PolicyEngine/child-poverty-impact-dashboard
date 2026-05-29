@@ -70,13 +70,43 @@ export async function runAnalysisFromOptions(
   reformOptionIds: string[],
   parameterValues?: Record<string, Record<string, number>>
 ): Promise<AnalysisResponse> {
-  const response = await api.post('/analysis/from-options', {
-    state,
-    year,
-    reform_option_ids: reformOptionIds,
-    parameter_values: parameterValues,
-  });
-  return response.data;
+  try {
+    const response = await api.post('/analysis/from-options', {
+      state,
+      year,
+      reform_option_ids: reformOptionIds,
+      parameter_values: parameterValues,
+    });
+    return response.data;
+  } catch (err: unknown) {
+    const status =
+      (err as { response?: { status?: number } })?.response?.status;
+    const code = (err as { code?: string })?.code;
+    if (status === 404 || status === 500 || code === 'ERR_NETWORK') {
+      // No FastAPI backend reachable (Vercel deployment) — fall back to
+      // a direct PolicyEngine API call. The household shim below is just
+      // a stand-in to populate the reform-builder; api.policyengine.org
+      // only needs the reform dict + a state filter to score the
+      // statewide impact.
+      const { runStatewideViaApi } = await import('./pe-api');
+      const householdShim = {
+        state,
+        year,
+        filing_status: 'single' as const,
+        adults: [{ age: 30 }],
+        children: [],
+        income: { employment_income: 0 },
+      };
+      return await runStatewideViaApi(
+        state,
+        year,
+        reformOptionIds,
+        parameterValues ?? {},
+        householdShim,
+      );
+    }
+    throw err;
+  }
 }
 
 // State endpoints
