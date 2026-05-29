@@ -67,22 +67,147 @@ async function tryLocalThen<T>(
   }
 }
 
-// Calculate baseline for household
+/** Map a single Modal IncomeSweep point into our HouseholdResults shape.
+ *  Modal returns net_income, federal_ctc, federal_eitc, state_ctc,
+ *  state_eitc, snap_benefits, in_poverty per point; the remaining fields
+ *  on HouseholdResults (taxes, AGI, poverty gap, …) aren't currently
+ *  surfaced by the dashboard's overview/poverty tabs so they're stubbed. */
+function pointToResults(
+  household: HouseholdInput,
+  point: {
+    net_income: number;
+    federal_ctc: number;
+    federal_eitc: number;
+    state_ctc: number;
+    state_eitc: number;
+    snap_benefits: number;
+    in_poverty: boolean;
+  },
+): HouseholdResults {
+  const grossIncome =
+    (household.income.employment_income || 0) +
+    (household.income.spouse_employment_income || 0) +
+    (household.income.self_employment_income || 0) +
+    (household.income.social_security_income || 0) +
+    (household.income.unemployment_income || 0);
+  return {
+    year: household.year,
+    state: household.state,
+    gross_income: grossIncome,
+    adjusted_gross_income: grossIncome,
+    federal_income_tax: 0,
+    state_income_tax: 0,
+    payroll_tax: 0,
+    net_income: point.net_income,
+    federal_ctc: point.federal_ctc,
+    federal_eitc: point.federal_eitc,
+    state_ctc: point.state_ctc,
+    state_eitc: point.state_eitc,
+    snap_benefits: point.snap_benefits,
+    total_benefits: point.snap_benefits,
+    in_poverty: point.in_poverty,
+    in_deep_poverty: false,
+    poverty_gap: 0,
+    effective_tax_rate: 0,
+    total_child_benefits: point.federal_ctc + point.federal_eitc,
+  };
+}
+
+/** Common single-point Modal household call. Returns the first (and
+ *  only) point from a Modal sweep at the household's employment income. */
+async function singlePointOnModal(
+  household: HouseholdInput,
+  policyId: number,
+): Promise<{
+  baseline: HouseholdResults;
+  reform: HouseholdResults;
+}> {
+  const sweep = await runHouseholdSweepOnModal({
+    policy_id: policyId,
+    year: household.year,
+    state: household.state,
+    married: household.adults.length > 1,
+    head_age: household.adults[0]?.age ?? 35,
+    spouse_age: household.adults[1]?.age ?? null,
+    dependent_ages: household.children.map((c) => c.age),
+    income_range: [household.income.employment_income || 0],
+    spouse_employment_income: household.income.spouse_employment_income ?? 0,
+    self_employment_income: household.income.self_employment_income ?? 0,
+    social_security: household.income.social_security_income ?? 0,
+    unemployment_compensation: household.income.unemployment_income ?? 0,
+    taxable_pension_income:
+      (household.income.pension_income ?? 0) +
+      (household.income.taxable_retirement_distributions ?? 0),
+    long_term_capital_gains: household.income.capital_gains ?? 0,
+    qualified_dividend_income: household.income.dividend_income ?? 0,
+    taxable_interest_income: household.income.taxable_interest_income ?? 0,
+  });
+  const basePoint = sweep.baseline_data_points?.[0] ?? sweep.data_points[0];
+  const reformPoint = sweep.data_points[0];
+  return {
+    baseline: pointToResults(household, basePoint),
+    reform: pointToResults(household, reformPoint),
+  };
+}
+
+// Calculate baseline for household. Modal first when configured.
 export async function calculateBaseline(
   household: HouseholdInput,
 ): Promise<HouseholdResults> {
+  if (modalConfigured()) {
+    try {
+      const { baseline } = await singlePointOnModal(household, 1);
+      return baseline;
+    } catch (err) {
+      console.warn('Modal baseline failed; falling back', err);
+    }
+  }
   return tryLocalThen(
     async () => (await api.post('/household/baseline', household)).data,
     () => calculateBaselineViaApi(household),
   );
 }
 
-// Calculate impact of reforms
+// Calculate impact of reforms. Modal first when configured.
 export async function calculateImpact(
   household: HouseholdInput,
   reformOptionIds: string[],
   parameterValues?: Record<string, Record<string, number>>,
 ): Promise<HouseholdImpact> {
+  if (modalConfigured()) {
+    try {
+      const reformDict = buildReformDict(
+        household,
+        reformOptionIds,
+        parameterValues,
+      );
+      const policyId =
+        Object.keys(reformDict).length > 0
+          ? await createPolicy(reformDict)
+          : 1;
+      const { baseline, reform } = await singlePointOnModal(household, policyId);
+      const netChange = reform.net_income - baseline.net_income;
+      return {
+        baseline,
+        reform,
+        net_income_change: netChange,
+        percent_income_change:
+          baseline.net_income > 0
+            ? (netChange / baseline.net_income) * 100
+            : 0,
+        ctc_change: reform.federal_ctc - baseline.federal_ctc,
+        eitc_change: reform.federal_eitc - baseline.federal_eitc,
+        poverty_status_change:
+          baseline.in_poverty && !reform.in_poverty
+            ? 'lifted'
+            : !baseline.in_poverty && reform.in_poverty
+              ? 'fell_into'
+              : 'unchanged',
+      };
+    } catch (err) {
+      console.warn('Modal impact failed; falling back', err);
+    }
+  }
   return tryLocalThen(
     async () =>
       (
