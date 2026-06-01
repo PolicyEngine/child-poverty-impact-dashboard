@@ -80,16 +80,33 @@ const formatPercentWithSign = (value: number): string => {
 };
 
 // Tab types — household is conditional (only when the wizard's
-// household step was filled in); the rest are statewide and always run.
-type TabKey = 'household' | 'overview' | 'poverty' | 'fiscal' | 'distributional';
+// household step was filled in); compare is shown when 2+ states were
+// selected; the rest are statewide and always run.
+type TabKey =
+  | 'household'
+  | 'compare'
+  | 'overview'
+  | 'poverty'
+  | 'fiscal'
+  | 'distributional';
 
 interface ReportConfig {
-  state: string | null;
+  /** Multi-state wizards persist a list; legacy reports (and any old
+   *  sessionStorage values still around) used a singular field. We accept
+   *  both and canonicalise to states[]. */
+  states?: string[];
+  state?: string | null;
   populationType: 'household' | 'statewide';
   household: HouseholdInput | null;
   selectedReforms: string[];
   year: number;
   parameterValues?: Record<string, Record<string, number>>;
+}
+
+function normaliseStates(c: ReportConfig): string[] {
+  if (c.states && c.states.length > 0) return c.states;
+  if (c.state) return [c.state];
+  return [];
 }
 
 interface TabConfig {
@@ -104,6 +121,16 @@ const HOUSEHOLD_TAB: TabConfig = {
   icon: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  ),
+};
+
+const COMPARE_TAB: TabConfig = {
+  key: 'compare',
+  label: 'Compare',
+  icon: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
     </svg>
   ),
 };
@@ -157,8 +184,13 @@ export default function ReportResultsPage() {
   const [configError, setConfigError] = useState<string | null>(null);
   const [configReady, setConfigReady] = useState(false);
 
+  const states = config ? normaliseStates(config) : [];
+  const isCompareMode = states.length >= 2;
+  const primaryState: string | null = states.length >= 1 ? states[0] : null;
+
   const showHouseholdTab =
     !!config &&
+    !isCompareMode &&
     config.populationType === 'household' &&
     !!config.household;
 
@@ -174,8 +206,16 @@ export default function ReportResultsPage() {
   const [sweepLoading, setSweepLoading] = useState(false);
   const [sweepError, setSweepError] = useState<string | null>(null);
 
+  // Single-state mode: this holds the only state's microsimulation result.
+  // Multi-state mode: it holds the *primary* state's result so the existing
+  // Overview/Poverty/Fiscal/Distributional tabs keep working (they show
+  // the first selected state's deep dive). The Compare tab consumes
+  // comparisonResults to render the cross-state view.
   const [statewideResults, setStatewideResults] = useState<AnalysisResponse | null>(null);
   const [statewideError, setStatewideError] = useState<string | null>(null);
+
+  const [comparisonResults, setComparisonResults] = useState<Record<string, AnalysisResponse>>({});
+  const [comparisonErrors, setComparisonErrors] = useState<Record<string, string>>({});
 
   // Read config from sessionStorage as soon as we hit the client.
   useEffect(() => {
@@ -187,11 +227,14 @@ export default function ReportResultsPage() {
     }
     try {
       const parsed: ReportConfig = JSON.parse(stored);
-      if (!parsed.state) {
+      const parsedStates = normaliseStates(parsed);
+      if (parsedStates.length === 0) {
         setConfigError('Invalid report configuration. Please start a new report.');
       } else {
         setConfig(parsed);
-        if (parsed.populationType === 'household' && parsed.household) {
+        if (parsedStates.length >= 2) {
+          setActiveTab('compare');
+        } else if (parsed.populationType === 'household' && parsed.household) {
           setActiveTab('household');
         }
       }
@@ -212,19 +255,36 @@ export default function ReportResultsPage() {
       return e?.response?.data?.detail || e?.message || 'Unknown error';
     };
 
-    runAnalysisFromOptions(
-      config.state!,
-      config.year,
-      config.selectedReforms,
-      config.parameterValues,
-    )
-      .then((results) => setStatewideResults(results))
-      .catch((err: unknown) => {
-        console.error('Statewide analysis failed:', err);
-        setStatewideError(extractMessage(err));
-      });
+    // Fire one Modal job per state in parallel. Single-state reports
+    // effectively run a one-element loop, which keeps the code path the
+    // same for both modes. The primary state's result also populates
+    // statewideResults so the existing single-state tabs keep working.
+    states.forEach((stateCode, index) => {
+      runAnalysisFromOptions(
+        stateCode,
+        config.year,
+        config.selectedReforms,
+        config.parameterValues,
+      )
+        .then((results) => {
+          setComparisonResults((m) => ({ ...m, [stateCode]: results }));
+          if (index === 0) setStatewideResults(results);
+        })
+        .catch((err: unknown) => {
+          console.error(`Analysis failed for ${stateCode}:`, err);
+          const message = extractMessage(err);
+          setComparisonErrors((m) => ({ ...m, [stateCode]: message }));
+          if (index === 0) setStatewideError(message);
+        });
+    });
 
-    if (config.populationType === 'household' && config.household) {
+    // Household analysis only runs in single-state mode — a household has
+    // one state of residence, so multi-state comparison skips it.
+    if (
+      !isCompareMode &&
+      config.populationType === 'household' &&
+      config.household
+    ) {
       Promise.all([
         calculateBaseline(config.household),
         calculateImpact(config.household, config.selectedReforms),
@@ -289,9 +349,11 @@ export default function ReportResultsPage() {
                 Report Results
               </h1>
               <p className="text-pe-gray-500 mt-1">
-                {config
-                  ? `${config.state ? US_STATES[config.state] : 'Analysis'} • ${config.populationType === 'statewide' ? 'Statewide' : 'Household'} • ${config.selectedReforms.length} reform(s)`
-                  : 'Loading report…'}
+                {!config
+                  ? 'Loading report…'
+                  : isCompareMode
+                  ? `${states.length} states • Comparison • ${config.selectedReforms.length} reform(s)`
+                  : `${primaryState ? US_STATES[primaryState] : 'Analysis'} • ${config.populationType === 'statewide' ? 'Statewide' : 'Household'} • ${config.selectedReforms.length} reform(s)`}
               </p>
             </div>
             <button
@@ -311,7 +373,12 @@ export default function ReportResultsPage() {
       <div className="bg-white border-b border-pe-gray-100 sticky top-16 z-40">
         <div className="max-w-6xl mx-auto px-6">
           <nav className="flex gap-1">
-            {(showHouseholdTab ? [HOUSEHOLD_TAB, ...TABS] : TABS).map((tab) => (
+            {(isCompareMode
+              ? [COMPARE_TAB, ...TABS]
+              : showHouseholdTab
+              ? [HOUSEHOLD_TAB, ...TABS]
+              : TABS
+            ).map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -343,7 +410,15 @@ export default function ReportResultsPage() {
 
       {/* Tab Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {activeTab === 'household' && showHouseholdTab ? (
+        {activeTab === 'compare' && isCompareMode ? (
+          <CompareTab
+            states={states}
+            results={comparisonResults}
+            errors={comparisonErrors}
+            year={config!.year}
+            reformCount={config!.selectedReforms.length}
+          />
+        ) : activeTab === 'household' && showHouseholdTab ? (
           householdResults ? (
             <HouseholdOverviewTab
               config={config!}
@@ -365,7 +440,7 @@ export default function ReportResultsPage() {
           statewideResults ? (
             <StatewideOverview
               results={statewideResults}
-              state={config!.state}
+              state={primaryState}
               year={config!.year}
             />
           ) : statewideError ? (
@@ -380,7 +455,7 @@ export default function ReportResultsPage() {
           statewideResults ? (
             <StatewidePoverty
               results={statewideResults}
-              state={config!.state}
+              state={primaryState}
               year={config!.year}
             />
           ) : statewideError ? (
@@ -395,7 +470,7 @@ export default function ReportResultsPage() {
           statewideResults ? (
             <StatewideFiscal
               results={statewideResults}
-              state={config!.state}
+              state={primaryState}
               year={config!.year}
             />
           ) : statewideError ? (
@@ -410,7 +485,7 @@ export default function ReportResultsPage() {
           statewideResults ? (
             <StatewideDistributional
               results={statewideResults}
-              state={config!.state}
+              state={primaryState}
               year={config!.year}
             />
           ) : statewideError ? (
@@ -1014,6 +1089,277 @@ function ComparisonRow({
         {change !== 0 ? formatChange(change) : '-'}
       </td>
     </tr>
+  );
+}
+
+// ============================================================================
+// COMPARE TAB - Cross-state comparison rendered when 2+ states are selected
+// ============================================================================
+
+type CompareSortKey = 'poverty_pp' | 'poverty_pct' | 'cost' | 'effectiveness';
+
+interface CompareRow {
+  state: string;
+  povertyChangePp: number;
+  povertyPercentChange: number;
+  baselineRate: number;
+  reformRate: number;
+  childrenLifted: number;
+  costBillions: number;
+  costPerChild: number;
+  costPerChildLifted: number;
+}
+
+function CompareTab({
+  states,
+  results,
+  errors,
+  year,
+  reformCount,
+}: {
+  states: string[];
+  results: Record<string, AnalysisResponse>;
+  errors: Record<string, string>;
+  year: number;
+  reformCount: number;
+}) {
+  const [sortBy, setSortBy] = useState<CompareSortKey>('poverty_pp');
+
+  const rows: CompareRow[] = states
+    .filter((s) => results[s])
+    .map((s) => {
+      const r = results[s];
+      const pov = r.poverty_impact;
+      const fisc = r.fiscal_cost;
+      return {
+        state: s,
+        povertyChangePp: pov.child_poverty_change_pp,
+        povertyPercentChange: pov.child_poverty_percent_change,
+        baselineRate: pov.baseline_child_poverty_rate,
+        reformRate: pov.reform_child_poverty_rate,
+        childrenLifted: pov.children_lifted_out_of_poverty,
+        costBillions: fisc.total_cost_billions,
+        costPerChild: fisc.cost_per_child,
+        costPerChildLifted: fisc.cost_per_child_lifted_from_poverty,
+      };
+    });
+
+  // Lower (more negative) poverty change is better; lower cost is "cheaper"
+  // but the natural ranking the page user wants is by impact, so poverty
+  // sorts ascending (most negative = biggest reduction first) and cost
+  // descending (most expensive first). Effectiveness shows cost-per-child-
+  // lifted ascending (cheapest reduction first).
+  const sortedRows = [...rows].sort((a, b) => {
+    switch (sortBy) {
+      case 'poverty_pp':
+        return a.povertyChangePp - b.povertyChangePp;
+      case 'poverty_pct':
+        return a.povertyPercentChange - b.povertyPercentChange;
+      case 'cost':
+        return b.costBillions - a.costBillions;
+      case 'effectiveness':
+        return (
+          (a.costPerChildLifted || Number.POSITIVE_INFINITY) -
+          (b.costPerChildLifted || Number.POSITIVE_INFINITY)
+        );
+    }
+  });
+
+  const pending = states.filter((s) => !results[s] && !errors[s]);
+  const failed = states.filter((s) => errors[s]);
+  const completedCount = rows.length;
+
+  const sortLabels: Record<CompareSortKey, string> = {
+    poverty_pp: 'Child poverty change (pp)',
+    poverty_pct: 'Child poverty change (%)',
+    cost: 'Total cost',
+    effectiveness: 'Cost per child lifted',
+  };
+
+  // Bar chart domain: symmetric around zero so positive/negative bars are
+  // visually comparable. Skip the chart entirely until at least one state
+  // is back so we don't render with an empty axis.
+  const chartData = sortedRows.map((r) => ({
+    state: r.state,
+    value: r.povertyChangePp,
+  }));
+  const maxAbs = Math.max(
+    1e-6,
+    ...chartData.map((d) => Math.abs(d.value)),
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold" style={{ color: COLORS.primary }}>
+          State comparison
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          {reformCount} reform(s) • {year} • {states.length} states selected
+          {pending.length > 0 ? ` • ${pending.length} still computing` : ''}
+        </p>
+      </div>
+
+      {/* Status: still-loading + failed states */}
+      {(pending.length > 0 || failed.length > 0) && (
+        <div className="card bg-pe-gray-50/60 space-y-2">
+          {pending.length > 0 && (
+            <p className="text-sm text-pe-gray-600">
+              Still computing: {pending.join(', ')}
+            </p>
+          )}
+          {failed.length > 0 && (
+            <div className="text-sm text-red-700">
+              <p className="font-medium">Failed:</p>
+              <ul className="ml-5 list-disc">
+                {failed.map((s) => (
+                  <li key={s}>
+                    <span className="font-mono">{s}</span> — {errors[s]}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {completedCount === 0 ? (
+        <TabSkeleton
+          title="Computing comparison"
+          hint={`Running ${states.length} parallel microsimulations on Modal — usually 1–2 minutes each.`}
+        />
+      ) : (
+        <>
+          {/* Headline chart: child poverty change (pp) per state */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-pe-gray-800">
+              Child poverty change (percentage points) by state
+            </h3>
+            <p className="text-sm text-pe-gray-500 mb-4">
+              Negative bars = poverty reduced; positive bars = poverty
+              increased. Sorted by current ranking below.
+            </p>
+            <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 28 + 60)}>
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 8, right: 24, left: 16, bottom: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis
+                  type="number"
+                  domain={[-maxAbs, maxAbs]}
+                  tickFormatter={(v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}`}
+                  stroke="#6B7280"
+                />
+                <YAxis dataKey="state" type="category" stroke="#6B7280" width={48} />
+                <ReferenceLine x={0} stroke="#9CA3AF" />
+                <Tooltip
+                  formatter={(v: number) => [
+                    `${v >= 0 ? '+' : ''}${v.toFixed(3)} pp`,
+                    'Child poverty change',
+                  ]}
+                  cursor={{ fill: 'rgba(49,151,149,0.06)' }}
+                />
+                <Bar dataKey="value">
+                  {chartData.map((d, i) => (
+                    <Cell
+                      key={i}
+                      fill={d.value < 0 ? COLORS.primary : COLORS.negative}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Comparison table */}
+          <div className="card">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h3 className="text-lg font-semibold text-pe-gray-800">
+                Per-state results
+              </h3>
+              <div className="flex items-center gap-2 text-sm">
+                <label className="text-pe-gray-500">Sort:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as CompareSortKey)}
+                  className="border border-pe-gray-200 rounded px-2 py-1 text-sm text-pe-gray-700 bg-white"
+                >
+                  {(Object.entries(sortLabels) as [CompareSortKey, string][]).map(
+                    ([k, label]) => (
+                      <option key={k} value={k}>
+                        {label}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-pe-gray-500 border-b border-pe-gray-100">
+                    <th className="py-2 pr-4 font-medium">State</th>
+                    <th className="py-2 pr-4 font-medium text-right">Baseline child poverty</th>
+                    <th className="py-2 pr-4 font-medium text-right">Reform child poverty</th>
+                    <th className="py-2 pr-4 font-medium text-right">Change (pp)</th>
+                    <th className="py-2 pr-4 font-medium text-right">Children lifted</th>
+                    <th className="py-2 pr-4 font-medium text-right">Total cost</th>
+                    <th className="py-2 pr-4 font-medium text-right">Cost / child lifted</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedRows.map((r) => (
+                    <tr key={r.state} className="border-b border-pe-gray-50">
+                      <td className="py-2 pr-4 font-semibold text-pe-gray-800">
+                        {US_STATES[r.state] ?? r.state}
+                      </td>
+                      <td className="py-2 pr-4 text-right text-pe-gray-600">
+                        {(r.baselineRate * 100).toFixed(1)}%
+                      </td>
+                      <td className="py-2 pr-4 text-right text-pe-gray-600">
+                        {(r.reformRate * 100).toFixed(1)}%
+                      </td>
+                      <td
+                        className="py-2 pr-4 text-right font-medium"
+                        style={{
+                          color:
+                            r.povertyChangePp < 0
+                              ? COLORS.primary
+                              : r.povertyChangePp > 0
+                              ? '#B91C1C'
+                              : '#6B7280',
+                        }}
+                      >
+                        {r.povertyChangePp >= 0 ? '+' : ''}
+                        {r.povertyChangePp.toFixed(3)}
+                      </td>
+                      <td className="py-2 pr-4 text-right text-pe-gray-700">
+                        {Math.round(r.childrenLifted).toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-4 text-right text-pe-gray-700">
+                        {formatBillions(r.costBillions)}
+                      </td>
+                      <td className="py-2 pr-4 text-right text-pe-gray-700">
+                        {r.costPerChildLifted > 0 && Number.isFinite(r.costPerChildLifted)
+                          ? `$${Math.round(r.costPerChildLifted).toLocaleString()}`
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-pe-gray-400 mt-3">
+              The Overview / Poverty / Budgetary / Distributional tabs show
+              the deep dive for {sortedRows[0] ? US_STATES[sortedRows[0].state] : '—'} (first selected
+              state).
+            </p>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

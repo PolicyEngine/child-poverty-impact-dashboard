@@ -25,10 +25,13 @@ type Step = 'state' | 'reform' | 'household';
 type PopulationType = 'household' | 'statewide';
 
 interface ReportConfig {
-  state: string | null;
+  /** One or more states. A single state behaves like the original wizard;
+   *  two or more flips the results page into compare mode. */
+  states: string[];
   /** When the user skips the household step, populationType is 'statewide'
    *  and household stays null. The results page uses that to hide the
-   *  Household tab. */
+   *  Household tab. Household analysis is only available in single-state
+   *  mode since a household has one state of residence. */
   populationType: PopulationType;
   household: HouseholdInput | null;
   selectedReforms: string[];
@@ -74,13 +77,19 @@ export default function ReportBuilderPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>('state');
   const [config, setConfig] = useState<ReportConfig>({
-    state: null,
+    states: [],
     populationType: 'household',
     household: null,
     selectedReforms: [],
     parameterValues: {},
     year: null,
   });
+
+  // Convenience: when one state is selected, treat it as "the" state for
+  // single-state UI elements (household step, reform options).
+  const primaryState: string | null =
+    config.states.length === 1 ? config.states[0] : null;
+  const isMultiState = config.states.length >= 2;
 
   // State data
   const [statePrograms, setStatePrograms] = useState<StatePrograms | null>(null);
@@ -96,16 +105,20 @@ export default function ReportBuilderPage() {
     setIsVisible(true);
   }, []);
 
-  // Fetch state data when state changes
+  // Fetch state data when the primary state changes. In multi-state mode
+  // we still pull options for the first selected state — the reform editor
+  // is configured to hide state-specific reforms then, so only federal
+  // options end up rendered.
   useEffect(() => {
-    if (!config.state) return;
+    const lookupState = primaryState ?? config.states[0];
+    if (!lookupState) return;
 
     const fetchStateData = async () => {
       setLoadingState(true);
       try {
         const [programs, options] = await Promise.all([
-          getStatePrograms(config.state!),
-          getReformOptions(config.state!),
+          getStatePrograms(lookupState),
+          getReformOptions(lookupState),
         ]);
         setStatePrograms(programs);
         setReformOptions(options);
@@ -117,7 +130,7 @@ export default function ReportBuilderPage() {
     };
 
     fetchStateData();
-  }, [config.state]);
+  }, [primaryState, config.states]);
 
   const currentStepIndex = STEPS.findIndex(s => s.key === step);
 
@@ -240,27 +253,75 @@ export default function ReportBuilderPage() {
             <div className="space-y-6">
               {/* State Selection */}
               <div className="card">
-                <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Select a State</h2>
-                <p className="text-pe-gray-500 mb-6">
-                  Choose the state to analyze reform impacts for.
-                </p>
-
-                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                  {Object.entries(US_STATES).map(([code, name]) => (
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <div>
+                    <h2 className="text-xl font-semibold text-pe-gray-800">Select states</h2>
+                    <p className="text-pe-gray-500 mt-1">
+                      Pick one state for a single-state report, or two or more
+                      to compare reform impacts side by side.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
                     <button
-                      key={code}
-                      onClick={() => setConfig(c => ({ ...c, state: code }))}
-                      title={name}
-                      className={`p-3 rounded-lg border text-center transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
-                        config.state === code
-                          ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
-                          : 'border-pe-gray-200 text-pe-gray-700'
-                      }`}
+                      type="button"
+                      onClick={() =>
+                        setConfig((c) => ({ ...c, states: Object.keys(US_STATES) }))
+                      }
+                      className="btn btn-ghost btn-sm"
                     >
-                      <span className="font-semibold text-sm">{code}</span>
+                      Select all
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => setConfig((c) => ({ ...c, states: [] }))}
+                      className="btn btn-ghost btn-sm"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mt-4">
+                  {Object.entries(US_STATES).map(([code, name]) => {
+                    const selected = config.states.includes(code);
+                    return (
+                      <button
+                        key={code}
+                        onClick={() =>
+                          setConfig((c) => ({
+                            ...c,
+                            states: selected
+                              ? c.states.filter((s) => s !== code)
+                              : [...c.states, code],
+                            // Drop household when we shift into multi-state
+                            // mode — household analysis isn't run there.
+                            household:
+                              !selected && c.states.length >= 1
+                                ? null
+                                : c.household,
+                          }))
+                        }
+                        title={name}
+                        aria-pressed={selected}
+                        className={`p-3 rounded-lg border text-center transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                          selected
+                            ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
+                            : 'border-pe-gray-200 text-pe-gray-700'
+                        }`}
+                      >
+                        <span className="font-semibold text-sm">{code}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="text-xs text-pe-gray-500 mt-3">
+                  {config.states.length === 0
+                    ? 'No states selected.'
+                    : config.states.length === 1
+                    ? `${US_STATES[config.states[0]]} — single-state report.`
+                    : `${config.states.length} states selected — comparison report.`}
+                </p>
               </div>
 
               {/* Year Selection */}
@@ -290,14 +351,16 @@ export default function ReportBuilderPage() {
               {/* Continue Button */}
               {(() => {
                 const missing: string[] = [];
-                if (!config.state) missing.push('state');
+                if (config.states.length === 0) missing.push('state');
                 if (!config.year) missing.push('year');
                 const canContinue = missing.length === 0;
                 const missingLabel =
                   missing.length === 2
-                    ? 'Select a state and a year to continue.'
-                    : missing.length === 1
-                    ? `Select a ${missing[0]} to continue.`
+                    ? 'Select at least one state and a year to continue.'
+                    : missing.includes('state')
+                    ? 'Select at least one state to continue.'
+                    : missing.includes('year')
+                    ? 'Select a year to continue.'
                     : '';
 
                 return (
@@ -339,8 +402,17 @@ export default function ReportBuilderPage() {
                   Choose one or more policy reforms to analyze.
                 </p>
 
+                {isMultiState && (
+                  <div className="mb-4 rounded-md border border-pe-teal-200 bg-pe-teal-50 px-4 py-3 text-sm text-pe-teal-800">
+                    Comparing {config.states.length} states — only federal
+                    reforms are listed below. State-specific reforms (state
+                    CTC/EITC/SNAP, child allowances) only apply in one
+                    state and aren't comparable across states.
+                  </div>
+                )}
+
                 <ReformOptionsSelector
-                  stateCode={config.state || 'CA'}
+                  stateCode={config.states[0] || 'CA'}
                   statePrograms={statePrograms || undefined}
                   reformOptions={reformOptions || undefined}
                   selectedOptions={config.selectedReforms}
@@ -348,6 +420,7 @@ export default function ReportBuilderPage() {
                   parameterValues={config.parameterValues}
                   onParameterChange={handleParameterChange}
                   isLoading={loadingState}
+                  federalOnly={isMultiState}
                 />
 
                 <div className="flex justify-between items-center mt-8 pt-6 border-t border-pe-gray-100">
@@ -355,11 +428,15 @@ export default function ReportBuilderPage() {
                     Back
                   </button>
                   <button
-                    onClick={() => setStep('household')}
-                    disabled={!canProceedToHousehold}
+                    onClick={() =>
+                      isMultiState
+                        ? handleRunReport({ skipHousehold: true })
+                        : setStep('household')
+                    }
+                    disabled={!canProceedToHousehold || isRunning}
                     className="btn btn-primary"
                   >
-                    Continue
+                    {isMultiState ? 'Run comparison' : 'Continue'}
                     <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -402,11 +479,11 @@ export default function ReportBuilderPage() {
                     config.household
                       ? {
                           ...config.household,
-                          state: config.state || 'CA',
+                          state: primaryState || 'CA',
                           year: config.year ?? config.household.year,
                         }
                       : ({
-                          state: config.state || 'CA',
+                          state: primaryState || 'CA',
                           year: config.year ?? 2026,
                         } as HouseholdInput)
                   }
