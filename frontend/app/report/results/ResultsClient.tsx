@@ -149,128 +149,121 @@ const TABS: TabConfig[] = [
 
 export default function ReportResultsPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabKey>('household');
+
+  // Config lives in sessionStorage and is only readable in the browser.
+  // Load it in a layout effect so the tab shell paints on the very next
+  // commit, with no hydration mismatch against the SSR'd HTML.
   const [config, setConfig] = useState<ReportConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [configReady, setConfigReady] = useState(false);
 
-  // Results for household analysis
-  const [householdResults, setHouseholdResults] = useState<HouseholdImpact | null>(null);
-  const [baselineResults, setBaselineResults] = useState<HouseholdResults | null>(null);
-  const [incomeSweep, setIncomeSweep] = useState<IncomeSweepResponse | null>(null);
-  const [sweepLoading, setSweepLoading] = useState(false);
-  const [sweepError, setSweepError] = useState<string | null>(null);
-
-  // Results for statewide analysis
-  const [statewideResults, setStatewideResults] = useState<AnalysisResponse | null>(null);
-
-  // Load config from sessionStorage and run analysis
-  useEffect(() => {
-    const loadAndAnalyze = async () => {
-      try {
-        const storedConfig = sessionStorage.getItem('reportConfig');
-        if (!storedConfig) {
-          setError('No report configuration found. Please start a new report.');
-          setIsLoading(false);
-          return;
-        }
-
-        const parsedConfig: ReportConfig = JSON.parse(storedConfig);
-        setConfig(parsedConfig);
-
-        if (!parsedConfig.state) {
-          setError('Invalid report configuration. Please start a new report.');
-          return;
-        }
-
-        // Statewide analysis always runs — that's the default impact
-        // view. The household analysis is opt-in via the wizard's
-        // household step (populationType === 'household').
-        const statewidePromise = runAnalysisFromOptions(
-          parsedConfig.state,
-          parsedConfig.year,
-          parsedConfig.selectedReforms,
-          parsedConfig.parameterValues,
-        )
-          .then((results) => setStatewideResults(results))
-          .catch((err: unknown) => {
-            console.error('Statewide analysis failed:', err);
-            throw err;
-          });
-
-        if (parsedConfig.populationType === 'household' && parsedConfig.household) {
-          const householdPromise = Promise.all([
-            calculateBaseline(parsedConfig.household),
-            calculateImpact(parsedConfig.household, parsedConfig.selectedReforms),
-          ]).then(([baseline, impact]) => {
-            setBaselineResults(baseline);
-            setHouseholdResults(impact);
-          });
-
-          // Background income sweep ($0–$400k @ $10k steps) so the
-          // overview cards land immediately while the chart fills in.
-          setSweepLoading(true);
-          setSweepError(null);
-          runIncomeSweep(
-            parsedConfig.household,
-            parsedConfig.selectedReforms,
-            0,
-            400_000,
-            10_000,
-          )
-            .then((sweep) => setIncomeSweep(sweep))
-            .catch((err: unknown) => {
-              const message =
-                (err as { response?: { data?: { detail?: string } }; message?: string })
-                  ?.response?.data?.detail ??
-                (err as { message?: string })?.message ??
-                'Income sweep failed';
-              console.warn('Income sweep failed:', err);
-              setSweepError(String(message));
-            })
-            .finally(() => setSweepLoading(false));
-
-          await Promise.all([statewidePromise, householdPromise]);
-        } else {
-          await statewidePromise;
-        }
-      } catch (err: any) {
-        console.error('Error running analysis:', err);
-        const errorMessage = err?.response?.data?.detail || err?.message || 'Unknown error';
-        setError(`Failed to run analysis: ${errorMessage}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadAndAnalyze();
-  }, []);
-
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
-  if (error) {
-    return <ErrorState error={error} />;
-  }
-
-  // Statewide always runs; household is optional. Treat the page as
-  // having results once the always-on statewide leg has returned.
-  const hasResults = config && statewideResults;
   const showHouseholdTab =
     !!config &&
     config.populationType === 'household' &&
     !!config.household;
 
-  if (!hasResults) {
-    return <ErrorState error="No results available" />;
-  }
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-  // Default-active tab: 'household' when available, otherwise drop to
-  // 'overview'. Without this the initial state of 'household' would
-  // render nothing on skipped-household runs.
-  if (!showHouseholdTab && activeTab === 'household') {
-    setActiveTab('overview');
+  // Per-leg results, loading, and errors. Each tab owns its own state so a
+  // slow or failed leg doesn't block the rest of the page.
+  const [householdResults, setHouseholdResults] = useState<HouseholdImpact | null>(null);
+  const [baselineResults, setBaselineResults] = useState<HouseholdResults | null>(null);
+  const [householdError, setHouseholdError] = useState<string | null>(null);
+
+  const [incomeSweep, setIncomeSweep] = useState<IncomeSweepResponse | null>(null);
+  const [sweepLoading, setSweepLoading] = useState(false);
+  const [sweepError, setSweepError] = useState<string | null>(null);
+
+  const [statewideResults, setStatewideResults] = useState<AnalysisResponse | null>(null);
+  const [statewideError, setStatewideError] = useState<string | null>(null);
+
+  // Read config from sessionStorage as soon as we hit the client.
+  useEffect(() => {
+    const stored = sessionStorage.getItem('reportConfig');
+    if (!stored) {
+      setConfigError('No report configuration found. Please start a new report.');
+      setConfigReady(true);
+      return;
+    }
+    try {
+      const parsed: ReportConfig = JSON.parse(stored);
+      if (!parsed.state) {
+        setConfigError('Invalid report configuration. Please start a new report.');
+      } else {
+        setConfig(parsed);
+        if (parsed.populationType === 'household' && parsed.household) {
+          setActiveTab('household');
+        }
+      }
+    } catch {
+      setConfigError('Could not read report configuration. Please start a new report.');
+    } finally {
+      setConfigReady(true);
+    }
+  }, []);
+
+  // Kick off the async legs once we have config. Each leg writes to its own
+  // state so the tab shell stays interactive while they fly.
+  useEffect(() => {
+    if (!config) return;
+
+    const extractMessage = (err: unknown): string => {
+      const e = err as { response?: { data?: { detail?: string } }; message?: string };
+      return e?.response?.data?.detail || e?.message || 'Unknown error';
+    };
+
+    runAnalysisFromOptions(
+      config.state!,
+      config.year,
+      config.selectedReforms,
+      config.parameterValues,
+    )
+      .then((results) => setStatewideResults(results))
+      .catch((err: unknown) => {
+        console.error('Statewide analysis failed:', err);
+        setStatewideError(extractMessage(err));
+      });
+
+    if (config.populationType === 'household' && config.household) {
+      Promise.all([
+        calculateBaseline(config.household),
+        calculateImpact(config.household, config.selectedReforms),
+      ])
+        .then(([baseline, impact]) => {
+          setBaselineResults(baseline);
+          setHouseholdResults(impact);
+        })
+        .catch((err: unknown) => {
+          console.error('Household analysis failed:', err);
+          setHouseholdError(extractMessage(err));
+        });
+
+      setSweepLoading(true);
+      setSweepError(null);
+      runIncomeSweep(
+        config.household,
+        config.selectedReforms,
+        0,
+        400_000,
+        10_000,
+      )
+        .then((sweep) => setIncomeSweep(sweep))
+        .catch((err: unknown) => {
+          console.warn('Income sweep failed:', err);
+          setSweepError(extractMessage(err));
+        })
+        .finally(() => setSweepLoading(false));
+    }
+  }, [config]);
+
+  // configReady distinguishes "haven't hit useEffect yet" from "loaded and
+  // confirmed missing". Before configReady, render the tab shell so SSR
+  // and the first client commit produce the same HTML.
+  if (configReady && configError) {
+    return <ErrorState error={configError} />;
+  }
+  if (configReady && !config) {
+    return <ErrorState error="No results available" />;
   }
 
   return (
@@ -296,7 +289,9 @@ export default function ReportResultsPage() {
                 Report Results
               </h1>
               <p className="text-pe-gray-500 mt-1">
-                {config!.state ? US_STATES[config!.state] : 'Analysis'} &bull; {config!.populationType === 'statewide' ? 'Statewide' : 'Household'} &bull; {config!.selectedReforms.length} reform(s)
+                {config
+                  ? `${config.state ? US_STATES[config.state] : 'Analysis'} • ${config.populationType === 'statewide' ? 'Statewide' : 'Household'} • ${config.selectedReforms.length} reform(s)`
+                  : 'Loading report…'}
               </p>
             </div>
             <button
@@ -348,63 +343,137 @@ export default function ReportResultsPage() {
 
       {/* Tab Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {activeTab === 'household' && showHouseholdTab && householdResults ? (
-          <HouseholdOverviewTab
-            config={config!}
-            results={householdResults}
-            baseline={baselineResults}
-            incomeSweep={incomeSweep}
-            sweepLoading={sweepLoading}
-            sweepError={sweepError}
-          />
-        ) : activeTab === 'overview' && statewideResults ? (
-          <StatewideOverview
-            results={statewideResults}
-            state={config!.state}
-            year={config!.year}
-          />
-        ) : activeTab === 'poverty' && statewideResults ? (
-          <StatewidePoverty
-            results={statewideResults}
-            state={config!.state}
-            year={config!.year}
-          />
-        ) : activeTab === 'fiscal' && statewideResults ? (
-          <StatewideFiscal
-            results={statewideResults}
-            state={config!.state}
-            year={config!.year}
-          />
-        ) : activeTab === 'distributional' && statewideResults ? (
-          <StatewideDistributional
-            results={statewideResults}
-            state={config!.state}
-            year={config!.year}
-          />
+        {activeTab === 'household' && showHouseholdTab ? (
+          householdResults ? (
+            <HouseholdOverviewTab
+              config={config!}
+              results={householdResults}
+              baseline={baselineResults}
+              incomeSweep={incomeSweep}
+              sweepLoading={sweepLoading}
+              sweepError={sweepError}
+            />
+          ) : householdError ? (
+            <TabError message={householdError} />
+          ) : (
+            <TabSkeleton
+              title="Computing household impact"
+              hint="Calling PolicyEngine for baseline and reform — usually under 30 seconds."
+            />
+          )
+        ) : activeTab === 'overview' ? (
+          statewideResults ? (
+            <StatewideOverview
+              results={statewideResults}
+              state={config!.state}
+              year={config!.year}
+            />
+          ) : statewideError ? (
+            <TabError message={statewideError} />
+          ) : (
+            <TabSkeleton
+              title="Computing statewide impact"
+              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+            />
+          )
+        ) : activeTab === 'poverty' ? (
+          statewideResults ? (
+            <StatewidePoverty
+              results={statewideResults}
+              state={config!.state}
+              year={config!.year}
+            />
+          ) : statewideError ? (
+            <TabError message={statewideError} />
+          ) : (
+            <TabSkeleton
+              title="Computing poverty impact"
+              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+            />
+          )
+        ) : activeTab === 'fiscal' ? (
+          statewideResults ? (
+            <StatewideFiscal
+              results={statewideResults}
+              state={config!.state}
+              year={config!.year}
+            />
+          ) : statewideError ? (
+            <TabError message={statewideError} />
+          ) : (
+            <TabSkeleton
+              title="Computing fiscal impact"
+              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+            />
+          )
+        ) : activeTab === 'distributional' ? (
+          statewideResults ? (
+            <StatewideDistributional
+              results={statewideResults}
+              state={config!.state}
+              year={config!.year}
+            />
+          ) : statewideError ? (
+            <TabError message={statewideError} />
+          ) : (
+            <TabSkeleton
+              title="Computing distributional impact"
+              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+            />
+          )
         ) : null}
       </div>
     </div>
   );
 }
 
-// Loading State Component
-function LoadingState() {
+// Inline skeleton shown inside a tab while its data is still computing.
+// Keeps the tab shell and other tabs interactive instead of blocking the
+// whole page on a single Modal call.
+function TabSkeleton({ title, hint }: { title: string; hint: string }) {
   return (
-    <div className="min-h-screen bg-pe-gray-50/30 flex items-center justify-center">
-      <div className="text-center">
-        <div className="relative w-20 h-20 mx-auto mb-6">
+    <div className="space-y-6">
+      <div className="card flex items-center gap-4">
+        <div className="relative w-10 h-10 flex-shrink-0">
           <div
             className="absolute inset-0 rounded-full border-4"
             style={{ borderColor: `${COLORS.primary}30` }}
-          ></div>
+          />
           <div
             className="absolute inset-0 rounded-full border-4 border-t-transparent animate-spin"
             style={{ borderColor: COLORS.primary, borderTopColor: 'transparent' }}
-          ></div>
+          />
         </div>
-        <h2 className="text-xl font-semibold text-pe-gray-800 mb-2">Running Analysis</h2>
-        <p className="text-pe-gray-500">Calculating policy impacts via PolicyEngine...</p>
-        <p className="text-sm text-pe-gray-400 mt-2">This may take 1-2 minutes for statewide analysis</p>
+        <div>
+          <p className="font-semibold text-pe-gray-800">{title}</p>
+          <p className="text-sm text-pe-gray-500">{hint}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="card h-28 animate-pulse bg-pe-gray-50" />
+        ))}
+      </div>
+      <div className="card h-80 animate-pulse bg-pe-gray-50" />
+    </div>
+  );
+}
+
+// Per-tab error — replaces the page-level error state so one failing leg
+// (statewide or household) doesn't take down the rest of the report.
+function TabError({ message }: { message: string }) {
+  return (
+    <div className="card border-red-200 bg-red-50">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+          <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-red-800 font-semibold text-sm">Analysis failed for this tab</h3>
+          <p className="text-red-600 text-sm mt-0.5 break-words">{message}</p>
+        </div>
       </div>
     </div>
   );
