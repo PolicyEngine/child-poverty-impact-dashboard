@@ -19,6 +19,10 @@ interface ReformOptionsSelectorProps {
   parameterValues?: ParameterValues;
   onParameterChange?: (optionId: string, paramName: string, value: number) => void;
   isLoading?: boolean;
+  /** Compare mode runs the same reform across multiple states, so state-
+   *  specific reforms (state CTC/EITC/SNAP/child allowance) are hidden —
+   *  they only apply in one state and break the apples-to-apples premise. */
+  federalOnly?: boolean;
 }
 
 export default function ReformOptionsSelector({
@@ -30,8 +34,23 @@ export default function ReformOptionsSelector({
   parameterValues = {},
   onParameterChange,
   isLoading = false,
+  federalOnly = false,
 }: ReformOptionsSelectorProps) {
-  const [activeTab, setActiveTab] = useState<'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal'>('eitc'); // Default to EITC tab
+  const [activeTab, setActiveTab] = useState<'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal'>(
+    federalOnly ? 'federal' : 'eitc',
+  );
+
+  // If the parent toggled federalOnly on, drop any non-federal selections
+  // so the wizard doesn't carry stale state-specific reforms into Modal.
+  useEffect(() => {
+    if (!federalOnly || !reformOptions) return;
+    const federalIds = new Set(reformOptions.federal_options.map((o) => o.id));
+    const filtered = selectedOptions.filter((id) => federalIds.has(id));
+    if (filtered.length !== selectedOptions.length) {
+      onSelectionChange(filtered);
+    }
+    if (activeTab !== 'federal') setActiveTab('federal');
+  }, [federalOnly, reformOptions]);
 
   const toggleOption = (optionId: string) => {
     if (selectedOptions.includes(optionId)) {
@@ -64,13 +83,16 @@ export default function ReformOptionsSelector({
     );
   }
 
-  const tabs = [
-    { id: 'ctc', label: 'Child Tax Credit', options: reformOptions.ctc_options },
-    { id: 'eitc', label: 'EITC', options: reformOptions.eitc_options },
-    { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
-    { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
-    { id: 'federal', label: 'Federal', options: reformOptions.federal_options },
-  ] as const;
+  type TabId = 'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal';
+  const tabs: { id: TabId; label: string; options: ReformOption[] }[] = federalOnly
+    ? [{ id: 'federal', label: 'Federal', options: reformOptions.federal_options }]
+    : [
+        { id: 'ctc', label: 'Child Tax Credit', options: reformOptions.ctc_options },
+        { id: 'eitc', label: 'EITC', options: reformOptions.eitc_options },
+        { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
+        { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
+        { id: 'federal', label: 'Federal', options: reformOptions.federal_options },
+      ];
 
   return (
     <div className="space-y-4">
