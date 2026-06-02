@@ -89,16 +89,42 @@ function mapEconomyToAnalysisResponse(
   state: string,
   year: number,
 ): AnalysisResponse {
-  const baselineChild = (economy.poverty?.child_baseline_rate ?? 0) / 100;
-  const reformChild = (economy.poverty?.child_reform_rate ?? 0) / 100;
-  const childPpChange = (reformChild - baselineChild) * 100;
-  const childPctChange =
-    baselineChild > 0 ? ((reformChild - baselineChild) / baselineChild) * 100 : 0;
+  // Modal poverty rates are percentages (0-100). AnalysisResponse uses
+  // fractions (0-1); the consumers multiply by 100 to render. Convert.
+  const toFraction = (pct: number | undefined): number => (pct ?? 0) / 100;
+  const pp = (baseline: number, reform: number): number =>
+    (reform - baseline) * 100;
+  const pctChange = (baseline: number, reform: number): number =>
+    baseline > 0 ? ((reform - baseline) / baseline) * 100 : 0;
 
-  const totalCostBillions = -(economy.fiscal?.total_budgetary_impact ?? 0) / 1e9;
-  const federalCostBillions = -(economy.fiscal?.federal_tax_change ?? 0) / 1e9;
-  const stateCostBillions = -(economy.fiscal?.state_tax_change ?? 0) / 1e9;
+  const baselineChild = toFraction(economy.poverty?.child_baseline_rate);
+  const reformChild = toFraction(economy.poverty?.child_reform_rate);
+  const baselineYoungChild = toFraction(economy.poverty?.young_child_baseline_rate);
+  const reformYoungChild = toFraction(economy.poverty?.young_child_reform_rate);
+  const baselineDeep = toFraction(economy.poverty?.deep_child_baseline_rate);
+  const reformDeep = toFraction(economy.poverty?.deep_child_reform_rate);
+
   const childrenLifted = economy.poverty?.children_lifted ?? 0;
+  const youngChildrenLifted = economy.poverty?.young_children_lifted ?? 0;
+
+  // Modal returns raw-dollar fiscal numbers; AnalysisResponse uses
+  // billions. Reform that reduces revenue → negative total_budgetary_impact
+  // → positive "cost" after negation. Same convention for per-program.
+  const toBillionsCost = (raw: number | undefined): number =>
+    -(raw ?? 0) / 1e9;
+
+  const totalCostBillions = toBillionsCost(economy.fiscal?.total_budgetary_impact);
+  const federalCostBillions = toBillionsCost(economy.fiscal?.federal_tax_change);
+  const stateCostBillions = toBillionsCost(economy.fiscal?.state_tax_change);
+  // Program-level "cost" = positive when reform increases the benefit
+  // (i.e. positive change in spending). Modal returns reform - baseline,
+  // so a positive delta IS a cost.
+  const ctcCostBillions = (economy.fiscal?.ctc_change ?? 0) / 1e9;
+  const eitcCostBillions = (economy.fiscal?.eitc_change ?? 0) / 1e9;
+  const snapCostBillions = (economy.fiscal?.snap_change ?? 0) / 1e9;
+  const stateCtcCostBillions = (economy.fiscal?.state_ctc_change ?? 0) / 1e9;
+
+  const dist = economy.distributional;
 
   return {
     reform_name: 'Reform',
@@ -108,31 +134,37 @@ function mapEconomyToAnalysisResponse(
     poverty_impact: {
       baseline_child_poverty_rate: baselineChild,
       reform_child_poverty_rate: reformChild,
-      child_poverty_change_pp: childPpChange,
-      child_poverty_percent_change: childPctChange,
-      // Modal doesn't break out young-child or deep poverty yet.
-      baseline_young_child_poverty_rate: 0,
-      reform_young_child_poverty_rate: 0,
-      young_child_poverty_change_pp: 0,
-      young_child_poverty_percent_change: 0,
+      child_poverty_change_pp: pp(baselineChild, reformChild),
+      child_poverty_percent_change: pctChange(baselineChild, reformChild),
+      baseline_young_child_poverty_rate: baselineYoungChild,
+      reform_young_child_poverty_rate: reformYoungChild,
+      young_child_poverty_change_pp: pp(baselineYoungChild, reformYoungChild),
+      young_child_poverty_percent_change: pctChange(
+        baselineYoungChild,
+        reformYoungChild,
+      ),
       children_lifted_out_of_poverty: childrenLifted,
-      young_children_lifted_out_of_poverty: 0,
-      baseline_deep_child_poverty_rate: 0,
-      reform_deep_child_poverty_rate: 0,
-      deep_poverty_change_pp: 0,
+      young_children_lifted_out_of_poverty: youngChildrenLifted,
+      baseline_deep_child_poverty_rate: baselineDeep,
+      reform_deep_child_poverty_rate: reformDeep,
+      deep_poverty_change_pp: pp(baselineDeep, reformDeep),
       state,
     },
     fiscal_cost: {
       total_cost_billions: totalCostBillions,
       federal_cost_billions: federalCostBillions,
       state_cost_billions: stateCostBillions,
-      ctc_cost_billions: 0,
-      eitc_cost_billions: 0,
+      ctc_cost_billions: ctcCostBillions,
+      eitc_cost_billions: eitcCostBillions,
+      // Dependent exemption + UBI aren't broken out by Modal yet — they
+      // don't have standalone PE-US variables. Stub.
       dependent_exemption_cost_billions: 0,
       ubi_cost_billions: 0,
-      snap_cost_billions: 0,
-      state_ctc_cost_billions: 0,
-      income_tax_change_billions: -federalCostBillions - stateCostBillions,
+      snap_cost_billions: snapCostBillions,
+      state_ctc_cost_billions: stateCtcCostBillions,
+      income_tax_change_billions:
+        (economy.fiscal?.federal_tax_change ?? 0) / 1e9
+        + (economy.fiscal?.state_tax_change ?? 0) / 1e9,
       payroll_tax_change_billions: 0,
       cost_per_child:
         childrenLifted > 0 ? (totalCostBillions * 1e9) / childrenLifted : 0,
@@ -141,20 +173,32 @@ function mapEconomyToAnalysisResponse(
       state,
     },
     distributional_impact: {
-      decile_impacts: [],
-      average_gain_all: 0,
-      average_gain_bottom_50: 0,
-      average_gain_top_10: 0,
-      share_to_bottom_20_pct: 0,
-      share_to_bottom_50_pct: 0,
-      share_to_top_20_pct: 0,
-      share_to_top_10_pct: 0,
-      baseline_gini: 0,
-      reform_gini: 0,
-      gini_change: 0,
-      percent_gaining: 0,
-      percent_losing: 0,
-      percent_unchanged: 100,
+      decile_impacts: (dist?.deciles ?? []).map((d) => ({
+        decile: d.decile,
+        average_gain: d.average_gain,
+        percent_gaining: d.percent_gaining,
+        percent_losing: d.percent_losing,
+        gain_more_than_5_pct: d.gain_more_than_5_pct,
+        gain_less_than_5_pct: d.gain_less_than_5_pct,
+        no_change_pct: d.no_change_pct,
+        lose_less_than_5_pct: d.lose_less_than_5_pct,
+        lose_more_than_5_pct: d.lose_more_than_5_pct,
+        total_benefit_billions: d.total_benefit / 1e9,
+        share_of_total_benefit: d.share_of_total_benefit,
+      })),
+      average_gain_all: dist?.average_gain_all ?? 0,
+      average_gain_bottom_50: dist?.average_gain_bottom_50 ?? 0,
+      average_gain_top_10: dist?.average_gain_top_10 ?? 0,
+      share_to_bottom_20_pct: dist?.share_to_bottom_20_pct ?? 0,
+      share_to_bottom_50_pct: dist?.share_to_bottom_50_pct ?? 0,
+      share_to_top_20_pct: dist?.share_to_top_20_pct ?? 0,
+      share_to_top_10_pct: dist?.share_to_top_10_pct ?? 0,
+      baseline_gini: dist?.baseline_gini ?? 0,
+      reform_gini: dist?.reform_gini ?? 0,
+      gini_change: dist?.gini_change ?? 0,
+      percent_gaining: dist?.percent_gaining ?? 0,
+      percent_losing: dist?.percent_losing ?? 0,
+      percent_unchanged: dist?.percent_unchanged ?? 100,
       state,
     },
     headline_stats: {},

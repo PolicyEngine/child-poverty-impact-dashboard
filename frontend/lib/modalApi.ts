@@ -21,6 +21,21 @@ export type ReformDict = Record<
   Record<string, number | boolean | string | (number | string)[]>
 >;
 
+export interface EconomyDecileImpact {
+  decile: number;
+  average_gain: number;
+  percent_gaining: number;
+  percent_losing: number;
+  percent_unchanged: number;
+  gain_more_than_5_pct: number;
+  gain_less_than_5_pct: number;
+  no_change_pct: number;
+  lose_less_than_5_pct: number;
+  lose_more_than_5_pct: number;
+  total_benefit: number;
+  share_of_total_benefit: number;
+}
+
 export interface EconomyImpactResult {
   state: string | null;
   year: number;
@@ -29,13 +44,39 @@ export interface EconomyImpactResult {
     state_tax_change: number;
     benefit_change: number;
     total_budgetary_impact: number;
+    ctc_change: number;
+    eitc_change: number;
+    snap_change: number;
+    state_ctc_change: number;
+    state_eitc_change: number;
   };
   poverty: {
     overall_baseline_rate: number;
     overall_reform_rate: number;
     child_baseline_rate: number;
     child_reform_rate: number;
+    young_child_baseline_rate: number;
+    young_child_reform_rate: number;
+    deep_child_baseline_rate: number;
+    deep_child_reform_rate: number;
     children_lifted: number;
+    young_children_lifted: number;
+  };
+  distributional: {
+    deciles: EconomyDecileImpact[];
+    average_gain_all: number;
+    average_gain_bottom_50: number;
+    average_gain_top_10: number;
+    share_to_bottom_20_pct: number;
+    share_to_bottom_50_pct: number;
+    share_to_top_20_pct: number;
+    share_to_top_10_pct: number;
+    baseline_gini: number;
+    reform_gini: number;
+    gini_change: number;
+    percent_gaining: number;
+    percent_losing: number;
+    percent_unchanged: number;
   };
 }
 
