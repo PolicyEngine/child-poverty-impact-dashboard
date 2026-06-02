@@ -52,7 +52,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-05-29-4-1800s-16gb"})
+    .env({"CPID_BUILD_REV": "2026-06-02-equivalised-gini"})
 )
 
 
@@ -265,44 +265,74 @@ def compute_economy(payload: dict) -> dict:
     )
     _log("microsims built")
 
+    household_weight = np.array(
+        sim_baseline.calculate("household_weight", period=year)
+    )
+
     # State-specific .h5 already contains only this state's households,
-    # so all sums and rates run unmasked across the whole sim.
-    def _sum(sim, name: str) -> float:
+    # so sums run unmasked across the whole sim.
+    def _hh_sum(sim, name: str) -> float:
         arr = np.array(sim.calculate(name, period=year, map_to="household"))
-        weight = np.array(sim.calculate("household_weight", period=year))
-        return float((arr * weight).sum())
+        return float((arr * household_weight).sum())
 
-    federal_baseline = _sum(sim_baseline, "income_tax")
-    federal_reform = _sum(sim_reform, "income_tax")
-    federal_tax_change = federal_reform - federal_baseline
-    _log("federal_tax done")
+    # Per-program fiscal breakdown. The grant deliverable lists CTC,
+    # EITC, SNAP, dependent exemption, UBI, and state credits explicitly.
+    # PE-US gives us totals for each program; "cost" = baseline - reform
+    # when the reform increases the benefit (sign flipped to positive),
+    # so we report (reform - baseline) and let the frontend flip if it
+    # prefers cost positive.
+    #
+    # Caveat: variables like `ctc` track the claimed amount which can be
+    # unchanged by a refundability reform even though the cash outlay
+    # changes (the refundable portion gets paid out vs offsetting tax).
+    # `total_budgetary_impact` captures the true cost regardless;
+    # per-program numbers may understate the impact for reforms that
+    # convert credits between refundable and nonrefundable.
+    def _delta(name: str) -> float:
+        try:
+            return _hh_sum(sim_reform, name) - _hh_sum(sim_baseline, name)
+        except Exception:
+            return 0.0
 
-    state_baseline = _sum(sim_baseline, "state_income_tax")
-    state_reform = _sum(sim_reform, "state_income_tax")
-    state_tax_change = state_reform - state_baseline
-    _log("state_tax done")
+    federal_tax_change = _delta("income_tax")
+    state_tax_change = _delta("state_income_tax")
+    benefit_change = _delta("household_benefits")
+    ctc_change = _delta("ctc")
+    eitc_change = _delta("eitc")
+    snap_change = _delta("snap")
+    state_ctc_change = _delta("state_ctc")
+    state_eitc_change = _delta("state_eitc")
+    _log("fiscal done")
 
-    benefit_baseline = _sum(sim_baseline, "household_benefits")
-    benefit_reform = _sum(sim_reform, "household_benefits")
-    benefit_change = benefit_reform - benefit_baseline
-    _log("benefits done")
-
-    pov_baseline = sim_baseline.calculate(
-        "in_poverty", period=year, map_to="person"
-    )
-    pov_reform = sim_reform.calculate(
-        "in_poverty", period=year, map_to="person"
-    )
+    # ---- Poverty: overall, children, young children (0-3), deep child poverty.
     age_arr = np.array(sim_baseline.calculate("age", period=year))
     person_weight = np.array(
         sim_baseline.calculate("person_weight", period=year)
     )
-    child_mask = age_arr < 18
-    total_children = float(person_weight[child_mask].sum())
+    pov_bl_arr = np.array(
+        sim_baseline.calculate("in_poverty", period=year, map_to="person")
+    ).astype(bool)
+    pov_rf_arr = np.array(
+        sim_reform.calculate("in_poverty", period=year, map_to="person")
+    ).astype(bool)
+    try:
+        deep_bl_arr = np.array(
+            sim_baseline.calculate(
+                "in_deep_poverty", period=year, map_to="person"
+            )
+        ).astype(bool)
+        deep_rf_arr = np.array(
+            sim_reform.calculate(
+                "in_deep_poverty", period=year, map_to="person"
+            )
+        ).astype(bool)
+    except Exception:
+        deep_bl_arr = np.zeros_like(pov_bl_arr)
+        deep_rf_arr = np.zeros_like(pov_rf_arr)
 
-    pov_bl_arr = np.array(pov_baseline).astype(bool)
-    pov_rf_arr = np.array(pov_reform).astype(bool)
     all_mask = np.ones_like(age_arr, dtype=bool)
+    child_mask = age_arr < 18
+    young_child_mask = age_arr < 4  # ages 0-3 (prenatal-3 in the grant)
 
     def _rate(arr, mask):
         w = person_weight[mask]
@@ -311,6 +341,198 @@ def compute_economy(payload: dict) -> dict:
             return 0.0
         return float((arr[mask] * w).sum() / total * 100)
 
+    def _lifted(mask):
+        # Lifted = was in poverty baseline AND not in poverty reform.
+        return float(
+            ((pov_bl_arr & ~pov_rf_arr) * person_weight * mask).sum()
+        )
+
+    _log("poverty done")
+
+    # ---- Distributional analysis: per-decile averages, winners/losers,
+    # Gini, and aggregate shares. Deciles are over persons by their
+    # household's equivalised net income (square-root scale), which is
+    # the standard PolicyEngine convention.
+    # Person-level gain = household net income change for the person's
+    # household, expanded to person level via map_to="person".
+    person_net_baseline = np.array(
+        sim_baseline.calculate(
+            "household_net_income", period=year, map_to="person"
+        )
+    )
+    person_net_reform = np.array(
+        sim_reform.calculate(
+            "household_net_income", period=year, map_to="person"
+        )
+    )
+    person_gain = person_net_reform - person_net_baseline
+    # Per-person equivalised baseline (used to cut deciles and compute
+    # relative gain). Equivalised = household net / sqrt(household size),
+    # standard PolicyEngine convention.
+    person_hh_size = np.array(
+        sim_baseline.calculate("household_size", period=year, map_to="person")
+    )
+    person_equiv_baseline = person_net_baseline / np.sqrt(
+        np.maximum(person_hh_size, 1)
+    )
+
+    def _weighted_deciles(values, weights):
+        """Return 10 decile-edge indicators (1..10) for each row, by
+        weighted percentile. Edge cases: zero or all-equal income → all
+        in decile 1."""
+        if weights.sum() == 0:
+            return np.ones_like(values, dtype=int)
+        order = np.argsort(values, kind="stable")
+        sorted_w = weights[order]
+        cum_w = np.cumsum(sorted_w)
+        total = cum_w[-1]
+        # Decile boundaries at 10%, 20%, …, 90% of total weight.
+        cuts = np.searchsorted(cum_w, total * np.arange(1, 10) / 10)
+        decile_sorted = np.searchsorted(cuts, np.arange(len(values))) + 1
+        decile = np.empty_like(decile_sorted)
+        decile[order] = decile_sorted
+        return np.clip(decile, 1, 10)
+
+    decile_arr = _weighted_deciles(person_equiv_baseline, person_weight)
+
+    total_weight = float(person_weight.sum())
+    total_benefit = float((person_gain * person_weight).sum())
+
+    avg_gain_all = (
+        total_benefit / total_weight if total_weight > 0 else 0.0
+    )
+    bottom_50_mask = decile_arr <= 5
+    top_10_mask = decile_arr == 10
+    bottom_20_mask = decile_arr <= 2
+    top_20_mask = decile_arr >= 9
+
+    def _avg(mask):
+        w = person_weight[mask]
+        s = float(w.sum())
+        if s == 0:
+            return 0.0
+        return float((person_gain[mask] * w).sum() / s)
+
+    def _share(mask):
+        if total_benefit == 0:
+            return 0.0
+        return float(
+            (person_gain[mask] * person_weight[mask]).sum() / total_benefit
+            * 100
+        )
+
+    # Per-person relative gain vs. baseline income. Use equivalised
+    # baseline so the 5%-cutoff buckets aren't dominated by large
+    # households.
+    rel_gain = np.where(
+        person_net_baseline > 0,
+        person_gain / np.maximum(person_net_baseline, 1),
+        0.0,
+    )
+
+    GAIN_THRESHOLD = 0.05
+    LOSS_THRESHOLD = -0.05
+
+    decile_impacts = []
+    for d in range(1, 11):
+        mask = decile_arr == d
+        w = person_weight[mask]
+        sw = float(w.sum())
+        if sw == 0:
+            decile_impacts.append(
+                {
+                    "decile": d,
+                    "average_gain": 0.0,
+                    "percent_gaining": 0.0,
+                    "percent_losing": 0.0,
+                    "percent_unchanged": 100.0,
+                    "gain_more_than_5_pct": 0.0,
+                    "gain_less_than_5_pct": 0.0,
+                    "no_change_pct": 100.0,
+                    "lose_less_than_5_pct": 0.0,
+                    "lose_more_than_5_pct": 0.0,
+                    "total_benefit": 0.0,
+                    "share_of_total_benefit": 0.0,
+                }
+            )
+            continue
+        g = person_gain[mask]
+        r = rel_gain[mask]
+        gain_total = float((g * w).sum())
+        pct_gain_more = float((w * (r > GAIN_THRESHOLD)).sum() / sw * 100)
+        pct_gain_less = float(
+            (w * ((r > 0) & (r <= GAIN_THRESHOLD))).sum() / sw * 100
+        )
+        pct_lose_less = float(
+            (w * ((r < 0) & (r >= LOSS_THRESHOLD))).sum() / sw * 100
+        )
+        pct_lose_more = float((w * (r < LOSS_THRESHOLD)).sum() / sw * 100)
+        pct_no_change = max(
+            0.0,
+            100.0 - pct_gain_more - pct_gain_less - pct_lose_less - pct_lose_more,
+        )
+        decile_impacts.append(
+            {
+                "decile": d,
+                "average_gain": float((g * w).sum() / sw),
+                "percent_gaining": pct_gain_more + pct_gain_less,
+                "percent_losing": pct_lose_less + pct_lose_more,
+                "percent_unchanged": pct_no_change,
+                "gain_more_than_5_pct": pct_gain_more,
+                "gain_less_than_5_pct": pct_gain_less,
+                "no_change_pct": pct_no_change,
+                "lose_less_than_5_pct": pct_lose_less,
+                "lose_more_than_5_pct": pct_lose_more,
+                "total_benefit": gain_total,
+                "share_of_total_benefit": (
+                    gain_total / total_benefit * 100 if total_benefit else 0.0
+                ),
+            }
+        )
+
+    def _gini(values, weights):
+        """Weighted Gini from the Lorenz-curve trapezoidal formula.
+        Clips values to non-negative — negative net incomes (taxes
+        exceeding cash income) otherwise push Gini past 1."""
+        if weights.sum() == 0 or values.size == 0:
+            return 0.0
+        v = np.clip(values, 0, None)
+        order = np.argsort(v, kind="stable")
+        v_s = v[order]
+        w_s = weights[order]
+        cum_vw = np.cumsum(v_s * w_s)
+        total_w = float(w_s.sum())
+        total_vw = float(cum_vw[-1])
+        if total_w == 0 or total_vw == 0:
+            return 0.0
+        # G = 1 - Σ w_i (cum_vw_i + cum_vw_{i-1}) / (total_w * total_vw)
+        #   = 1 - Σ w_i (2*cum_vw_i - v_i*w_i) / (total_w * total_vw)
+        return float(
+            1.0 - (w_s * (2 * cum_vw - v_s * w_s)).sum() / (total_w * total_vw)
+        )
+
+    # Gini over equivalised net income (sqrt-of-size scale). Using the
+    # raw household-net-mapped-to-person inflates Gini because each
+    # person in a large household carries the full household total
+    # rather than a per-capita share.
+    person_equiv_reform = person_net_reform / np.sqrt(
+        np.maximum(person_hh_size, 1)
+    )
+    baseline_gini = _gini(person_equiv_baseline, person_weight)
+    reform_gini = _gini(person_equiv_reform, person_weight)
+
+    pct_gaining_all = float(
+        (person_weight * (person_gain > 0)).sum() / total_weight * 100
+        if total_weight > 0 else 0.0
+    )
+    pct_losing_all = float(
+        (person_weight * (person_gain < 0)).sum() / total_weight * 100
+        if total_weight > 0 else 0.0
+    )
+    pct_unchanged_all = max(0.0, 100.0 - pct_gaining_all - pct_losing_all)
+
+    _log("distributional done")
+
     return {
         "state": state_code,
         "year": year,
@@ -318,16 +540,42 @@ def compute_economy(payload: dict) -> dict:
             "federal_tax_change": federal_tax_change,
             "state_tax_change": state_tax_change,
             "benefit_change": benefit_change,
-            "total_budgetary_impact": federal_tax_change + state_tax_change - benefit_change,
+            "total_budgetary_impact": federal_tax_change
+            + state_tax_change
+            - benefit_change,
+            "ctc_change": ctc_change,
+            "eitc_change": eitc_change,
+            "snap_change": snap_change,
+            "state_ctc_change": state_ctc_change,
+            "state_eitc_change": state_eitc_change,
         },
         "poverty": {
             "overall_baseline_rate": _rate(pov_bl_arr, all_mask),
             "overall_reform_rate": _rate(pov_rf_arr, all_mask),
             "child_baseline_rate": _rate(pov_bl_arr, child_mask),
             "child_reform_rate": _rate(pov_rf_arr, child_mask),
-            "children_lifted": float(
-                ((pov_bl_arr & ~pov_rf_arr) * person_weight * child_mask).sum()
-            ),
+            "young_child_baseline_rate": _rate(pov_bl_arr, young_child_mask),
+            "young_child_reform_rate": _rate(pov_rf_arr, young_child_mask),
+            "deep_child_baseline_rate": _rate(deep_bl_arr, child_mask),
+            "deep_child_reform_rate": _rate(deep_rf_arr, child_mask),
+            "children_lifted": _lifted(child_mask),
+            "young_children_lifted": _lifted(young_child_mask),
+        },
+        "distributional": {
+            "deciles": decile_impacts,
+            "average_gain_all": avg_gain_all,
+            "average_gain_bottom_50": _avg(bottom_50_mask),
+            "average_gain_top_10": _avg(top_10_mask),
+            "share_to_bottom_20_pct": _share(bottom_20_mask),
+            "share_to_bottom_50_pct": _share(bottom_50_mask),
+            "share_to_top_20_pct": _share(top_20_mask),
+            "share_to_top_10_pct": _share(top_10_mask),
+            "baseline_gini": baseline_gini,
+            "reform_gini": reform_gini,
+            "gini_change": reform_gini - baseline_gini,
+            "percent_gaining": pct_gaining_all,
+            "percent_losing": pct_losing_all,
+            "percent_unchanged": pct_unchanged_all,
         },
     }
 
