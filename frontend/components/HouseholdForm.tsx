@@ -203,204 +203,105 @@ export default function HouseholdForm({
     (household.income.taxable_retirement_distributions || 0);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Quick Presets */}
-      <div className="card">
-        <h3 className="section-title">Quick Setup</h3>
-        <div className="flex flex-wrap gap-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Quick Presets + Marital Status — one row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-pe-gray-100">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs uppercase tracking-wide text-pe-gray-500 font-semibold mr-1">
+            Quick setup
+          </span>
           <button
             type="button"
             onClick={() => applyPreset('single')}
-            className="btn btn-secondary text-sm"
+            className="btn btn-secondary btn-sm"
           >
-            Single Adult
+            Single adult
           </button>
           <button
             type="button"
             onClick={() => applyPreset('single_parent')}
-            className="btn btn-secondary text-sm"
+            className="btn btn-secondary btn-sm"
           >
-            Single Parent (2 kids)
+            Single parent
           </button>
           <button
             type="button"
             onClick={() => applyPreset('married')}
-            className="btn btn-secondary text-sm"
+            className="btn btn-secondary btn-sm"
           >
-            Married (2 kids)
+            Married, 2 kids
           </button>
         </div>
-      </div>
-
-      {/* Marital Status */}
-      <div className="card">
-        <h3 className="section-title">Marital Status</h3>
         <label
           htmlFor="married"
-          className="flex items-center gap-3 w-full p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 cursor-pointer text-sm text-pe-gray-700"
         >
           <input
             type="checkbox"
             id="married"
             checked={married}
             onChange={(e) => handleMarriedChange(e.target.checked)}
-            className="w-4 h-4"
+            className="h-4 w-4 accent-pe-teal-500"
           />
-          <span className="text-sm text-gray-700">Married</span>
+          Married
         </label>
-        <p className="mt-2 text-xs text-gray-500">
-          Single filers with children file as head of household automatically.
-        </p>
       </div>
 
-      {/* Adults */}
-      <div className="card">
-        <h3 className="section-title">Adults</h3>
-        <div className="space-y-4">
+      {/* Adults + Income — left column adults / right column primary income */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <h4 className="text-xs uppercase tracking-wide text-pe-gray-500 font-semibold">
+            Adults
+          </h4>
           {household.adults.map((adult, index) => (
-            <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded">
-              <span className="font-medium text-gray-600">
+            <div key={index} className="flex items-center gap-3">
+              <span className="text-sm text-pe-gray-600 w-16">
                 {index === 0 ? 'You' : 'Spouse'}
               </span>
-              <div className="flex-1">
-                <label className="text-sm text-gray-500">Age</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={adult.age}
-                  min={18}
-                  max={120}
-                  onChange={(e) => {
-                    const newAdults = [...household.adults];
-                    newAdults[index] = { ...adult, age: parseInt(e.target.value) || 30 };
-                    updateHousehold({ adults: newAdults });
-                  }}
-                />
-              </div>
+              <label className="text-xs text-pe-gray-500">Age</label>
+              <input
+                type="number"
+                className="input py-1.5 w-24"
+                value={adult.age}
+                min={18}
+                max={120}
+                onChange={(e) => {
+                  const newAdults = [...household.adults];
+                  newAdults[index] = { ...adult, age: parseInt(e.target.value) || 30 };
+                  updateHousehold({ adults: newAdults });
+                }}
+              />
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Children */}
-      <div className="card">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="section-title mb-0">Children</h3>
-          <button
-            type="button"
-            onClick={addChild}
-            className="btn btn-primary btn-sm"
-          >
-            + Add Child
-          </button>
-        </div>
-
-        {household.children.length === 0 ? (
-          <p className="text-gray-500 text-sm">
-            No children added. Click &quot;Add Child&quot; to add dependents.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {household.children.map((child, index) => (
-              <div
-                key={index}
-                className="p-4 border border-gray-200 rounded-lg space-y-3"
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Child {index + 1}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeChild(index)}
-                    className="text-red-500 text-sm hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Age</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={child.age}
-                      min={0}
-                      max={17}
-                      onChange={(e) =>
-                        updateChild(index, { age: parseInt(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id={`childcare-${index}`}
-                      checked={child.in_childcare || false}
-                      onChange={(e) =>
-                        updateChild(index, { in_childcare: e.target.checked })
-                      }
-                    />
-                    <label htmlFor={`childcare-${index}`} className="text-sm">
-                      In childcare
-                    </label>
-                  </div>
-                  {child.in_childcare && (
-                    <div>
-                      <label className="text-sm text-gray-500">Annual Cost</label>
-                      <input
-                        type="number"
-                        className="input"
-                        value={child.childcare_expenses_annual || 0}
-                        min={0}
-                        onChange={(e) =>
-                          updateChild(index, {
-                            childcare_expenses_annual: parseInt(e.target.value) || 0,
-                          })
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Income */}
-      <div className="card">
-        <h3 className="section-title">Income</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="label">Your Employment Income</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                $
-              </span>
+        <div className="space-y-2">
+          <h4 className="text-xs uppercase tracking-wide text-pe-gray-500 font-semibold">
+            Employment income
+          </h4>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-pe-gray-600 w-16">You</span>
+            <div className="relative flex-1 max-w-[160px]">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-500">$</span>
               <input
                 type="number"
-                className="input pl-7"
+                className="input pl-7 py-1.5"
                 value={household.income.employment_income}
                 min={0}
                 onChange={(e) =>
-                  updateIncome({
-                    employment_income: parseInt(e.target.value) || 0,
-                  })
+                  updateIncome({ employment_income: parseInt(e.target.value) || 0 })
                 }
               />
             </div>
           </div>
-
           {married && (
-            <div>
-              <label className="label">Spouse Employment Income</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                  $
-                </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-pe-gray-600 w-16">Spouse</span>
+              <div className="relative flex-1 max-w-[160px]">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-500">$</span>
                 <input
                   type="number"
-                  className="input pl-7"
+                  className="input pl-7 py-1.5"
                   value={household.income.spouse_employment_income || 0}
                   min={0}
                   onChange={(e) =>
@@ -413,46 +314,141 @@ export default function HouseholdForm({
             </div>
           )}
         </div>
+      </div>
 
-        {/* Other income source selector */}
-        {availableOtherIncome.length > 0 && (
-          <div className="mt-4">
-            <label className="label">Add other income source</label>
-            <select
-              className="input"
-              value=""
-              onChange={(e) => {
-                if (e.target.value) {
-                  addOtherIncome(e.target.value as OtherIncomeKey);
-                }
-              }}
-            >
-              <option value="">+ Add other income source</option>
-              {availableOtherIncome.map((opt) => (
-                <option key={opt.key} value={opt.key}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+      {/* Children */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs uppercase tracking-wide text-pe-gray-500 font-semibold">
+            Children
+          </h4>
+          <button
+            type="button"
+            onClick={addChild}
+            className="text-sm text-pe-teal-600 hover:text-pe-teal-700 font-medium"
+          >
+            + Add child
+          </button>
+        </div>
+        {household.children.length === 0 ? (
+          <p className="text-xs text-pe-gray-500">No children added.</p>
+        ) : (
+          <div className="rounded-lg border border-pe-gray-100 overflow-hidden">
+            {/* Column headers */}
+            <div className="grid grid-cols-[5rem_4.5rem_8rem_8rem_2rem] items-center gap-3 px-3 py-2 bg-pe-gray-50 text-[11px] uppercase tracking-wide text-pe-gray-500 font-semibold">
+              <span></span>
+              <span>Age</span>
+              <span>Childcare</span>
+              <span>Annual cost</span>
+              <span></span>
+            </div>
+            {household.children.map((child, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[5rem_4.5rem_8rem_8rem_2rem] items-center gap-3 px-3 py-2 border-t border-pe-gray-100 hover:bg-pe-gray-50/60 transition-colors"
+              >
+                <span className="text-sm text-pe-gray-700 font-medium">
+                  Child {index + 1}
+                </span>
+                <input
+                  type="number"
+                  className="input py-1"
+                  value={child.age}
+                  min={0}
+                  max={17}
+                  onChange={(e) =>
+                    updateChild(index, { age: parseInt(e.target.value) || 0 })
+                  }
+                />
+                <label className="flex items-center gap-1.5 text-xs text-pe-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={child.in_childcare || false}
+                    onChange={(e) =>
+                      updateChild(index, { in_childcare: e.target.checked })
+                    }
+                    className="h-3.5 w-3.5 accent-pe-teal-500"
+                  />
+                  In childcare
+                </label>
+                {child.in_childcare ? (
+                  <div className="relative">
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-pe-gray-500 text-xs">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      className="input pl-5 py-1"
+                      value={child.childcare_expenses_annual || 0}
+                      min={0}
+                      onChange={(e) =>
+                        updateChild(index, {
+                          childcare_expenses_annual: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                ) : (
+                  <span className="text-xs text-pe-gray-300">—</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeChild(index)}
+                  className="text-pe-gray-400 hover:text-red-500 justify-self-center"
+                  aria-label="Remove child"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
           </div>
         )}
+      </div>
 
-        {/* Selected other income rows */}
-        {selectedOtherIncome.length > 0 && (
-          <div className="mt-4 space-y-3">
-            {selectedOtherIncome.map((key) => {
-              const label = OTHER_INCOME_OPTIONS.find((o) => o.key === key)?.label ?? key;
-              return (
-                <div key={key} className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <label className="label">{label}</label>
+      {/* Other income */}
+      {(selectedOtherIncome.length > 0 || availableOtherIncome.length > 0) && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs uppercase tracking-wide text-pe-gray-500 font-semibold">
+              Other income
+            </h4>
+            {availableOtherIncome.length > 0 && (
+              <select
+                className="text-sm border border-pe-gray-200 rounded px-2 py-1 text-pe-teal-600 bg-white font-medium"
+                value=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    addOtherIncome(e.target.value as OtherIncomeKey);
+                  }
+                }}
+              >
+                <option value="">+ Add source</option>
+                {availableOtherIncome.map((opt) => (
+                  <option key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          {selectedOtherIncome.length > 0 && (
+            <div className="grid sm:grid-cols-2 gap-2">
+              {selectedOtherIncome.map((key) => {
+                const label = OTHER_INCOME_OPTIONS.find((o) => o.key === key)?.label ?? key;
+                return (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className="text-xs text-pe-gray-600 flex-1 truncate" title={label}>
+                      {label}
+                    </span>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-pe-gray-500 text-xs">
                         $
                       </span>
                       <input
                         type="number"
-                        className="input pl-7"
+                        className="input pl-5 py-1 w-28"
                         value={household.income[key] || 0}
                         min={0}
                         onChange={(e) =>
@@ -462,39 +458,40 @@ export default function HouseholdForm({
                         }
                       />
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => removeOtherIncome(key)}
+                      aria-label={`Remove ${label}`}
+                      className="text-pe-gray-400 hover:text-red-500"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeOtherIncome(key)}
-                    aria-label={`Remove ${label}`}
-                    className="mt-6 p-2 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-4 p-3 bg-gray-50 rounded">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Total Annual Income:</span>
-            <span className="font-semibold">${totalIncome.toLocaleString()}</span>
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="btn btn-primary w-full py-3 text-lg"
-      >
-        {isLoading ? 'Calculating...' : submitLabel}
-      </button>
+      {/* Total + submit */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-pe-gray-100">
+        <div className="text-sm">
+          <span className="text-pe-gray-500">Total annual income: </span>
+          <span className="font-semibold text-pe-gray-800">
+            ${totalIncome.toLocaleString()}
+          </span>
+        </div>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="btn btn-primary"
+        >
+          {isLoading ? 'Calculating…' : submitLabel}
+        </button>
+      </div>
     </form>
   );
 }

@@ -50,11 +50,6 @@ export default function LayoutShell({
                   </Link>
                 </li>
                 <li>
-                  <Link href="/compare" className="text-sm text-pe-gray-500 hover:text-pe-teal-600 transition-colors">
-                    State Comparison
-                  </Link>
-                </li>
-                <li>
                   <Link href="/about" className="text-sm text-pe-gray-500 hover:text-pe-teal-600 transition-colors">
                     Methodology
                   </Link>

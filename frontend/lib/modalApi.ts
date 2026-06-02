@@ -59,7 +59,7 @@ interface StatusResponse<T> {
   message?: string;
 }
 
-const POLL_INTERVAL_MS = 4000;
+const POLL_INTERVAL_MS = 10000;
 
 async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -130,16 +130,14 @@ async function spawnAndPoll<T>(
 
 /** Mint a policy_id via the PolicyEngine API so Modal can resolve the
  *  reform via Reform.from_api (which understands period-range strings
- *  and bracket indices). */
+ *  and bracket indices). Routes through our /api/policy proxy to avoid
+ *  flaky browser-side CORS preflight against api.policyengine.org. */
 export async function createPolicy(reform: ReformDict): Promise<number> {
-  const response = await fetch(
-    'https://api.policyengine.org/us/policy',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: reform }),
-    },
-  );
+  const response = await fetch('/api/policy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: reform }),
+  });
   if (!response.ok) {
     throw new Error(
       `Failed to mint policy_id (${response.status}): ${await response.text()}`,
