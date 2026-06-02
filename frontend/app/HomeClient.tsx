@@ -3,41 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-// Animated counter component
-function AnimatedStat({
-  value,
-  suffix = '',
-  prefix = '',
-  delay = 0,
-}: {
-  value: string;
-  suffix?: string;
-  prefix?: string;
-  delay?: number;
-}) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
-
-  return (
-    <span
-      className={`inline-block transition-all duration-700 ${
-        isVisible
-          ? 'opacity-100 transform translate-y-0 scale-100'
-          : 'opacity-0 transform translate-y-4 scale-95'
-      }`}
-      style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-    >
-      {prefix}
-      {value}
-      {suffix}
-    </span>
-  );
-}
-
 // Feature card with staggered animation
 function FeatureCard({
   icon,
@@ -130,21 +95,13 @@ export default function HomePage() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-24 px-6">
+      <section className="relative pt-32 pb-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div
             className={`text-center max-w-4xl mx-auto transition-all duration-1000 ${
               heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-pe-teal-50 border border-pe-teal-200 rounded-full px-4 py-1.5 mb-6">
-              <span className="w-2 h-2 rounded-full bg-pe-teal-500 animate-pulse" />
-              <span className="text-sm font-medium text-pe-teal-700">
-                Powered by PolicyEngine Microsimulation
-              </span>
-            </div>
-
             {/* Main headline */}
             <h1 className="text-display font-bold text-pe-gray-900 mb-6 leading-tight">
               Explore how policy reforms{' '}
@@ -176,55 +133,6 @@ export default function HomePage() {
                   />
                 </svg>
               </Link>
-              <Link href="/compare" className="btn btn-outline btn-lg">
-                Compare States
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="relative py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-sm font-semibold text-pe-teal-600 uppercase tracking-wide mb-2">
-              The Challenge
-            </h2>
-            <p className="text-2xl font-semibold text-pe-gray-800">
-              Child Poverty in America Today
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-6">
-            <div className="stat-card group">
-              <div className="stat-value-lg">
-                <AnimatedStat value="12.4" suffix="%" delay={200} />
-              </div>
-              <div className="stat-label">Child Poverty Rate (2023)</div>
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs text-pe-gray-400">Supplemental Poverty Measure</span>
-              </div>
-            </div>
-
-            <div className="stat-card group">
-              <div className="stat-value-lg">
-                <AnimatedStat value="9.1" suffix="M" delay={400} />
-              </div>
-              <div className="stat-label">Children in Poverty</div>
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs text-pe-gray-400">Under 18 years old</span>
-              </div>
-            </div>
-
-            <div className="stat-card group">
-              <div className="stat-value-lg">
-                <AnimatedStat value="5.2" suffix="%" delay={600} />
-              </div>
-              <div className="stat-label">Deep Poverty Rate</div>
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs text-pe-gray-400">Below 50% of poverty line</span>
-              </div>
             </div>
           </div>
         </div>
@@ -369,46 +277,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-pe-teal-600 via-pe-teal-500 to-pe-teal-400 p-12 md:p-16 text-center shadow-glow-lg">
-            {/* Background decorations */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full" />
-            </div>
-
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Ready to explore policy solutions?
-              </h2>
-              <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-                See how different reforms could affect your household and help reduce
-                child poverty across America.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link
-                  href="/report"
-                  className="btn btn-lg bg-white text-pe-teal-600 hover:bg-pe-gray-50 shadow-lg"
-                >
-                  Build Your Report
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-                <Link
-                  href="/about"
-                  className="btn btn-lg border-2 border-white/30 text-white hover:bg-white/10"
-                >
-                  Learn More
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

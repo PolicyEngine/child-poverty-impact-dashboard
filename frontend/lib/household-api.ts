@@ -12,11 +12,6 @@ import {
   getStateProgramsSummary,
 } from './state-programs';
 import {
-  calculateBaselineViaApi,
-  calculateImpactViaApi,
-  runIncomeSweepViaApi,
-} from './pe-api';
-import {
   createPolicy,
   modalConfigured,
   runHouseholdSweepOnModal,
@@ -45,26 +40,6 @@ export async function getReformOptions(
   stateCode: string,
 ): Promise<StateReformOptions> {
   return getReformOptionsForState(stateCode) as unknown as StateReformOptions;
-}
-
-/** Try the local FastAPI shim first (used by `make dev`); on 404 (the
- *  Vercel deployment has no Python backend) fall back to direct
- *  api.policyengine.org calls so production at least computes. */
-async function tryLocalThen<T>(
-  attempt: () => Promise<T>,
-  fallback: () => Promise<T>,
-): Promise<T> {
-  try {
-    return await attempt();
-  } catch (err: unknown) {
-    const status =
-      (err as { response?: { status?: number } })?.response?.status;
-    const code = (err as { code?: string })?.code;
-    if (status === 404 || status === 500 || code === 'ERR_NETWORK') {
-      return await fallback();
-    }
-    throw err;
-  }
 }
 
 /** Map a single Modal IncomeSweep point into our HouseholdResults shape.
@@ -159,12 +134,12 @@ export async function calculateBaseline(
       const { baseline } = await singlePointOnModal(household, 1);
       return baseline;
     } catch (err) {
-      console.warn('Modal baseline failed; falling back', err);
+      console.error('Modal baseline failed', err);
+      throw err;
     }
   }
-  return tryLocalThen(
-    async () => (await api.post('/household/baseline', household)).data,
-    () => calculateBaselineViaApi(household),
+  throw new Error(
+    'NEXT_PUBLIC_MODAL_CPID_URL is not set; baseline calculation requires Modal.',
   );
 }
 
@@ -205,19 +180,12 @@ export async function calculateImpact(
               : 'unchanged',
       };
     } catch (err) {
-      console.warn('Modal impact failed; falling back', err);
+      console.error('Modal impact failed', err);
+      throw err;
     }
   }
-  return tryLocalThen(
-    async () =>
-      (
-        await api.post('/household/impact', {
-          household,
-          reform_option_ids: reformOptionIds,
-        })
-      ).data,
-    () =>
-      calculateImpactViaApi(household, reformOptionIds, parameterValues),
+  throw new Error(
+    'NEXT_PUBLIC_MODAL_CPID_URL is not set; impact calculation requires Modal.',
   );
 }
 
@@ -299,34 +267,15 @@ export async function runIncomeSweep(
           household.income.taxable_interest_income ?? 0,
       });
     } catch (err) {
-      console.warn('Modal household sweep failed; falling back', err);
+      console.error('Modal household sweep failed', err);
+      throw err;
     }
   }
-  return tryLocalThen(
-    async () => {
-      const params = new URLSearchParams({
-        min_income: minIncome.toString(),
-        max_income: maxIncome.toString(),
-        step: step.toString(),
-      });
-      if (ids.length > 0) {
-        ids.forEach((id) => params.append('reform_option_ids', id));
-      }
-      const response = await api.post(
-        `/household/income-sweep?${params}`,
-        household,
-      );
-      return response.data;
-    },
-    () =>
-      runIncomeSweepViaApi(
-        household,
-        ids,
-        parameterValues ?? {},
-        minIncome,
-        maxIncome,
-        step,
-      ),
+  // PE-direct fallback removed — it fired 41 income points × baseline +
+  // reform = 82 parallel POSTs to api.policyengine.org, which caused
+  // short prod outages. Require Modal instead.
+  throw new Error(
+    'NEXT_PUBLIC_MODAL_CPID_URL is not set; income sweep requires Modal.',
   );
 }
 

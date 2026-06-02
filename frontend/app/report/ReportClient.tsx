@@ -284,33 +284,40 @@ export default function ReportBuilderPage() {
                 <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mt-4">
                   {Object.entries(US_STATES).map(([code, name]) => {
                     const selected = config.states.includes(code);
+                    const inputId = `state-${code}`;
+                    const toggle = () =>
+                      setConfig((c) => ({
+                        ...c,
+                        states: selected
+                          ? c.states.filter((s) => s !== code)
+                          : [...c.states, code],
+                        // Drop household when we shift into multi-state
+                        // mode — household analysis isn't run there.
+                        household:
+                          !selected && c.states.length >= 1
+                            ? null
+                            : c.household,
+                      }));
                     return (
-                      <button
+                      <label
                         key={code}
-                        onClick={() =>
-                          setConfig((c) => ({
-                            ...c,
-                            states: selected
-                              ? c.states.filter((s) => s !== code)
-                              : [...c.states, code],
-                            // Drop household when we shift into multi-state
-                            // mode — household analysis isn't run there.
-                            household:
-                              !selected && c.states.length >= 1
-                                ? null
-                                : c.household,
-                          }))
-                        }
+                        htmlFor={inputId}
                         title={name}
-                        aria-pressed={selected}
-                        className={`p-3 rounded-lg border text-center transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                        className={`flex items-center justify-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
                           selected
                             ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
                             : 'border-pe-gray-200 text-pe-gray-700'
                         }`}
                       >
+                        <input
+                          id={inputId}
+                          type="checkbox"
+                          checked={selected}
+                          onChange={toggle}
+                          className="h-3.5 w-3.5 accent-pe-teal-500 cursor-pointer"
+                        />
                         <span className="font-semibold text-sm">{code}</span>
-                      </button>
+                      </label>
                     );
                   })}
                 </div>
