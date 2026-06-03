@@ -16,9 +16,17 @@
 
 import type { IncomeSweepResponse } from './household-types';
 
+/** Flat reform dict the Modal /economy endpoint accepts. Values can be
+ *  scalars (applied from the simulation year by default) or a
+ *  ``{date: value}`` map for date-stamped overrides. Date keys must be
+ *  ``YYYY-MM-DD`` — the wrapper's compile_reform rejects date-range
+ *  strings like ``2026-01-01.2100-12-31``. */
 export type ReformDict = Record<
   string,
-  Record<string, number | boolean | string | (number | string)[]>
+  | number
+  | boolean
+  | string
+  | Record<string, number | boolean | string>
 >;
 
 export interface EconomyDecileImpact {
@@ -169,33 +177,8 @@ async function spawnAndPoll<T>(
   }
 }
 
-/** Mint a policy_id via the PolicyEngine API so Modal can resolve the
- *  reform via Reform.from_api (which understands period-range strings
- *  and bracket indices). Routes through our /api/policy proxy to avoid
- *  flaky browser-side CORS preflight against api.policyengine.org. */
-export async function createPolicy(reform: ReformDict): Promise<number> {
-  const response = await fetch('/api/policy', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: reform }),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Failed to mint policy_id (${response.status}): ${await response.text()}`,
-    );
-  }
-  const body = (await response.json()) as {
-    status: string;
-    result?: { policy_id: number };
-  };
-  if (body.status !== 'ok' || !body.result) {
-    throw new Error('PolicyEngine /policy returned non-ok status.');
-  }
-  return body.result.policy_id;
-}
-
 export async function runEconomyOnModal(
-  policyId: number,
+  reform: ReformDict | null,
   year: number,
   state: string | null,
   signal?: AbortSignal,
@@ -205,13 +188,13 @@ export async function runEconomyOnModal(
   return spawnAndPoll<EconomyImpactResult>(
     base,
     'economy',
-    { policy_id: policyId, year, state, region: 'us' },
+    { reform, year, state, region: 'us' },
     signal,
   );
 }
 
 export interface HouseholdSweepPayload {
-  policy_id: number;
+  reform: ReformDict | null;
   year: number;
   state: string;
   married: boolean;

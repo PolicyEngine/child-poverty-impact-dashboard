@@ -11,10 +11,9 @@ wall-clock limit.
 Two job types:
 
 * ``/economy``  — full statewide microsimulation (poverty, fiscal,
-  distributional). Reform is canonicalised via
-  ``Reform.from_api(policy_id, "us")`` so PE-core gets the bracket
-  indices + period-range strings the React client mints with
-  ``createPolicy``.
+  distributional). The browser sends the reform as a flat dict
+  (``{param.path: value | {date: value}}``); the endpoint canonicalises
+  via ``Reform.from_dict`` — no PolicyEngine /us/policy round-trip.
 
 * ``/household`` — single-household sweep across employment income
   ($0–$400k). Returns both baseline and reform results at each step.
@@ -52,8 +51,29 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-02-equivalised-gini"})
+    .env({"CPID_BUILD_REV": "2026-06-03-reform-dict-payload"})
 )
+
+
+def _build_core_reform_dict(reform: dict | None, year: int) -> dict | None:
+    """Coerce the frontend's flat reform dict into the
+    ``{param.path: {date: value}}`` shape PolicyEngine-core's
+    ``Reform.from_dict`` expects.
+
+    Frontend sends scalars (defaulting effective date to ``{year}-01-01``)
+    or ``{date: value}`` maps. Either is accepted here; output is always
+    in the date-keyed form.
+    """
+    if not reform:
+        return None
+    default_date = f"{year}-01-01"
+    out: dict = {}
+    for path, spec in reform.items():
+        if isinstance(spec, dict):
+            out[path] = dict(spec)
+        else:
+            out[path] = {default_date: spec}
+    return out
 
 
 _ALLOW_ORIGINS = [
@@ -177,7 +197,6 @@ def compute_household_sweep(payload: dict) -> dict:
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
 
-    policy_id = payload.get("policy_id")
     year = int(payload["year"])
     incomes = list(payload.get("income_range", []))
     if not incomes:
@@ -185,10 +204,10 @@ def compute_household_sweep(payload: dict) -> dict:
             float(i) for i in np.arange(0, 400_001, 10_000).tolist()
         ]
 
-    reform = None
-    if policy_id and str(policy_id) not in ("1", "2"):
-        reform = Reform.from_api(str(policy_id), country_id="us")
-    _log(f"reform loaded (policy_id={policy_id})")
+    reform_payload = payload.get("reform")
+    reform_dict = _build_core_reform_dict(reform_payload, year)
+    reform = Reform.from_dict(reform_dict) if reform_dict else None
+    _log(f"reform loaded (params={len(reform_dict) if reform_dict else 0})")
 
     data_points: list[dict] = []
     baseline_data_points: list[dict] = []
@@ -237,7 +256,6 @@ def compute_economy(payload: dict) -> dict:
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
 
-    policy_id = payload.get("policy_id")
     year = int(payload["year"])
     state_code = payload.get("state")
     if not state_code:
@@ -250,12 +268,13 @@ def compute_economy(payload: dict) -> dict:
         f"hf://policyengine/policyengine-us-data/states/{state_code.upper()}.h5"
     )
 
-    reform = (
-        Reform.from_api(str(policy_id), country_id="us")
-        if policy_id and str(policy_id) not in ("1", "2")
-        else None
+    reform_payload = payload.get("reform")
+    reform_dict = _build_core_reform_dict(reform_payload, year)
+    reform = Reform.from_dict(reform_dict) if reform_dict else None
+    _log(
+        f"reform loaded (params={len(reform_dict) if reform_dict else 0}) "
+        f"on dataset={state_dataset}"
     )
-    _log(f"reform loaded (policy_id={policy_id}) on dataset={state_dataset}")
 
     sim_baseline = Microsimulation(dataset=state_dataset)
     sim_reform = (
@@ -601,7 +620,7 @@ def web():
 
     # NOTE: `payload: dict` (not a Pydantic model) — matches the
     # refundable-credit-conversion shape so FastAPI's body-vs-query
-    # detection doesn't trip over the polymorphic policy_id field.
+    # detection doesn't trip over the polymorphic reform field.
     @api.post("/economy/start")
     def economy_start(payload: dict) -> dict:
         call = compute_economy.spawn(payload)
