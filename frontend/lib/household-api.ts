@@ -12,7 +12,6 @@ import {
   getStateProgramsSummary,
 } from './state-programs';
 import {
-  createPolicy,
   modalConfigured,
   runHouseholdSweepOnModal,
 } from './modalApi';
@@ -92,13 +91,13 @@ function pointToResults(
  *  only) point from a Modal sweep at the household's employment income. */
 async function singlePointOnModal(
   household: HouseholdInput,
-  policyId: number,
+  reform: Record<string, number | boolean | Record<string, number | boolean>> | null,
 ): Promise<{
   baseline: HouseholdResults;
   reform: HouseholdResults;
 }> {
   const sweep = await runHouseholdSweepOnModal({
-    policy_id: policyId,
+    reform,
     year: household.year,
     state: household.state,
     married: household.adults.length > 1,
@@ -131,7 +130,7 @@ export async function calculateBaseline(
 ): Promise<HouseholdResults> {
   if (modalConfigured()) {
     try {
-      const { baseline } = await singlePointOnModal(household, 1);
+      const { baseline } = await singlePointOnModal(household, null);
       return baseline;
     } catch (err) {
       console.error('Modal baseline failed', err);
@@ -156,11 +155,10 @@ export async function calculateImpact(
         reformOptionIds,
         parameterValues,
       );
-      const policyId =
-        Object.keys(reformDict).length > 0
-          ? await createPolicy(reformDict)
-          : 1;
-      const { baseline, reform } = await singlePointOnModal(household, policyId);
+      const { baseline, reform } = await singlePointOnModal(
+        household,
+        Object.keys(reformDict).length > 0 ? reformDict : null,
+      );
       const netChange = reform.net_income - baseline.net_income;
       return {
         baseline,
@@ -202,9 +200,9 @@ function buildReformDict(
   household: HouseholdInput,
   reformOptionIds: string[],
   parameterValues?: Record<string, Record<string, number>>,
-): Record<string, Record<string, number | boolean>> {
+): Record<string, number | boolean | Record<string, number | boolean>> {
   const year = household.year;
-  const reform: Record<string, Record<string, number | boolean>> = {};
+  const reform: Record<string, number | boolean | Record<string, number | boolean>> = {};
   for (const id of reformOptionIds) {
     if (id.endsWith('_eitc')) {
       const state = id.slice(0, 2).toUpperCase();
@@ -212,16 +210,10 @@ function buildReformDict(
       Object.assign(reform, buildStateEitcReform(state, ratePct / 100, year));
     }
     if (id === 'federal_ctc_expanded') {
-      const range = `${year}-01-01.2100-12-31`;
-      reform['gov.irs.credits.ctc.refundable.fully_refundable'] = {
-        [range]: true,
-      };
-      reform['gov.irs.credits.ctc.phase_out.threshold.SINGLE'] = {
-        [range]: 75_000,
-      };
-      reform['gov.irs.credits.ctc.phase_out.threshold.JOINT'] = {
-        [range]: 150_000,
-      };
+      // Scalar reform values — see api.ts for rationale.
+      reform['gov.irs.credits.ctc.refundable.fully_refundable'] = true;
+      reform['gov.irs.credits.ctc.phase_out.threshold.SINGLE'] = 75_000;
+      reform['gov.irs.credits.ctc.phase_out.threshold.JOINT'] = 150_000;
     }
   }
   return reform;
@@ -241,10 +233,8 @@ export async function runIncomeSweep(
   if (modalConfigured()) {
     try {
       const reform = buildReformDict(household, ids, parameterValues);
-      const policyId =
-        Object.keys(reform).length > 0 ? await createPolicy(reform) : 1;
       return await runHouseholdSweepOnModal({
-        policy_id: policyId,
+        reform: Object.keys(reform).length > 0 ? reform : null,
         year: household.year,
         state: household.state,
         married: household.adults.length > 1,

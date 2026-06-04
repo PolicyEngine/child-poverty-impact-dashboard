@@ -85,20 +85,23 @@ export function eitcConfigurable(stateCode: string): boolean {
   return entry !== null && typeof entry !== 'string';
 }
 
-/** PolicyEngine-US reform dict for a state EITC at the given match rate. */
+/** PolicyEngine-US reform dict for a state EITC at the given match rate.
+ *  Returns scalar values — Modal's policyengine.py wrapper defaults the
+ *  effective date to ``{simulation_year}-01-01``. ``year`` is no longer
+ *  used by this function but kept on the signature for callers that
+ *  pass it. */
 export function buildStateEitcReform(
   stateCode: string,
   matchRate: number,
-  year: number,
-): Record<string, Record<string, number | boolean>> {
+  _year: number,
+): Record<string, number | boolean> {
   const entry = EITC_REFORMS[stateCode.toUpperCase()];
   if (!entry || typeof entry === 'string') return {};
-  const range = `${year}-01-01.2100-12-31`;
-  const reform: Record<string, Record<string, number | boolean>> = {};
+  const reform: Record<string, number | boolean> = {};
   if (entry.type === 'contrib' && entry.in_effect) {
-    reform[entry.in_effect] = { [range]: true };
+    reform[entry.in_effect] = true;
   }
-  reform[entry.match] = { [range]: matchRate };
+  reform[entry.match] = matchRate;
   return reform;
 }
 

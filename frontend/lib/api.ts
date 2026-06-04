@@ -211,15 +211,15 @@ export async function runAnalysisFromOptions(
   reformOptionIds: string[],
   parameterValues?: Record<string, Record<string, number>>
 ): Promise<AnalysisResponse> {
-  // Modal first when configured (production path); fall through to the
-  // local FastAPI shim, then a direct api.policyengine.org call.
-  const { modalConfigured, createPolicy, runEconomyOnModal } = await import(
-    './modalApi'
-  );
+  // Modal is the only supported path; the PE-direct fallbacks used to
+  // fan out hundreds of calls against api.policyengine.org and have
+  // been removed. Reforms are sent as flat dicts; Modal's wrapper
+  // compiles them via Simulation(policy=...) — no PE policy-mint hop.
+  const { modalConfigured, runEconomyOnModal } = await import('./modalApi');
   if (modalConfigured()) {
     try {
       const { buildStateEitcReform } = await import('./state-programs');
-      const reform: Record<string, Record<string, number | boolean>> = {};
+      const reform: Record<string, number | boolean | Record<string, number | boolean>> = {};
       for (const id of reformOptionIds) {
         if (id.endsWith('_eitc')) {
           const st = id.slice(0, 2).toUpperCase();
@@ -230,15 +230,18 @@ export async function runAnalysisFromOptions(
           );
         }
         if (id === 'federal_ctc_expanded') {
-          const range = `${year}-01-01.2100-12-31`;
-          reform['gov.irs.credits.ctc.refundable.fully_refundable'] = {
-            [range]: true,
-          };
+          // Scalar form: the wrapper defaults effective date to
+          // ``{year}-01-01`` and treats the parameter as set thereafter.
+          // Avoid date-range keys (e.g. "2026-01-01.2100-12-31") — the
+          // wrapper's strptime("%Y-%m-%d") rejects them.
+          reform['gov.irs.credits.ctc.refundable.fully_refundable'] = true;
         }
       }
-      const policyId =
-        Object.keys(reform).length > 0 ? await createPolicy(reform) : 1;
-      const economy = await runEconomyOnModal(policyId, year, state);
+      const economy = await runEconomyOnModal(
+        Object.keys(reform).length > 0 ? reform : null,
+        year,
+        state,
+      );
       return mapEconomyToAnalysisResponse(economy, state, year);
     } catch (err) {
       console.error('Modal economy failed', err);
