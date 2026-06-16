@@ -83,7 +83,10 @@ _ALLOW_ORIGINS = [
     "https://child-poverty-impact-dashboard-sigma.vercel.app",
 ]
 _ALLOW_ORIGIN_REGEX = (
-    r"https://child-poverty-impact-dashboard-[a-z0-9-]+(?:-policy-engine)?\.vercel\.app"
+    # Vercel preview deployments, plus any localhost port for local dev
+    # (next dev picks 3001+ when 3000 is taken, which otherwise fails CORS).
+    r"(https://child-poverty-impact-dashboard-[a-z0-9-]+(?:-policy-engine)?\.vercel\.app"
+    r"|http://localhost:\d+)"
 )
 
 
