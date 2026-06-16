@@ -1,6 +1,6 @@
 state,has_eitc,pe_eitc_cost,target_eitc_cost,eitc_pct_diff,has_ctc,pe_ctc_cost,target_ctc_cost,ctc_pct_diff,cost_target_source
 AZ,False,0,,,True,114811479,,,
-CA,True,1178881263,,,True,495151594,,,
+CA,True,1178881263,1050000000,12.27,True,495151594,400000000,23.79,"CA FTB: ~$1.4B combined CalEITC+YCTC (TY2024), YCTC ~$0.4B (approx split)"
 CO,True,221807317,,,True,1142221414,,,
 CT,True,233701905,,,False,0,,,
 DC,True,146356027,,,True,85315655,,,
@@ -9,21 +9,21 @@ GA,False,0,,,True,101493595,,,
 HI,True,83259043,,,False,0,,,
 IA,True,69915763,,,False,0,,,
 ID,False,0,,,True,92275352,,,
-IL,True,521433542,,,True,141143283,,,
+IL,True,521433542,530000000,-1.62,True,141143283,100000000,41.14,IL EITC ~20% of federal; CTC $100M permanent FY2026 (IL budget / Econ Security Project)
 IN,True,126611631,,,False,0,,,
 KS,True,80483530,,,False,0,,,
 LA,True,74842078,,,False,0,,,
 MA,True,333403999,,,True,445802699,,,
-MD,True,554231874,,,True,28727026,,,
+MD,True,554231874,510000000,8.67,True,28727026,9000000,219.19,"MD Comptroller: ~$519M combined EITC+CTC (TY2024); CTC small ($15k AGI cap, $500/child)"
 ME,True,49183051,,,True,92513873,,,
 MI,True,589716457,,,False,0,,,
-MN,True,272575660,,,True,591064591,,,
+MN,True,272575660,145000000,87.98,True,591064591,580000000,1.91,MN House Research TY2023: $724.8M combined CWFC (~80% CTC / ~20% WFC)
 MO,True,25218495,,,False,0,,,
 MT,True,32946687,,,False,0,,,
 NE,True,30049531,,,True,75995153,,,
-NJ,True,701163027,,,True,220555451,,,
+NJ,True,701163027,550000000,27.48,True,220555451,150000000,47.04,"NJ EITC 40% of federal (~$550M); CTC ~$120-150M (FY2024 expansion, NJPP)"
 NM,True,155639075,,,True,160987571,,,
-NY,True,1132217777,,,True,1789781120,,,
+NY,True,1132217777,1100000000,2.93,True,1789781120,825000000,116.94,NY Tax Dept: EITC ~30% of federal (~$1.1B); ESCC ~$350M base + $471M FY26 enhancement (approx total)
 OH,True,78733988,,,False,0,,,
 OK,True,31794240,,,True,47923195,,,
 OR,True,52746552,,,True,54149976,,,
