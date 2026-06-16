@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ReformOption, StateReformOptions, StatePrograms, AdjustableParameter } from '@/lib/household-types';
 
 // Track parameter values for configurable options
@@ -19,10 +19,6 @@ interface ReformOptionsSelectorProps {
   parameterValues?: ParameterValues;
   onParameterChange?: (optionId: string, paramName: string, value: number) => void;
   isLoading?: boolean;
-  /** Compare mode runs the same reform across multiple states, so state-
-   *  specific reforms (state CTC/EITC/SNAP/child allowance) are hidden —
-   *  they only apply in one state and break the apples-to-apples premise. */
-  federalOnly?: boolean;
 }
 
 export default function ReformOptionsSelector({
@@ -34,30 +30,35 @@ export default function ReformOptionsSelector({
   parameterValues = {},
   onParameterChange,
   isLoading = false,
-  federalOnly = false,
 }: ReformOptionsSelectorProps) {
-  const [activeTab, setActiveTab] = useState<'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal'>(
-    federalOnly ? 'federal' : 'eitc',
-  );
-
-  // If the parent toggled federalOnly on, drop any non-federal selections
-  // so the wizard doesn't carry stale state-specific reforms into Modal.
-  useEffect(() => {
-    if (!federalOnly || !reformOptions) return;
-    const federalIds = new Set(reformOptions.federal_options.map((o) => o.id));
-    const filtered = selectedOptions.filter((id) => federalIds.has(id));
-    if (filtered.length !== selectedOptions.length) {
-      onSelectionChange(filtered);
-    }
-    if (activeTab !== 'federal') setActiveTab('federal');
-  }, [federalOnly, reformOptions]);
+  const [activeTab, setActiveTab] = useState<
+    'ctc' | 'eitc' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc'
+  >('eitc');
 
   const toggleOption = (optionId: string) => {
     if (selectedOptions.includes(optionId)) {
       onSelectionChange(selectedOptions.filter((id) => id !== optionId));
-    } else {
-      onSelectionChange([...selectedOptions, optionId]);
+      return;
     }
+    const allOptions = reformOptions
+      ? [
+          ...reformOptions.ctc_options,
+          ...reformOptions.eitc_options,
+          ...reformOptions.snap_options,
+          ...reformOptions.child_allowance_options,
+          ...reformOptions.federal_options,
+        ]
+      : [];
+    const option = allOptions.find((o) => o.id === optionId);
+    // In-development reforms are surfaced but not selectable.
+    if (option?.in_development) return;
+    // Selecting an option drops any reform it declares itself mutually
+    // exclusive with.
+    const exclusive = new Set(option?.exclusive_with ?? []);
+    onSelectionChange([
+      ...selectedOptions.filter((id) => !exclusive.has(id)),
+      optionId,
+    ]);
   };
 
   const clearAll = () => {
@@ -83,16 +84,21 @@ export default function ReformOptionsSelector({
     );
   }
 
-  type TabId = 'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal';
-  const tabs: { id: TabId; label: string; options: ReformOption[] }[] = federalOnly
-    ? [{ id: 'federal', label: 'Federal', options: reformOptions.federal_options }]
-    : [
-        { id: 'ctc', label: 'Child Tax Credit', options: reformOptions.ctc_options },
-        { id: 'eitc', label: 'EITC', options: reformOptions.eitc_options },
-        { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
-        { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
-        { id: 'federal', label: 'Federal', options: reformOptions.federal_options },
-      ];
+  type TabId = 'ctc' | 'eitc' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc';
+  const federalCtc = reformOptions.federal_options.filter(
+    (o) => o.category === 'federal_ctc',
+  );
+  const federalEitc = reformOptions.federal_options.filter(
+    (o) => o.category === 'federal_eitc',
+  );
+  const tabs: { id: TabId; label: string; options: ReformOption[] }[] = [
+    { id: 'ctc', label: 'State CTC', options: reformOptions.ctc_options },
+    { id: 'eitc', label: 'State EITC', options: reformOptions.eitc_options },
+    { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
+    { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
+    { id: 'fedctc', label: 'Federal CTC', options: federalCtc },
+    { id: 'fedeitc', label: 'Federal EITC', options: federalEitc },
+  ];
 
   return (
     <div className="space-y-4">
@@ -186,6 +192,11 @@ export default function ReformOptionsSelector({
               onToggle={() => toggleOption(option.id)}
               parameterValues={parameterValues[option.id] || {}}
               onParameterChange={(paramName, value) => {
+                // Configuring a wizard reform auto-includes it, so the user
+                // doesn't have to also click the card to select it.
+                if (!selectedOptions.includes(option.id)) {
+                  onSelectionChange([...selectedOptions, option.id]);
+                }
                 onParameterChange?.(option.id, paramName, value);
               }}
             />
@@ -215,64 +226,125 @@ function ReformOptionCard({
   onParameterChange: (paramName: string, value: number) => void;
 }) {
   const hasAdjustableParams = option.is_configurable && option.adjustable_params && option.adjustable_params.length > 0;
+  const inDevelopment = option.in_development === true;
+  // Child allowance + state CTC tabs have a single option, so show its
+  // inputs as a wizard immediately (no card-click to expand) and use typed
+  // input boxes rather than sliders.
+  const wizardMode =
+    option.category === 'child_allowance' || option.category === 'state_ctc';
 
   return (
     <div
       className={`p-4 border-2 rounded-xl transition-all duration-200 ${
-        isSelected
-          ? 'border-pe-teal-500 bg-pe-teal-50'
-          : 'border-pe-gray-200 hover:border-pe-gray-300 hover:shadow-sm'
+        inDevelopment
+          ? 'border-pe-gray-200 bg-pe-gray-50 opacity-60'
+          : isSelected
+            ? 'border-pe-teal-500 bg-pe-teal-50'
+            : 'border-pe-gray-200 hover:border-pe-gray-300 hover:shadow-sm'
       }`}
+      aria-disabled={inDevelopment}
     >
-      {/* Header - clickable to toggle */}
+      {/* Header - clickable to toggle (disabled while in development) */}
       <div
-        onClick={onToggle}
-        className="flex items-start justify-between cursor-pointer"
+        onClick={inDevelopment ? undefined : onToggle}
+        className={`flex items-start justify-between ${
+          inDevelopment ? 'cursor-not-allowed' : 'cursor-pointer'
+        }`}
       >
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-semibold text-gray-800">{option.name}</h4>
-            {option.is_new_program && (
+            {inDevelopment && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                In development
+              </span>
+            )}
+            {!inDevelopment && option.is_new_program && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                 New Program
               </span>
             )}
-            {option.is_enhancement && (
+            {!inDevelopment && option.is_enhancement && (
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                 Enhancement
               </span>
             )}
-            {hasAdjustableParams && (
+            {!inDevelopment && hasAdjustableParams && (
               <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
                 Configurable
               </span>
             )}
           </div>
           <p className="text-sm text-gray-600 mt-1">{option.description}</p>
+          {inDevelopment && (
+            <p className="text-xs text-amber-700 mt-1">
+              Not yet available — coming soon.
+            </p>
+          )}
         </div>
-        <div
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-4 ${
-            isSelected
-              ? 'bg-pe-teal-500 border-pe-teal-500'
-              : 'border-pe-gray-300'
-          }`}
-        >
-          {isSelected && <span className="text-white text-sm">✓</span>}
-        </div>
+        {!inDevelopment && (
+          <div
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-4 ${
+              isSelected
+                ? 'bg-pe-teal-500 border-pe-teal-500'
+                : 'border-pe-gray-300'
+            }`}
+          >
+            {isSelected && <span className="text-white text-sm">✓</span>}
+          </div>
+        )}
       </div>
 
-      {/* Adjustable Parameters - shown when selected */}
-      {isSelected && hasAdjustableParams && (
+      {/* Adjustable Parameters - shown when selected, or always in wizard mode */}
+      {!inDevelopment && (isSelected || wizardMode) && hasAdjustableParams && (
         <div className="mt-4 pt-4 border-t border-pe-gray-200 space-y-4">
           {option.adjustable_params!.map((param) => {
+            // Hide params gated behind a toggle that's currently off.
+            if (param.depends_on && !(parameterValues[param.depends_on] ?? 0)) {
+              return null;
+            }
+            // Hide params that should only show when a toggle is OFF.
+            if (param.depends_on_off && (parameterValues[param.depends_on_off] ?? 0)) {
+              return null;
+            }
             const currentValue = parameterValues[param.name] ?? param.default_value;
+
+            // Checkbox control (stored as 0/1).
+            if (param.control === 'toggle') {
+              return (
+                <div key={param.name} className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={currentValue > 0}
+                    onChange={(e) =>
+                      onParameterChange(param.name, e.target.checked ? 1 : 0)
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-0.5 h-4 w-4 accent-pe-teal-500"
+                  />
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      {param.label}
+                    </label>
+                    {param.description && (
+                      <p className="text-xs text-gray-500">{param.description}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={param.name} className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <label className="text-sm font-medium text-gray-700">
                     {param.label}
                   </label>
-                  <div className="flex items-center gap-2">
+                  {/* Bordered box with the $ / % sign inside it. */}
+                  <div className={`flex items-center border border-gray-300 rounded px-2 bg-white focus-within:ring-2 focus-within:ring-pe-teal-500 ${wizardMode ? 'w-32' : 'w-24'}`}>
+                    {param.unit === '$' && (
+                      <span className="text-sm text-gray-500 mr-1">$</span>
+                    )}
                     <input
                       type="number"
                       value={currentValue}
@@ -285,26 +357,31 @@ function ReformOptionCard({
                       min={param.min_value}
                       max={param.max_value}
                       step={param.step}
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-pe-teal-500 focus:border-transparent"
+                      className="w-full py-1 text-sm text-right bg-transparent outline-none"
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <span className="text-sm text-gray-500 w-6">{param.unit}</span>
+                    {param.unit && param.unit !== '$' && (
+                      <span className="text-sm text-gray-500 ml-1">{param.unit}</span>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 w-8">{param.min_value}{param.unit}</span>
-                  <input
-                    type="range"
-                    value={currentValue}
-                    onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
-                    min={param.min_value}
-                    max={param.max_value}
-                    step={param.step}
-                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pe-teal-500"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <span className="text-xs text-gray-400 w-10 text-right">{param.max_value}{param.unit}</span>
-                </div>
+                {/* Slider only outside wizard mode (CTC / child allowance use typed boxes). */}
+                {!wizardMode && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400 w-8">{param.min_value}{param.unit}</span>
+                    <input
+                      type="range"
+                      value={currentValue}
+                      onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
+                      min={param.min_value}
+                      max={param.max_value}
+                      step={param.step}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pe-teal-500"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <span className="text-xs text-gray-400 w-10 text-right">{param.max_value}{param.unit}</span>
+                  </div>
+                )}
                 {param.description && (
                   <p className="text-xs text-gray-500">{param.description}</p>
                 )}

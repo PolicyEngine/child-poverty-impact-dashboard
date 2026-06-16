@@ -123,6 +123,9 @@ function mapEconomyToAnalysisResponse(
   const eitcCostBillions = (economy.fiscal?.eitc_change ?? 0) / 1e9;
   const snapCostBillions = (economy.fiscal?.snap_change ?? 0) / 1e9;
   const stateCtcCostBillions = (economy.fiscal?.state_ctc_change ?? 0) / 1e9;
+  // ubi_change covers the child allowance / baby bonus (ubi_center basic
+  // income). Older Modal deployments don't return it — falls back to 0.
+  const ubiCostBillions = (economy.fiscal?.ubi_change ?? 0) / 1e9;
 
   const dist = economy.distributional;
 
@@ -156,10 +159,10 @@ function mapEconomyToAnalysisResponse(
       state_cost_billions: stateCostBillions,
       ctc_cost_billions: ctcCostBillions,
       eitc_cost_billions: eitcCostBillions,
-      // Dependent exemption + UBI aren't broken out by Modal yet — they
-      // don't have standalone PE-US variables. Stub.
+      // Dependent exemption isn't broken out by Modal yet. UBI now is
+      // (basic_income), surfacing the child allowance / baby bonus cost.
       dependent_exemption_cost_billions: 0,
-      ubi_cost_billions: 0,
+      ubi_cost_billions: ubiCostBillions,
       snap_cost_billions: snapCostBillions,
       state_ctc_cost_billions: stateCtcCostBillions,
       income_tax_change_billions:
@@ -218,25 +221,8 @@ export async function runAnalysisFromOptions(
   const { modalConfigured, runEconomyOnModal } = await import('./modalApi');
   if (modalConfigured()) {
     try {
-      const { buildStateEitcReform } = await import('./state-programs');
-      const reform: Record<string, number | boolean | Record<string, number | boolean>> = {};
-      for (const id of reformOptionIds) {
-        if (id.endsWith('_eitc')) {
-          const st = id.slice(0, 2).toUpperCase();
-          const ratePct = parameterValues?.[id]?.match_rate ?? 30;
-          Object.assign(
-            reform,
-            buildStateEitcReform(st, ratePct / 100, year),
-          );
-        }
-        if (id === 'federal_ctc_expanded') {
-          // Scalar form: the wrapper defaults effective date to
-          // ``{year}-01-01`` and treats the parameter as set thereafter.
-          // Avoid date-range keys (e.g. "2026-01-01.2100-12-31") — the
-          // wrapper's strptime("%Y-%m-%d") rejects them.
-          reform['gov.irs.credits.ctc.refundable.fully_refundable'] = true;
-        }
-      }
+      const { buildReformDict } = await import('./reforms');
+      const reform = buildReformDict(reformOptionIds, parameterValues, year);
       const economy = await runEconomyOnModal(
         Object.keys(reform).length > 0 ? reform : null,
         year,

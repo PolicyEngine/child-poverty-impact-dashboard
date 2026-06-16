@@ -42,7 +42,7 @@ app = modal.App("cpid-backend")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "policyengine-us==1.715.2",
+        "policyengine-us==1.729.5",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-03-reform-dict-payload"})
+    .env({"CPID_BUILD_REV": "2026-06-16-peus-1.729.5-allowance-phaseout"})
 )
 
 
@@ -321,6 +321,8 @@ def compute_economy(payload: dict) -> dict:
     snap_change = _delta("snap")
     state_ctc_change = _delta("state_ctc")
     state_eitc_change = _delta("state_eitc")
+    # ubi_center basic income — the child allowance / baby bonus reforms.
+    ubi_change = _delta("basic_income")
     _log("fiscal done")
 
     # ---- Poverty: overall, children, young children (0-3), deep child poverty.
@@ -567,6 +569,7 @@ def compute_economy(payload: dict) -> dict:
             "snap_change": snap_change,
             "state_ctc_change": state_ctc_change,
             "state_eitc_change": state_eitc_change,
+            "ubi_change": ubi_change,
         },
         "poverty": {
             "overall_baseline_rate": _rate(pov_bl_arr, all_mask),

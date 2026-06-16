@@ -5,12 +5,45 @@ A specialized analytical interface for modeling and comparing policy reforms acr
 ## Features
 
 ### Policy Reforms
-- **Child Tax Credit (CTC)**: Variations by amount, age eligibility (prenatal-3, 0-5, 0-17), income basis, and phaseout structure
-- **Earned Income Tax Credit (EITC)**: Individualization and expansion options
-- **Dependent Exemptions**: Federal and state-level modifications
-- **Universal Basic Income**: Child allowance programs
-- **SNAP Modifications**: Benefit expansions and eligibility changes
-- **State-Specific Policy Levers**: Custom state CTC programs and local reforms
+
+Each reform below is wired end-to-end to a real PolicyEngine-US parameter,
+so selecting it produces an actual microsimulated impact. Options that
+don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
+
+- **Restore 2021 expanded CTC** (federal): $3,600 for children under 6,
+  $3,000 for ages 6–17, fully refundable, with the ARPA phase-out
+  structure (`gov.irs.credits.ctc.amount.arpa`,
+  `…refundable.fully_refundable`, `…phase_out.arpa.in_effect`).
+- **Child allowance** (federal, available in every state): annual cash
+  payment per child across three composable age tiers — under 1, ages 1–5,
+  and ages 6 up to an adjustable cutoff (under 18 or under 19) — via the
+  ubi_center basic income (`gov.contrib.ubi_center.basic_income`). Set the
+  three amounts equal for a flat allowance, or any tier to $0 to drop it.
+  An optional **AGI phase-out** (toggle + rate + thresholds by filing
+  status, via `…basic_income.phase_out`) income-tests it into a CTC-style
+  credit — so states with no CTC can use this rather than a bespoke one.
+- **State EITC** (40 states + DC): adjustable match rate as a percentage
+  of the federal EITC; creates, expands, or converts-to-refundable
+  depending on the state's current law.
+- **State CTC** (current law, 14 states): when the selected state has a
+  Child Tax Credit, its existing parameters — credit amount, age limit,
+  and phase-out (threshold(s)/rate) — appear as typed input boxes so the
+  credit can be modified. Only parameters you change from current law are
+  sent, so an unmodified selection is a no-op.
+  - Flat-amount: **CA** (young-child), **DC**, **GA**, **IL** (% of state
+    EITC), **MD**, **MN**, **OR**, **UT**, **VT**.
+  - Income-bracketed amount (per-tier inputs): **CO**, **NE**, **NJ**, **NM**.
+  - **NY** (Empire State Child Credit): by-age amounts + phase-out by
+    filing status. Its 2025–2027 structure reverts after 2027, so for
+    analysis years 2028+ there's an **"extend"** toggle — on keeps the
+    age-based credit, off reverts to the regular 33%-of-federal credit.
+
+  States with no current-law CTC can use the federal child allowance above
+  instead. (Excluded: NC — repealed; WV — its credit is for seniors, not
+  children; ID — dormant; OK — childcare hybrid.)
+
+**Shown but in development** (greyed-out, non-selectable until wired to a
+PE-US lever): SNAP benefit increases and the 50% federal EITC expansion.
 
 ### Results Display
 - Fiscal costs (federal and state)
@@ -51,7 +84,7 @@ on the Vercel project (Production + Preview) and in
 `frontend/.env.local` for dev. When the env var is empty, the frontend
 falls back to the local FastAPI in `backend/` (handy for offline work).
 
-The Modal image pins `policyengine-us==1.715.2` for reproducibility —
+The Modal image pins `policyengine-us==1.729.5` for reproducibility —
 bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
 we want to refresh.
 
