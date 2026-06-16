@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-16-cors-localhost-any-port"})
+    .env({"CPID_BUILD_REV": "2026-06-16-household-child-allowance"})
 )
 
 
@@ -172,6 +172,7 @@ def _household_point(sim_baseline, sim_reform, year: int) -> dict:
             "federal_eitc": _val(sim_baseline, "eitc"),
             "state_ctc": _val(sim_baseline, "state_ctc"),
             "state_eitc": _val(sim_baseline, "state_eitc"),
+            "child_allowance": _val(sim_baseline, "basic_income"),
             "snap_benefits": _val(sim_baseline, "snap"),
             "in_poverty": bool(_val(sim_baseline, "in_poverty") > 0),
         },
@@ -181,6 +182,7 @@ def _household_point(sim_baseline, sim_reform, year: int) -> dict:
             "federal_eitc": _val(sim_reform, "eitc"),
             "state_ctc": _val(sim_reform, "state_ctc"),
             "state_eitc": _val(sim_reform, "state_eitc"),
+            "child_allowance": _val(sim_reform, "basic_income"),
             "snap_benefits": _val(sim_reform, "snap"),
             "in_poverty": bool(_val(sim_reform, "in_poverty") > 0),
         },

@@ -287,7 +287,11 @@ export default function ReportResultsPage() {
     ) {
       Promise.all([
         calculateBaseline(config.household),
-        calculateImpact(config.household, config.selectedReforms),
+        calculateImpact(
+          config.household,
+          config.selectedReforms,
+          config.parameterValues,
+        ),
       ])
         .then(([baseline, impact]) => {
           setBaselineResults(baseline);
@@ -306,6 +310,7 @@ export default function ReportResultsPage() {
         0,
         400_000,
         10_000,
+        config.parameterValues,
       )
         .then((sweep) => setIncomeSweep(sweep))
         .catch((err: unknown) => {

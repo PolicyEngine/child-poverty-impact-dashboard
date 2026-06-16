@@ -55,6 +55,7 @@ function pointToResults(
     federal_eitc: number;
     state_ctc: number;
     state_eitc: number;
+    child_allowance?: number;
     snap_benefits: number;
     in_poverty: boolean;
   },
@@ -78,8 +79,9 @@ function pointToResults(
     federal_eitc: point.federal_eitc,
     state_ctc: point.state_ctc,
     state_eitc: point.state_eitc,
+    child_allowance: point.child_allowance ?? 0,
     snap_benefits: point.snap_benefits,
-    total_benefits: point.snap_benefits,
+    total_benefits: point.snap_benefits + (point.child_allowance ?? 0),
     in_poverty: point.in_poverty,
     in_deep_poverty: false,
     poverty_gap: 0,

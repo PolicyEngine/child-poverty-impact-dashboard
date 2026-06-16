@@ -53,6 +53,7 @@ export interface HouseholdResults {
   federal_eitc: number;
   state_ctc: number;
   state_eitc: number;
+  child_allowance: number;
   snap_benefits: number;
   total_benefits: number;
   in_poverty: boolean;
@@ -141,6 +142,7 @@ export interface IncomeSweepDataPoint {
   state_ctc: number;
   federal_eitc: number;
   state_eitc: number;
+  child_allowance: number;
   snap_benefits: number;
   total_benefits: number;
   effective_tax_rate: number;
