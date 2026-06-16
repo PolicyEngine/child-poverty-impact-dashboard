@@ -161,6 +161,23 @@ describe('buildReformDict', () => {
     expect(reform[`${P}.phase_out.rate`]).toBe(16.5);
   });
 
+  it('activates the American Family Act via its contrib flag', () => {
+    const reform = buildReformDict(['federal_afa'], undefined, 2026);
+    expect(reform['gov.contrib.congress.afa.in_effect']).toBe(true);
+  });
+
+  it('NY 2028 without extend edits the regular (old-format) credit', () => {
+    const reform = buildReformDict(
+      ['ny_ctc'],
+      { ny_ctc: { percent: 50, minimum: 200 } },
+      2028,
+    );
+    expect(reform['gov.states.ny.tax.income.credits.ctc.amount.percent']).toBeCloseTo(0.5);
+    expect(reform['gov.states.ny.tax.income.credits.ctc.amount.minimum']).toBe(200);
+    // The age-based post-2024 block is NOT touched when not extending.
+    expect(reform['gov.states.ny.tax.income.credits.ctc.post_2024.in_effect']).toBeUndefined();
+  });
+
   it('throws on an unknown / unwired reform option', () => {
     expect(() => buildReformDict(['snap_increase_15'], undefined, 2026)).toThrow(
       /Unknown or unwired/,

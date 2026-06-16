@@ -37,8 +37,9 @@ export async function getStatePrograms(stateCode: string): Promise<StatePrograms
 
 export async function getReformOptions(
   stateCode: string,
+  year = 2026,
 ): Promise<StateReformOptions> {
-  return getReformOptionsForState(stateCode) as unknown as StateReformOptions;
+  return getReformOptionsForState(stateCode, year) as unknown as StateReformOptions;
 }
 
 /** Map a single Modal IncomeSweep point into our HouseholdResults shape.

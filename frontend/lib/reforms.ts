@@ -89,6 +89,13 @@ function applyReformOption(
       reform['gov.irs.credits.ctc.phase_out.arpa.in_effect'] = true;
       return;
     }
+    case 'federal_afa': {
+      // American Family Act (Bennet). Activating the contrib flag applies
+      // the AFA CTC structure (base $3,600, 1.2x under-6, baby bonus,
+      // phase-out) — verified to take effect via parameter override alone.
+      reform['gov.contrib.congress.afa.in_effect'] = true;
+      return;
+    }
     case 'child_allowance': {
       // Three-tier unconditional child allowance via ubi_center basic
       // income: under 1, ages 1–5, and ages 6 up to an adjustable cutoff

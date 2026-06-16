@@ -130,6 +130,8 @@ export interface AdjustableParameter {
   /** Only render this parameter when the named sibling param is truthy
    *  (>0). Used to reveal phase-out inputs behind their enable toggle. */
   depends_on?: string;
+  /** Only render this parameter when the named sibling param is falsy (0). */
+  depends_on_off?: string;
 }
 
 export interface ReformOption {
@@ -403,6 +405,16 @@ function buildFederalOptions(): ReformOption[] {
       is_new_program: false,
       is_enhancement: true,
       estimated_household_impact: 2400,
+    },
+    {
+      id: 'federal_afa',
+      name: 'American Family Act',
+      description:
+        "Sen. Bennet's American Family Act: a fully-refundable CTC of $3,600/child (1.2× for under-6), with a baby bonus in the first month and income phase-out.",
+      category: 'federal_ctc',
+      is_new_program: false,
+      is_enhancement: true,
+      estimated_household_impact: 3000,
     },
     {
       id: 'federal_eitc_expansion',
@@ -789,11 +801,60 @@ function bracketAmt(
   };
 }
 
+function nyAgeParams(): AdjustableParameter[] {
+  return [
+    { name: 'young_amount', label: 'Amount — ages 0–3', min_value: 0, max_value: 5000, default_value: 1000, step: 50, unit: '$', description: 'Credit per child under age 4.' },
+    { name: 'older_amount', label: 'Amount — ages 4–16', min_value: 0, max_value: 5000, default_value: 500, step: 50, unit: '$', description: 'Credit per child age 4–16.' },
+    { name: 'threshold_single', label: 'Phase-out — single', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (single).' },
+    { name: 'threshold_joint', label: 'Phase-out — joint', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (joint).' },
+    { name: 'threshold_hoh', label: 'Phase-out — head of household', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (HoH).' },
+    { name: 'threshold_separate', label: 'Phase-out — separate', min_value: 0, max_value: 500000, default_value: 55000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (separate).' },
+    { name: 'threshold_surviving_spouse', label: 'Phase-out — surviving spouse', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (surviving spouse).' },
+    { name: 'rate', label: 'Phase-out rate', min_value: 0, max_value: 100, default_value: 16.5, step: 0.5, unit: '%', description: 'Percent of each $1,000 of AGI over the threshold that reduces the credit.' },
+  ];
+}
+
+/** NY inputs depend on the analysis year: 2026-2027 shows the age-based
+ *  (current-law) format; 2028+ shows the regular 33%-of-federal format by
+ *  default, switching to the age-based format when "extend" is on. */
+function nyCtcParams(year: number): AdjustableParameter[] {
+  const age = nyAgeParams();
+  if (year <= 2027) return age;
+  const oldFormat: AdjustableParameter[] = [
+    { name: 'percent', label: 'Credit (% of federal CTC)', min_value: 0, max_value: 100, default_value: 33, step: 1, unit: '%', description: 'Share of the federal CTC paid as the regular Empire State Child Credit.', depends_on_off: 'extend' },
+    { name: 'minimum', label: 'Minimum per child', min_value: 0, max_value: 2000, default_value: 100, step: 25, unit: '$', description: 'Minimum regular credit per qualifying child below the federal phase-out.', depends_on_off: 'extend' },
+  ];
+  const extended = age.map((p) => ({ ...p, depends_on: 'extend' }));
+  return [
+    { name: 'extend', label: 'Extend the 2025–2027 credit beyond 2027', control: 'toggle', min_value: 0, max_value: 1, default_value: 0, step: 1, unit: '', description: 'Keep the age-based credit in effect this year instead of reverting to the regular (33% of federal) credit.' },
+    ...oldFormat,
+    ...extended,
+  ];
+}
+
 /** Reform options for the selected state's current-law CTC (one card with
  *  its modifiable parameters), or [] if the state has no wired CTC. */
-export function buildStateCtcOptions(stateCode: string): ReformOption[] {
-  const entry = CTC_REFORMS[stateCode.toUpperCase()];
+export function buildStateCtcOptions(
+  stateCode: string,
+  year = 2026,
+): ReformOption[] {
+  const code = stateCode.toUpperCase();
+  const entry = CTC_REFORMS[code];
   if (!entry) return [];
+  const adjustable_params: AdjustableParameter[] =
+    code === 'NY'
+      ? nyCtcParams(year)
+      : entry.params.map((p) => ({
+          name: p.name,
+          label: p.label,
+          min_value: p.min_value,
+          max_value: p.max_value,
+          default_value: p.default_value,
+          step: p.step,
+          unit: p.unit,
+          description: p.description,
+          ...(p.control ? { control: p.control } : {}),
+        }));
   return [
     {
       id: `${stateCode.toLowerCase()}_ctc`,
@@ -803,17 +864,7 @@ export function buildStateCtcOptions(stateCode: string): ReformOption[] {
       is_new_program: false,
       is_enhancement: true,
       is_configurable: true,
-      adjustable_params: entry.params.map((p) => ({
-        name: p.name,
-        label: p.label,
-        min_value: p.min_value,
-        max_value: p.max_value,
-        default_value: p.default_value,
-        step: p.step,
-        unit: p.unit,
-        description: p.description,
-        ...(p.control ? { control: p.control } : {}),
-      })),
+      adjustable_params,
     },
   ];
 }
@@ -865,8 +916,14 @@ function buildNyCtcReform(
 
   if (reverts) {
     // Post-2024 has reverted to $0/off. Without "extend", current law is the
-    // regular 33%-of-federal credit, so emit nothing (baseline).
-    if (!extend) return {};
+    // regular 33%-of-federal credit — let the user edit that format instead.
+    if (!extend) {
+      const percent = pv?.percent ?? 33;
+      const minimum = pv?.minimum ?? 100;
+      if (percent !== 33) out['gov.states.ny.tax.income.credits.ctc.amount.percent'] = percent / 100;
+      if (minimum !== 100) out['gov.states.ny.tax.income.credits.ctc.amount.minimum'] = minimum;
+      return out;
+    }
     // Restore the full block (all $0/false in the 2028 baseline).
     out[`${P}.in_effect`] = true;
     out[`${P}.amount[0].amount`] = young;
@@ -903,6 +960,7 @@ export function stateHasCtc(stateCode: string): boolean {
 
 export function getReformOptionsForState(
   stateCode: string,
+  year = 2026,
 ): StateReformOptions {
   const programs = getStateProgram(stateCode);
   if (!programs) {
@@ -928,7 +986,7 @@ export function getReformOptionsForState(
       state_eitc: programs.eitc !== null,
       state_cdcc: programs.cdcc !== null,
     },
-    ctc_options: buildStateCtcOptions(programs.state_code),
+    ctc_options: buildStateCtcOptions(programs.state_code, year),
     eitc_options: buildEitcOptions(programs),
     snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),

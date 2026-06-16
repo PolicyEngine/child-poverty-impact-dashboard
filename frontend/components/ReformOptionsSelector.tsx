@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ReformOption, StateReformOptions, StatePrograms, AdjustableParameter } from '@/lib/household-types';
 
 // Track parameter values for configurable options
@@ -19,10 +19,6 @@ interface ReformOptionsSelectorProps {
   parameterValues?: ParameterValues;
   onParameterChange?: (optionId: string, paramName: string, value: number) => void;
   isLoading?: boolean;
-  /** Compare mode runs the same reform across multiple states, so state-
-   *  specific reforms (state CTC/EITC/SNAP/child allowance) are hidden —
-   *  they only apply in one state and break the apples-to-apples premise. */
-  federalOnly?: boolean;
 }
 
 export default function ReformOptionsSelector({
@@ -34,23 +30,10 @@ export default function ReformOptionsSelector({
   parameterValues = {},
   onParameterChange,
   isLoading = false,
-  federalOnly = false,
 }: ReformOptionsSelectorProps) {
-  const [activeTab, setActiveTab] = useState<'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal'>(
-    federalOnly ? 'federal' : 'eitc',
-  );
-
-  // If the parent toggled federalOnly on, drop any non-federal selections
-  // so the wizard doesn't carry stale state-specific reforms into Modal.
-  useEffect(() => {
-    if (!federalOnly || !reformOptions) return;
-    const federalIds = new Set(reformOptions.federal_options.map((o) => o.id));
-    const filtered = selectedOptions.filter((id) => federalIds.has(id));
-    if (filtered.length !== selectedOptions.length) {
-      onSelectionChange(filtered);
-    }
-    if (activeTab !== 'federal') setActiveTab('federal');
-  }, [federalOnly, reformOptions]);
+  const [activeTab, setActiveTab] = useState<
+    'ctc' | 'eitc' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc'
+  >('eitc');
 
   const toggleOption = (optionId: string) => {
     if (selectedOptions.includes(optionId)) {
@@ -101,16 +84,21 @@ export default function ReformOptionsSelector({
     );
   }
 
-  type TabId = 'ctc' | 'eitc' | 'snap' | 'allowance' | 'federal';
-  const tabs: { id: TabId; label: string; options: ReformOption[] }[] = federalOnly
-    ? [{ id: 'federal', label: 'Federal', options: reformOptions.federal_options }]
-    : [
-        { id: 'ctc', label: 'Child Tax Credit', options: reformOptions.ctc_options },
-        { id: 'eitc', label: 'EITC', options: reformOptions.eitc_options },
-        { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
-        { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
-        { id: 'federal', label: 'Federal', options: reformOptions.federal_options },
-      ];
+  type TabId = 'ctc' | 'eitc' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc';
+  const federalCtc = reformOptions.federal_options.filter(
+    (o) => o.category === 'federal_ctc',
+  );
+  const federalEitc = reformOptions.federal_options.filter(
+    (o) => o.category === 'federal_eitc',
+  );
+  const tabs: { id: TabId; label: string; options: ReformOption[] }[] = [
+    { id: 'ctc', label: 'State CTC', options: reformOptions.ctc_options },
+    { id: 'eitc', label: 'State EITC', options: reformOptions.eitc_options },
+    { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
+    { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
+    { id: 'fedctc', label: 'Federal CTC', options: federalCtc },
+    { id: 'fedeitc', label: 'Federal EITC', options: federalEitc },
+  ];
 
   return (
     <div className="space-y-4">
@@ -315,6 +303,10 @@ function ReformOptionCard({
             if (param.depends_on && !(parameterValues[param.depends_on] ?? 0)) {
               return null;
             }
+            // Hide params that should only show when a toggle is OFF.
+            if (param.depends_on_off && (parameterValues[param.depends_on_off] ?? 0)) {
+              return null;
+            }
             const currentValue = parameterValues[param.name] ?? param.default_value;
 
             // Checkbox control (stored as 0/1).
@@ -348,9 +340,10 @@ function ReformOptionCard({
                   <label className="text-sm font-medium text-gray-700">
                     {param.label}
                   </label>
-                  <div className="flex items-center gap-2">
+                  {/* Bordered box with the $ / % sign inside it. */}
+                  <div className={`flex items-center border border-gray-300 rounded px-2 bg-white focus-within:ring-2 focus-within:ring-pe-teal-500 ${wizardMode ? 'w-32' : 'w-24'}`}>
                     {param.unit === '$' && (
-                      <span className="text-sm text-gray-500">$</span>
+                      <span className="text-sm text-gray-500 mr-1">$</span>
                     )}
                     <input
                       type="number"
@@ -364,11 +357,11 @@ function ReformOptionCard({
                       min={param.min_value}
                       max={param.max_value}
                       step={param.step}
-                      className={`${wizardMode ? 'w-28' : 'w-20'} px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-pe-teal-500 focus:border-transparent`}
+                      className="w-full py-1 text-sm text-right bg-transparent outline-none"
                       onClick={(e) => e.stopPropagation()}
                     />
-                    {param.unit !== '$' && (
-                      <span className="text-sm text-gray-500 w-6">{param.unit}</span>
+                    {param.unit && param.unit !== '$' && (
+                      <span className="text-sm text-gray-500 ml-1">{param.unit}</span>
                     )}
                   </div>
                 </div>

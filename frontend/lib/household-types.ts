@@ -85,6 +85,8 @@ export interface AdjustableParameter {
   control?: 'number' | 'toggle';
   /** Only show when the named sibling param is truthy (>0). */
   depends_on?: string;
+  /** Only show when the named sibling param is falsy (0). */
+  depends_on_off?: string;
 }
 
 export interface ReformOption {
