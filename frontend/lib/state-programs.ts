@@ -249,7 +249,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
           label: 'Under 1',
           min_value: 0,
           max_value: 12000,
-          default_value: 3600,
+          default_value: 1000,
           step: 100,
           unit: '$',
           description: 'Annual amount per child under age 1.',
@@ -259,7 +259,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
           label: 'Ages 1–5 (under 6)',
           min_value: 0,
           max_value: 12000,
-          default_value: 3000,
+          default_value: 1000,
           step: 100,
           unit: '$',
           description: 'Annual amount per child age 1 through 5.',
@@ -269,7 +269,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
           label: 'Ages 6+ (to cutoff)',
           min_value: 0,
           max_value: 12000,
-          default_value: 3000,
+          default_value: 1000,
           step: 100,
           unit: '$',
           description: 'Annual amount per child age 6 up to the cutoff age.',
@@ -810,7 +810,8 @@ function nyAgeParams(): AdjustableParameter[] {
     { name: 'threshold_hoh', label: 'Phase-out — head of household', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (HoH).' },
     { name: 'threshold_separate', label: 'Phase-out — separate', min_value: 0, max_value: 500000, default_value: 55000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (separate).' },
     { name: 'threshold_surviving_spouse', label: 'Phase-out — surviving spouse', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (surviving spouse).' },
-    { name: 'rate', label: 'Phase-out rate', min_value: 0, max_value: 100, default_value: 16.5, step: 0.5, unit: '%', description: 'Percent of each $1,000 of AGI over the threshold that reduces the credit.' },
+    { name: 'rate', label: 'Reduction per increment', min_value: 0, max_value: 500, default_value: 16.5, step: 0.5, unit: '$', description: 'Dollars of credit lost for each AGI increment over the threshold (increments are rounded up).' },
+    { name: 'increment', label: 'AGI increment size', min_value: 1, max_value: 20000, default_value: 1000, step: 100, unit: '$', description: 'Income step the phase-out counts: the credit drops by the reduction amount for each increment of AGI over the threshold.' },
   ];
 }
 
@@ -913,6 +914,7 @@ function buildNyCtcReform(
   const tSep = pv?.threshold_separate ?? 55000;
   const tSurv = pv?.threshold_surviving_spouse ?? 110000;
   const rate = pv?.rate ?? 16.5;
+  const increment = pv?.increment ?? 1000;
 
   if (reverts) {
     // Post-2024 has reverted to $0/off. Without "extend", current law is the
@@ -934,7 +936,7 @@ function buildNyCtcReform(
     out[`${P}.phase_out.threshold.SEPARATE`] = tSep;
     out[`${P}.phase_out.threshold.SURVIVING_SPOUSE`] = tSurv;
     out[`${P}.phase_out.rate`] = rate;
-    out[`${P}.phase_out.increment`] = 1000;
+    out[`${P}.phase_out.increment`] = increment;
     return out;
   }
 
@@ -950,6 +952,7 @@ function buildNyCtcReform(
   set(`${P}.phase_out.threshold.SEPARATE`, tSep, 55000);
   set(`${P}.phase_out.threshold.SURVIVING_SPOUSE`, tSurv, 110000);
   set(`${P}.phase_out.rate`, rate, 16.5);
+  set(`${P}.phase_out.increment`, increment, 1000);
   return out;
 }
 

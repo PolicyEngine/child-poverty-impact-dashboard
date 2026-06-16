@@ -23,10 +23,10 @@ describe('buildReformDict', () => {
     expect(reform[`${BI}[1].threshold`]).toBe(1);
     expect(reform[`${BI}[2].threshold`]).toBe(6);
     expect(reform[`${BI}[3].threshold`]).toBe(18);
-    // Tier amounts.
-    expect(reform[`${BI}[0].amount`]).toBe(3600); // under 1
-    expect(reform[`${BI}[1].amount`]).toBe(3000); // ages 1–5
-    expect(reform[`${BI}[2].amount`]).toBe(3000); // ages 6 to cutoff
+    // Tier amounts default to $1,000 each.
+    expect(reform[`${BI}[0].amount`]).toBe(1000); // under 1
+    expect(reform[`${BI}[1].amount`]).toBe(1000); // ages 1–5
+    expect(reform[`${BI}[2].amount`]).toBe(1000); // ages 6 to cutoff
   });
 
   it('respects custom per-tier amounts and the under-19 cutoff', () => {
@@ -158,7 +158,9 @@ describe('buildReformDict', () => {
     expect(reform[`${P}.amount[0].amount`]).toBe(1000);
     expect(reform[`${P}.amount[1].amount`]).toBe(500);
     expect(reform[`${P}.phase_out.threshold.HEAD_OF_HOUSEHOLD`]).toBe(75000);
+    // Increment phase-out: $16.50 reduction per $1,000 AGI increment.
     expect(reform[`${P}.phase_out.rate`]).toBe(16.5);
+    expect(reform[`${P}.phase_out.increment`]).toBe(1000);
   });
 
   it('activates the American Family Act via its contrib flag', () => {

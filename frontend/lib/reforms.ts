@@ -27,9 +27,9 @@ type ParameterValues = Record<string, Record<string, number>>;
 // Child-allowance defaults (annual $ per child). The ubi_center
 // basic-income amounts are annual (period: year). Three age tiers plus an
 // adjustable top cutoff; set all three equal for a flat allowance.
-export const CHILD_ALLOWANCE_DEFAULT_INFANT = 3600; // under 1
-export const CHILD_ALLOWANCE_DEFAULT_YOUNG = 3000; //  ages 1–5
-export const CHILD_ALLOWANCE_DEFAULT_OLDER = 3000; //  ages 6 to cutoff
+export const CHILD_ALLOWANCE_DEFAULT_INFANT = 1000; // under 1
+export const CHILD_ALLOWANCE_DEFAULT_YOUNG = 1000; //  ages 1–5
+export const CHILD_ALLOWANCE_DEFAULT_OLDER = 1000; //  ages 6 to cutoff
 export const CHILD_ALLOWANCE_DEFAULT_CUTOFF = 18; //   under 18 vs under 19
 
 // Optional AGI-based phase-out (turns the allowance into an income-tested
