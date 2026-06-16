@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-16-household-child-allowance"})
+    .env({"CPID_BUILD_REV": "2026-06-16-household-own-state-ctc"})
 )
 
 
@@ -156,7 +156,28 @@ def _build_household_situation(payload: dict, employment_income: float) -> dict:
     }
 
 
-def _household_point(sim_baseline, sim_reform, year: int) -> dict:
+def _own_state_credit_vars(sim, state_code: str, year: int, kind: str) -> list:
+    """This state's own EITC/CTC variable names, from the year's list
+    (``state_eitcs``/``state_ctcs``). The ``state_eitc``/``state_ctc``
+    aggregates ``adds`` every state's credits, and some taxsim components
+    fire universally — so for one household we sum only this state's own
+    variables instead. (``basic_income`` / the child allowance is NOT in
+    these lists, so it stays separate.)"""
+    st = state_code.lower()
+    try:
+        node = getattr(
+            sim.tax_benefit_system.parameters.gov.states.household, kind
+        )
+        names = list(node(f"{year}-01-01"))
+    except Exception:
+        return []
+    return [
+        v for v in names
+        if v.startswith(f"{st}_") or v.startswith(f"taxsim_{st}_")
+    ]
+
+
+def _household_point(sim_baseline, sim_reform, year: int, state_code: str) -> dict:
     """Compute the per-point payload the React client expects."""
 
     def _val(sim, name: str) -> float:
@@ -165,28 +186,25 @@ def _household_point(sim_baseline, sim_reform, year: int) -> dict:
         except Exception:
             return 0.0
 
-    return {
-        "baseline": {
-            "net_income": _val(sim_baseline, "household_net_income"),
-            "federal_ctc": _val(sim_baseline, "ctc"),
-            "federal_eitc": _val(sim_baseline, "eitc"),
-            "state_ctc": _val(sim_baseline, "state_ctc"),
-            "state_eitc": _val(sim_baseline, "state_eitc"),
-            "child_allowance": _val(sim_baseline, "basic_income"),
-            "snap_benefits": _val(sim_baseline, "snap"),
-            "in_poverty": bool(_val(sim_baseline, "in_poverty") > 0),
-        },
-        "reform": {
-            "net_income": _val(sim_reform, "household_net_income"),
-            "federal_ctc": _val(sim_reform, "ctc"),
-            "federal_eitc": _val(sim_reform, "eitc"),
-            "state_ctc": _val(sim_reform, "state_ctc"),
-            "state_eitc": _val(sim_reform, "state_eitc"),
-            "child_allowance": _val(sim_reform, "basic_income"),
-            "snap_benefits": _val(sim_reform, "snap"),
-            "in_poverty": bool(_val(sim_reform, "in_poverty") > 0),
-        },
-    }
+    eitc_vars = _own_state_credit_vars(sim_baseline, state_code, year, "state_eitcs")
+    ctc_vars = _own_state_credit_vars(sim_baseline, state_code, year, "state_ctcs")
+
+    def _sum(sim, names: list) -> float:
+        return float(sum(_val(sim, n) for n in names))
+
+    def _row(sim) -> dict:
+        return {
+            "net_income": _val(sim, "household_net_income"),
+            "federal_ctc": _val(sim, "ctc"),
+            "federal_eitc": _val(sim, "eitc"),
+            "state_ctc": _sum(sim, ctc_vars),
+            "state_eitc": _sum(sim, eitc_vars),
+            "child_allowance": _val(sim, "basic_income"),
+            "snap_benefits": _val(sim, "snap"),
+            "in_poverty": bool(_val(sim, "in_poverty") > 0),
+        }
+
+    return {"baseline": _row(sim_baseline), "reform": _row(sim_reform)}
 
 
 @app.function(image=image, timeout=600, memory=2048)
@@ -226,7 +244,9 @@ def compute_household_sweep(payload: dict) -> dict:
                 if reform is not None
                 else sim_baseline
             )
-            point = _household_point(sim_baseline, sim_reform, year)
+            point = _household_point(
+                sim_baseline, sim_reform, year, str(payload["state"]).upper()
+            )
             baseline_data_points.append({"income": float(income), **point["baseline"]})
             data_points.append({"income": float(income), **point["reform"]})
         except Exception as exc:
