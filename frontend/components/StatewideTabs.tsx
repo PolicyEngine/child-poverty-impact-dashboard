@@ -133,7 +133,7 @@ export function StatewideOverview({ results, state, year }: TabProps) {
         />
         <HeadlineCard
           label="Children lifted"
-          value={poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+          value={Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
           subtext="Out of poverty"
           positive={poverty_impact.children_lifted_out_of_poverty > 0}
         />
@@ -144,9 +144,9 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           positive={fiscal_cost.state_cost_billions < 0}
         />
         <HeadlineCard
-          label="Households gaining"
+          label="Residents gaining"
           value={formatPercent(distributional_impact.percent_gaining)}
-          subtext="Of all households"
+          subtext="Of all residents"
           positive={distributional_impact.percent_gaining > distributional_impact.percent_losing}
         />
       </div>
@@ -229,14 +229,14 @@ export function StatewidePoverty({ results }: TabProps) {
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.primary}08`, borderColor: COLORS.primary }}>
           <p className="text-sm text-gray-700 mb-2">Children lifted out of poverty</p>
           <p className="text-4xl font-bold" style={{ color: COLORS.primary }}>
-            {poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+            {Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Ages 0–17</p>
         </div>
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.primaryDark}08`, borderColor: COLORS.primaryDark }}>
           <p className="text-sm text-gray-700 mb-2">Young children lifted</p>
           <p className="text-4xl font-bold" style={{ color: COLORS.primaryDark }}>
-            {poverty_impact.young_children_lifted_out_of_poverty.toLocaleString()}
+            {Math.round(poverty_impact.young_children_lifted_out_of_poverty).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Ages 0–5</p>
         </div>
@@ -605,17 +605,17 @@ function WinnersLosersView({
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.gainMore5}08`, borderColor: COLORS.gainMore5 }}>
           <p className="text-sm text-gray-700 mb-2">Winners</p>
           <p className="text-3xl font-bold" style={{ color: COLORS.gainMore5 }}>{distributional.percent_gaining.toFixed(1)}%</p>
-          <p className="text-xs text-gray-600 mt-1">Households gain income</p>
+          <p className="text-xs text-gray-600 mt-1">Residents gain income</p>
         </div>
         <div className="rounded-lg p-6 border border-gray-300 bg-gray-50">
           <p className="text-sm text-gray-700 mb-2">No change</p>
           <p className="text-3xl font-bold text-gray-600">{distributional.percent_unchanged.toFixed(1)}%</p>
-          <p className="text-xs text-gray-600 mt-1">Unaffected households</p>
+          <p className="text-xs text-gray-600 mt-1">Unaffected residents</p>
         </div>
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.loseMore5}08`, borderColor: COLORS.loseMore5 }}>
           <p className="text-sm text-gray-700 mb-2">Losers</p>
           <p className="text-3xl font-bold" style={{ color: COLORS.loseMore5 }}>{distributional.percent_losing.toFixed(1)}%</p>
-          <p className="text-xs text-gray-600 mt-1">Households lose income</p>
+          <p className="text-xs text-gray-600 mt-1">Residents lose income</p>
         </div>
       </div>
 
@@ -656,7 +656,7 @@ function WinnersLosersView({
       {/* Average gain summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
-          <p className="text-sm text-gray-600">Average gain (all households)</p>
+          <p className="text-sm text-gray-600">Average gain (all residents)</p>
           <p className="text-2xl font-bold mt-1" style={{ color: distributional.average_gain_all >= 0 ? COLORS.primary : '#6B7280' }}>
             {formatCurrencyWithSign(distributional.average_gain_all)}
           </p>

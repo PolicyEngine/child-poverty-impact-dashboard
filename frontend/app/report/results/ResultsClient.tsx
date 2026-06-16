@@ -309,7 +309,7 @@ export default function ReportResultsPage() {
         config.selectedReforms,
         0,
         400_000,
-        10_000,
+        500,
         config.parameterValues,
       )
         .then((sweep) => setIncomeSweep(sweep))
@@ -598,7 +598,7 @@ const PROVISION_FIELDS: {
 }[] = [
   { key: 'federal_ctc', label: 'Federal CTC' },
   { key: 'federal_eitc', label: 'Federal EITC' },
-  { key: 'state_ctc', label: 'State CTC' },
+  { key: 'state_ctc', label: 'State CTC + Child Allowance' },
   { key: 'state_eitc', label: 'State EITC' },
   { key: 'snap_benefits', label: 'SNAP' },
 ];
@@ -678,7 +678,7 @@ function NetIncomeChangeTooltip({
           <span>{fmt(p.federal_eitc_change)}</span>
         </div>
         <div className="flex justify-between gap-3">
-          <span>State CTC</span>
+          <span>State CTC + Child Allowance</span>
           <span>{fmt(p.state_ctc_change)}</span>
         </div>
         <div className="flex justify-between gap-3">
@@ -729,7 +729,9 @@ function HouseholdOverviewTab({
         net_income_change: r.net_income - b.net_income,
         federal_ctc_change: r.federal_ctc - b.federal_ctc,
         federal_eitc_change: r.federal_eitc - b.federal_eitc,
-        state_ctc_change: r.state_ctc - b.state_ctc,
+        state_ctc_change:
+          (r.state_ctc + (r.child_allowance ?? 0)) -
+          (b.state_ctc + (b.child_allowance ?? 0)),
         state_eitc_change: r.state_eitc - b.state_eitc,
         snap_change: r.snap_benefits - b.snap_benefits,
       });
@@ -754,13 +756,18 @@ function HouseholdOverviewTab({
 
       {/* Per-provision change cards (federal/state income tax intentionally excluded) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {PROVISION_FIELDS.map(({ key, label }) => (
-          <ChangeCard
-            key={key}
-            label={label}
-            change={(reform[key] as number) - (baselineHH[key] as number)}
-          />
-        ))}
+        {PROVISION_FIELDS.map(({ key, label }) => {
+          // State CTC card also includes the child allowance (basic income).
+          const reformVal =
+            (reform[key] as number) +
+            (key === 'state_ctc' ? reform.child_allowance ?? 0 : 0);
+          const baseVal =
+            (baselineHH[key] as number) +
+            (key === 'state_ctc' ? baselineHH.child_allowance ?? 0 : 0);
+          return (
+            <ChangeCard key={key} label={label} change={reformVal - baseVal} />
+          );
+        })}
         <ChangeCard
           label="Net income"
           change={net_income_change}
@@ -913,7 +920,11 @@ function HouseholdFiscalTab({
 
   const benefitChanges = [
     { name: 'Federal CTC', baseline: baseline.federal_ctc, reform: reform.federal_ctc },
-    { name: 'State CTC', baseline: baseline.state_ctc, reform: reform.state_ctc },
+    {
+      name: 'State CTC + Child Allowance',
+      baseline: baseline.state_ctc + (baseline.child_allowance ?? 0),
+      reform: reform.state_ctc + (reform.child_allowance ?? 0),
+    },
     { name: 'Federal EITC', baseline: baseline.federal_eitc, reform: reform.federal_eitc },
     { name: 'State EITC', baseline: baseline.state_eitc, reform: reform.state_eitc },
     { name: 'SNAP Benefits', baseline: baseline.snap_benefits, reform: reform.snap_benefits },

@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-16-household-own-state-ctc"})
+    .env({"CPID_BUILD_REV": "2026-06-16-vectorized-sweep-500"})
 )
 
 
@@ -93,11 +93,18 @@ _ALLOW_ORIGIN_REGEX = (
 # --- household sweep ----------------------------------------------------
 
 
-def _build_household_situation(payload: dict, employment_income: float) -> dict:
-    """Build the PolicyEngine situation dict for one income point.
+def _build_household_situation(
+    payload: dict,
+    employment_income: float,
+    sweep: tuple | None = None,
+) -> dict:
+    """Build the PolicyEngine situation dict.
 
-    Keeps the same shape PolicyEngine-US's ``Simulation`` accepts —
-    one tax unit with the head, optional spouse, and any children.
+    One tax unit with the head, optional spouse, and any children. When
+    ``sweep`` is ``(min, max, count)`` the head's employment income is
+    swept via a PolicyEngine ``axes`` block instead of a fixed value, so a
+    single vectorised ``Simulation`` computes the whole net-income chart at
+    once (far faster than one Simulation per income point).
     """
     year = int(payload["year"])
     state = str(payload["state"]).upper()
@@ -109,7 +116,10 @@ def _build_household_situation(payload: dict, employment_income: float) -> dict:
     people: dict = {
         "head": {
             "age": {year: head_age},
-            "employment_income": {year: float(employment_income)},
+            # None when sweeping — the axes block supplies the values.
+            "employment_income": {
+                year: None if sweep else float(employment_income)
+            },
         }
     }
     members = ["head"]
@@ -140,20 +150,27 @@ def _build_household_situation(payload: dict, employment_income: float) -> dict:
         if val > 0:
             people["head"][key] = {year: val}
 
-    return {
+    situation: dict = {
         "people": people,
-        "tax_units": {
-            "tax_unit": {
-                "members": members,
-            }
-        },
+        "tax_units": {"tax_unit": {"members": members}},
         "households": {
-            "household": {
-                "members": members,
-                "state_name": {year: state},
-            }
+            "household": {"members": members, "state_name": {year: state}}
         },
     }
+    if sweep is not None:
+        income_min, income_max, count = sweep
+        situation["axes"] = [
+            [
+                {
+                    "name": "employment_income",
+                    "min": float(income_min),
+                    "max": float(income_max),
+                    "count": int(count),
+                    "period": year,
+                }
+            ]
+        ]
+    return situation
 
 
 def _own_state_credit_vars(sim, state_code: str, year: int, kind: str) -> list:
@@ -232,28 +249,74 @@ def compute_household_sweep(payload: dict) -> dict:
     reform = Reform.from_dict(reform_dict) if reform_dict else None
     _log(f"reform loaded (params={len(reform_dict) if reform_dict else 0})")
 
-    data_points: list[dict] = []
-    baseline_data_points: list[dict] = []
-    import traceback as _tb
-    for income in incomes:
-        try:
-            situation = _build_household_situation(payload, income)
-            sim_baseline = Simulation(situation=situation)
-            sim_reform = (
-                Simulation(situation=situation, reform=reform)
-                if reform is not None
-                else sim_baseline
-            )
-            point = _household_point(
-                sim_baseline, sim_reform, year, str(payload["state"]).upper()
-            )
-            baseline_data_points.append({"income": float(income), **point["baseline"]})
-            data_points.append({"income": float(income), **point["reform"]})
-        except Exception as exc:
-            raise RuntimeError(
-                f"Failed at income={income}: {type(exc).__name__}: {exc}\n"
-                f"Traceback:\n{_tb.format_exc()}"
-            ) from exc
+    state_code = str(payload["state"]).upper()
+
+    if len(incomes) == 1:
+        # Single household point — no sweep.
+        situation = _build_household_situation(payload, incomes[0])
+        sim_b = Simulation(situation=situation)
+        sim_r = (
+            Simulation(situation=situation, reform=reform)
+            if reform is not None
+            else sim_b
+        )
+        point = _household_point(sim_b, sim_r, year, state_code)
+        data_points = [{"income": float(incomes[0]), **point["reform"]}]
+        baseline_data_points = [{"income": float(incomes[0]), **point["baseline"]}]
+    else:
+        # Vectorised sweep: ONE Simulation with an employment_income axis
+        # computes every income point at once (≫ faster than per-point sims).
+        situation = _build_household_situation(
+            payload, 0.0, sweep=(incomes[0], incomes[-1], len(incomes))
+        )
+        sim_b = Simulation(situation=situation)
+        sim_r = (
+            Simulation(situation=situation, reform=reform)
+            if reform is not None
+            else sim_b
+        )
+        eitc_vars = _own_state_credit_vars(sim_b, state_code, year, "state_eitcs")
+        ctc_vars = _own_state_credit_vars(sim_b, state_code, year, "state_ctcs")
+        n = len(incomes)
+
+        def _arr(sim, name: str):
+            try:
+                return np.asarray(sim.calculate(name, period=year), dtype=float)
+            except Exception:
+                return np.zeros(n)
+
+        def _sum_arr(sim, names: list):
+            total = np.zeros(n)
+            for nm in names:
+                total = total + _arr(sim, nm)
+            return total
+
+        def _rows(sim):
+            net = _arr(sim, "household_net_income")
+            fctc = _arr(sim, "ctc")
+            feitc = _arr(sim, "eitc")
+            sctc = _sum_arr(sim, ctc_vars)
+            seitc = _sum_arr(sim, eitc_vars)
+            ca = _arr(sim, "basic_income")
+            snap = _arr(sim, "snap")
+            pov = _arr(sim, "in_poverty")
+            return [
+                {
+                    "income": float(incomes[i]),
+                    "net_income": float(net[i]),
+                    "federal_ctc": float(fctc[i]),
+                    "federal_eitc": float(feitc[i]),
+                    "state_ctc": float(sctc[i]),
+                    "state_eitc": float(seitc[i]),
+                    "child_allowance": float(ca[i]),
+                    "snap_benefits": float(snap[i]),
+                    "in_poverty": bool(pov[i] > 0),
+                }
+                for i in range(n)
+            ]
+
+        baseline_data_points = _rows(sim_b)
+        data_points = _rows(sim_r)
 
     _log(f"sweep done ({len(incomes)} points)")
 

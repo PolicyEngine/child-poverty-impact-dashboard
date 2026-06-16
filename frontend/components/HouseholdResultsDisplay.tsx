@@ -186,7 +186,7 @@ export default function HouseholdResultsDisplay({
               format={formatCurrency}
             />
             <ResultRow
-              label="State CTC & child allowance"
+              label="State CTC + Child Allowance"
               baseline={baselineResults.state_ctc + (baselineResults.child_allowance ?? 0)}
               reform={
                 impact
