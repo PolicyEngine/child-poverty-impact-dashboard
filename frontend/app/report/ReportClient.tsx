@@ -166,10 +166,33 @@ export default function ReportBuilderPage() {
       ? 'statewide'
       : 'household';
     const household = skipHousehold ? null : householdOverride ?? config.household;
+
+    // Human-readable labels for the selected reforms (name + the parameter
+    // values the user set), so the results header shows the actual reform.
+    const allOptions = reformOptions
+      ? [
+          ...reformOptions.ctc_options,
+          ...reformOptions.eitc_options,
+          ...reformOptions.snap_options,
+          ...reformOptions.child_allowance_options,
+          ...reformOptions.federal_options,
+        ]
+      : [];
+    const reformLabels = config.selectedReforms.map((id) => {
+      const opt = allOptions.find((o) => o.id === id);
+      const name = opt?.name ?? id;
+      const pv = config.parameterValues?.[id];
+      const params = (opt?.adjustable_params ?? [])
+        .filter((p) => pv?.[p.name] !== undefined && p.control !== 'toggle')
+        .map((p) => `${p.label} ${pv![p.name]}${p.unit}`);
+      return params.length ? `${name} — ${params.join(', ')}` : name;
+    });
+
     const payload = {
       ...config,
       populationType,
       household,
+      reformLabels,
     };
     sessionStorage.setItem('reportConfig', JSON.stringify(payload));
     router.push('/report/results');
