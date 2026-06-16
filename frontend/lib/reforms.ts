@@ -14,7 +14,7 @@
  * ``Reform.from_dict`` resolves the ``[i]`` syntax.
  */
 
-import { buildStateEitcReform } from './state-programs';
+import { buildStateEitcReform, buildStateCtcReform } from './state-programs';
 
 export type ReformDictValue =
   | number
@@ -64,6 +64,14 @@ function applyReformOption(
     const state = id.slice(0, 2).toUpperCase();
     const ratePct = parameterValues?.[id]?.match_rate ?? 30;
     Object.assign(reform, buildStateEitcReform(state, ratePct / 100, year));
+    return;
+  }
+
+  // State CTC — IDs look like ``ca_ctc`` / ``dc_ctc`` (federal_ctc_expanded
+  // does not end in ``_ctc``, so no collision). Emits only changed params.
+  if (id.endsWith('_ctc')) {
+    const state = id.slice(0, 2).toUpperCase();
+    Object.assign(reform, buildStateCtcReform(state, parameterValues?.[id]));
     return;
   }
 

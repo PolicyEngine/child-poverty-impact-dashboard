@@ -416,6 +416,299 @@ function buildFederalOptions(): ReformOption[] {
   ];
 }
 
+// ---- Current-law state CTC registry ------------------------------------
+//
+// Each entry maps a state's existing Child Tax Credit to the PolicyEngine-US
+// parameters a user can modify (amount, age, phase-out). `default_value` is
+// the current-law value in UI units; `path` is the reform-dict key;
+// `divide_by` converts a UI percent to PE-US's /1 rate. Income measures for
+// phase-outs are noted per state (AGI / earned income / state taxable income).
+//
+// IMPORTANT: buildStateCtcReform only emits params the user *changed* from
+// `default_value`, so an unchanged selection is a no-op and a slightly stale
+// default can never silently create a phantom reform.
+
+interface CtcParam {
+  name: string;
+  label: string;
+  path: string;
+  default_value: number;
+  min_value: number;
+  max_value: number;
+  step: number;
+  unit: string;
+  description: string;
+  divide_by?: number; // UI percent -> /1 rate when set to 100
+}
+
+interface CtcRegistryEntry {
+  name: string;
+  description: string;
+  params: CtcParam[];
+}
+
+const AMT = (
+  path: string,
+  def: number,
+  max = 5000,
+): CtcParam => ({
+  name: 'amount',
+  label: 'Credit amount',
+  path,
+  default_value: def,
+  min_value: 0,
+  max_value: max,
+  step: 50,
+  unit: '$',
+  description: 'Maximum credit per eligible child.',
+});
+
+const AGE = (
+  path: string,
+  def: number,
+  label = 'Eligible if under age',
+  name = 'age',
+): CtcParam => ({
+  name,
+  label,
+  path,
+  default_value: def,
+  min_value: 0,
+  max_value: 19,
+  step: 1,
+  unit: 'yr',
+  description: 'Age limit for an eligible child.',
+});
+
+const DOLLAR = (
+  name: string,
+  label: string,
+  path: string,
+  def: number,
+  description: string,
+  max = 500000,
+): CtcParam => ({
+  name,
+  label,
+  path,
+  default_value: def,
+  min_value: 0,
+  max_value: max,
+  step: 1000,
+  unit: '$',
+  description,
+});
+
+const RATE = (
+  name: string,
+  label: string,
+  path: string,
+  def: number,
+  description: string,
+): CtcParam => ({
+  name,
+  label,
+  path,
+  default_value: def,
+  min_value: 0,
+  max_value: 100,
+  step: 1,
+  unit: '%',
+  description,
+  divide_by: 100,
+});
+
+const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
+  CA: {
+    name: 'California Young Child Tax Credit',
+    description:
+      'Refundable credit for young children. Phases out against earned income.',
+    params: [
+      AMT('gov.states.ca.tax.income.credits.young_child.amount', 1189),
+      AGE('gov.states.ca.tax.income.credits.young_child.ineligible_age', 6),
+      DOLLAR(
+        'phaseout_start',
+        'Phase-out start (earned income)',
+        'gov.states.ca.tax.income.credits.young_child.phase_out.start',
+        27425,
+        'Earned income at which the credit starts phasing out.',
+      ),
+    ],
+  },
+  DC: {
+    name: 'DC Child Tax Credit',
+    description:
+      'Refundable credit (up to $1,000/child). Phases out against DC taxable income by filing status.',
+    params: [
+      AMT('gov.states.dc.tax.income.credits.ctc.amount', 1000),
+      AGE('gov.states.dc.tax.income.credits.ctc.child.age_threshold', 18),
+      DOLLAR('threshold_single', 'Phase-out — single', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SINGLE', 55000, 'DC taxable income where phase-out begins (single).'),
+      DOLLAR('threshold_joint', 'Phase-out — joint', 'gov.states.dc.tax.income.credits.ctc.income_threshold.JOINT', 70000, 'DC taxable income where phase-out begins (joint).'),
+      DOLLAR('threshold_hoh', 'Phase-out — head of household', 'gov.states.dc.tax.income.credits.ctc.income_threshold.HEAD_OF_HOUSEHOLD', 55000, 'DC taxable income where phase-out begins (HoH).'),
+      DOLLAR('threshold_separate', 'Phase-out — separate', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SEPARATE', 35000, 'DC taxable income where phase-out begins (separate).'),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SURVIVING_SPOUSE', 55000, 'DC taxable income where phase-out begins (surviving spouse).'),
+    ],
+  },
+  GA: {
+    name: 'Georgia Child Tax Credit',
+    description: 'Non-refundable credit ($250/child under 6). No income phase-out.',
+    params: [
+      AMT('gov.states.ga.tax.income.credits.ctc.amount', 250, 3000),
+      AGE('gov.states.ga.tax.income.credits.ctc.age_threshold', 6),
+    ],
+  },
+  IL: {
+    name: 'Illinois Child Tax Credit',
+    description:
+      'Refundable credit set as a percentage of the state EITC, for filers with an eligible child.',
+    params: [
+      RATE('rate', 'Credit (% of state EITC)', 'gov.states.il.tax.income.credits.ctc.rate', 40, 'Credit as a percentage of the Illinois EITC.'),
+      AGE('gov.states.il.tax.income.credits.ctc.age_limit', 12),
+    ],
+  },
+  MD: {
+    name: 'Maryland Child Tax Credit',
+    description:
+      'Refundable credit ($500/child). Phases out against federal AGI (2025+).',
+    params: [
+      AMT('gov.states.md.tax.income.credits.ctc.amount', 500),
+      AGE('gov.states.md.tax.income.credits.ctc.age_threshold.main', 6),
+      AGE('gov.states.md.tax.income.credits.ctc.age_threshold.disabled', 17, 'Disabled child age limit', 'age_disabled'),
+      DOLLAR('phaseout_threshold', 'Phase-out start (AGI)', 'gov.states.md.tax.income.credits.ctc.phase_out.threshold', 15000, 'Federal AGI where the credit starts phasing out.', 100000),
+      {
+        name: 'phaseout_rate',
+        label: 'Reduction per $1,000 AGI',
+        path: 'gov.states.md.tax.income.credits.ctc.phase_out.rate',
+        default_value: 50,
+        min_value: 0,
+        max_value: 500,
+        step: 5,
+        unit: '$',
+        description: 'Dollars of credit lost per $1,000 of AGI over the threshold.',
+      },
+    ],
+  },
+  MN: {
+    name: 'Minnesota Child Tax Credit',
+    description:
+      'Refundable credit ($1,750/child). Phases out against the larger of earned income or AGI.',
+    params: [
+      AMT('gov.states.mn.tax.income.credits.cwfc.ctc.amount', 1750, 6000),
+      AGE('gov.states.mn.tax.income.credits.cwfc.ctc.age_limit', 18),
+      DOLLAR('threshold_joint', 'Phase-out start — joint', 'gov.states.mn.tax.income.credits.cwfc.phase_out.threshold.joint', 37910, 'Income where phase-out begins (joint).'),
+      DOLLAR('threshold_other', 'Phase-out start — non-joint', 'gov.states.mn.tax.income.credits.cwfc.phase_out.threshold.other', 31950, 'Income where phase-out begins (non-joint).'),
+      RATE('phaseout_rate', 'Phase-out rate', 'gov.states.mn.tax.income.credits.cwfc.phase_out.rate.main', 12, 'Share of income above the threshold that reduces the credit.'),
+    ],
+  },
+  OR: {
+    name: 'Oregon Child Tax Credit',
+    description:
+      'Refundable credit ($1,050/child, ages 0–5 only — note Oregon excludes children at/over the age below). Phases out against Oregon AGI.',
+    params: [
+      AMT('gov.states.or.tax.income.credits.ctc.amount', 1050, 6000),
+      AGE('gov.states.or.tax.income.credits.ctc.ineligible_age', 6, 'Ineligible at/above age'),
+      {
+        name: 'child_limit',
+        label: 'Max children',
+        path: 'gov.states.or.tax.income.credits.ctc.child_limit',
+        default_value: 5,
+        min_value: 1,
+        max_value: 12,
+        step: 1,
+        unit: '',
+        description: 'Maximum number of children the credit covers.',
+      },
+      DOLLAR('phaseout_start', 'Phase-out start (OR AGI)', 'gov.states.or.tax.income.credits.ctc.reduction.start', 26550, 'Oregon AGI where the credit starts phasing out.', 200000),
+      DOLLAR('phaseout_width', 'Phase-out width', 'gov.states.or.tax.income.credits.ctc.reduction.width', 5000, 'Income range over which the credit phases to $0.', 100000),
+    ],
+  },
+  UT: {
+    name: 'Utah Child Tax Credit',
+    description:
+      'Non-refundable credit ($1,000/child). Phases out by filing status against state AGI plus tax-exempt interest. (Age eligibility is a fixed band and is not adjustable here.)',
+    params: [
+      AMT('gov.states.ut.tax.income.credits.ctc.amount', 1000),
+      DOLLAR('threshold_single', 'Phase-out — single', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SINGLE', 43000, 'Income where phase-out begins (single).'),
+      DOLLAR('threshold_hoh', 'Phase-out — head of household', 'gov.states.ut.tax.income.credits.ctc.reduction.start.HEAD_OF_HOUSEHOLD', 43000, 'Income where phase-out begins (HoH).'),
+      DOLLAR('threshold_joint', 'Phase-out — joint', 'gov.states.ut.tax.income.credits.ctc.reduction.start.JOINT', 54000, 'Income where phase-out begins (joint).'),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SURVIVING_SPOUSE', 54000, 'Income where phase-out begins (surviving spouse).'),
+      DOLLAR('threshold_separate', 'Phase-out — separate', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SEPARATE', 27000, 'Income where phase-out begins (separate).'),
+      RATE('phaseout_rate', 'Phase-out rate', 'gov.states.ut.tax.income.credits.ctc.reduction.rate', 10, 'Share of income above the threshold that reduces the credit.'),
+    ],
+  },
+  VT: {
+    name: 'Vermont Child Tax Credit',
+    description:
+      'Refundable credit ($1,000/child, ages 0–6). Phases out against AGI above $125,000.',
+    params: [
+      AMT('gov.states.vt.tax.income.credits.ctc.amount', 1000),
+      AGE('gov.states.vt.tax.income.credits.ctc.age_limit', 6, 'Eligible if age at most'),
+      DOLLAR('phaseout_start', 'Phase-out start (AGI)', 'gov.states.vt.tax.income.credits.ctc.reduction.start', 125000, 'AGI where the credit starts phasing out.'),
+      {
+        name: 'phaseout_amount',
+        label: 'Reduction per $1,000 AGI',
+        path: 'gov.states.vt.tax.income.credits.ctc.reduction.amount',
+        default_value: 20,
+        min_value: 0,
+        max_value: 500,
+        step: 5,
+        unit: '$',
+        description: 'Dollars of credit lost per $1,000 of AGI over the threshold.',
+      },
+    ],
+  },
+};
+
+/** Reform options for the selected state's current-law CTC (one card with
+ *  its modifiable parameters), or [] if the state has no wired CTC. */
+export function buildStateCtcOptions(stateCode: string): ReformOption[] {
+  const entry = CTC_REFORMS[stateCode.toUpperCase()];
+  if (!entry) return [];
+  return [
+    {
+      id: `${stateCode.toLowerCase()}_ctc`,
+      name: entry.name,
+      description: entry.description,
+      category: 'state_ctc',
+      is_new_program: false,
+      is_enhancement: true,
+      is_configurable: true,
+      adjustable_params: entry.params.map((p) => ({
+        name: p.name,
+        label: p.label,
+        min_value: p.min_value,
+        max_value: p.max_value,
+        default_value: p.default_value,
+        step: p.step,
+        unit: p.unit,
+        description: p.description,
+      })),
+    },
+  ];
+}
+
+/** PolicyEngine-US reform dict for a state's CTC. Emits ONLY parameters the
+ *  user changed from current law, so an unmodified selection is a no-op. */
+export function buildStateCtcReform(
+  stateCode: string,
+  paramValues?: Record<string, number>,
+): Record<string, number> {
+  const entry = CTC_REFORMS[stateCode.toUpperCase()];
+  if (!entry) return {};
+  const out: Record<string, number> = {};
+  for (const p of entry.params) {
+    const ui = paramValues?.[p.name];
+    if (ui === undefined || ui === p.default_value) continue; // unchanged
+    out[p.path] = p.divide_by ? ui / p.divide_by : ui;
+  }
+  return out;
+}
+
+/** State codes that have a wired current-law CTC. */
+export function stateHasCtc(stateCode: string): boolean {
+  return CTC_REFORMS[stateCode.toUpperCase()] !== undefined;
+}
+
 export function getReformOptionsForState(
   stateCode: string,
 ): StateReformOptions {
@@ -443,7 +736,7 @@ export function getReformOptionsForState(
       state_eitc: programs.eitc !== null,
       state_cdcc: programs.cdcc !== null,
     },
-    ctc_options: [],
+    ctc_options: buildStateCtcOptions(programs.state_code),
     eitc_options: buildEitcOptions(programs),
     snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),

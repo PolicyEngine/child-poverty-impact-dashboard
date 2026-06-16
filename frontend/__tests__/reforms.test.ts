@@ -104,6 +104,31 @@ describe('buildReformDict', () => {
     expect(reform[`${BI}[2].amount`]).toBe(1000);
   });
 
+  it('emits a changed state-CTC amount and nothing else', () => {
+    const reform = buildReformDict(
+      ['dc_ctc'],
+      { dc_ctc: { amount: 2000 } },
+      2026,
+    );
+    expect(reform['gov.states.dc.tax.income.credits.ctc.amount']).toBe(2000);
+    // Unchanged thresholds are NOT emitted (no-op preserves baseline).
+    expect(
+      reform['gov.states.dc.tax.income.credits.ctc.income_threshold.SINGLE'],
+    ).toBeUndefined();
+  });
+
+  it('converts a state-CTC percentage rate to a /1 value', () => {
+    const reform = buildReformDict(['il_ctc'], { il_ctc: { rate: 60 } }, 2026);
+    expect(reform['gov.states.il.tax.income.credits.ctc.rate']).toBeCloseTo(0.6);
+  });
+
+  it('produces an empty reform when a state CTC is selected but unchanged', () => {
+    expect(buildReformDict(['vt_ctc'], undefined, 2026)).toEqual({});
+    expect(
+      buildReformDict(['vt_ctc'], { vt_ctc: { amount: 1000 } }, 2026),
+    ).toEqual({}); // 1000 == current-law default -> no-op
+  });
+
   it('throws on an unknown / unwired reform option', () => {
     expect(() => buildReformDict(['snap_increase_15'], undefined, 2026)).toThrow(
       /Unknown or unwired/,

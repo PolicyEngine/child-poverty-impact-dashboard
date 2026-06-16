@@ -25,6 +25,15 @@ don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
 - **State EITC** (40 states + DC): adjustable match rate as a percentage
   of the federal EITC; creates, expands, or converts-to-refundable
   depending on the state's current law.
+- **State CTC** (current law, 9 states): when the selected state has a
+  Child Tax Credit, its existing parameters — credit amount, age limit,
+  and phase-out (threshold(s)/rate) — are exposed as sliders so the credit
+  can be modified. Wired states: **CA** (young-child), **DC**, **GA**,
+  **IL** (% of state EITC), **MD**, **MN**, **OR**, **UT**, **VT**. Only
+  parameters you change from current law are sent, so an unmodified
+  selection is a no-op. (Income-bracketed-amount states — CO, NE, NJ, NM —
+  and NY's by-age amounts are deferred; states with no CTC can use the
+  federal child allowance above instead.)
 
 **Shown but in development** (greyed-out, non-selectable until wired to a
 PE-US lever): SNAP benefit increases and the 50% federal EITC expansion.
