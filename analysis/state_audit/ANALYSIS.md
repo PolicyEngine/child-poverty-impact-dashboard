@@ -19,21 +19,24 @@ Under-5 is similarly close. Child cuts (under-1/under-6/under-18) have no
 exact calibration target (only total + under-5 are exact); under-18 is
 approximated from 5-year ACS brackets.
 
-## 2. Child poverty — PolicyEngine systematically overstates it ⚠️
+## 2. Child poverty — PolicyEngine estimates run higher than the Census SPM target ⚠️
 
 PolicyEngine reports the **SPM** (`in_poverty` is SPMUnit-based). Compared
-to the **Census ACS SPM, Under-18, 2023** (same measure), PolicyEngine child
-poverty is a **median +25% high**:
+to the **Census ACS SPM, Under-18, 2023** (same measure), PolicyEngine's
+**2026** child-poverty estimates sit a **median ~25% above** that target:
 
 - Closest: MI (−4%), KY (−1%), PA (+0.3%)
 - Furthest: VT (+199%), ME (+106%), KS (+64%) — small states with low
-  Census rates, so small absolute gaps explode in percent.
+  Census rates, so small absolute gaps show up as large percents.
 
-**Why:** the state datasets are calibrated to population / AGI / SNAP — **not
-poverty** — and PolicyEngine's 2026 vintage sits above the 2023 target
-(post-pandemic child poverty rose). This is the headline finding: treat
-dashboard state-level *poverty* figures with caution until the datasets are
-calibrated to a poverty target.
+**This is a divergence to investigate, not a confirmed PolicyEngine error.**
+The gap could come from several sources, alone or together: the **vintage
+mismatch** (PE 2026 vs the 2023 target — post-pandemic child poverty rose
+after 2021–2023); **measure/definition** differences between PE's SPM and the
+Census ACS SPM; the fact that the **state datasets are calibrated to
+population / AGI / SNAP, not poverty**; or limitations in the target itself.
+Worth a closer look before drawing conclusions about dashboard state-level
+poverty figures.
 
 ## 3. State EITC cost — mostly accurate, a few flags ✅⚠️
 
@@ -68,18 +71,19 @@ UT +4%, VT +10%, MA +11%, OK +13%, NM +19%, CA +24%.
 - **MD CTC +219%** — Maryland's CTC is tiny and hard-capped at $15k AGI
   ($500/child under 6). PE ($29M) far exceeds the ~$9M actual — PE likely
   doesn't bind the income cap tightly.
-- **NY ESCC +117%** — PE ($1.79B) vs ~$825M (base + FY26 enhancement). Either
-  PE overstates the expanded 2025–2027 credit or the budget figure
-  understates it; worth a closer look (this credit was newly wired in the
-  dashboard).
+- **NY ESCC +117%** — PE ($1.79B) vs ~$825M (base + FY26 enhancement). PE's
+  figure is well above the target — either the modeled expanded 2025–2027
+  credit is high or the budget figure understates it; worth a closer look
+  (this credit was newly wired in the dashboard).
 - **CO +41%, IL +41%, NJ +47%, OR +39%, ID +38%, GA −32%** — moderate gaps,
   several involving brand-new credits (GA 2026, CO Family Affordability 2024)
   with limited or fast-moving cost data.
 
 ## Actionable data-quality flags
 1. **MT state EITC match = 20% in PE-US vs 3% statutory** — verify/fix upstream.
-2. **State datasets overstate SPM child poverty (~+25% median)** — they aren't
-   calibrated to poverty; consider adding a state child-poverty target.
+2. **PE SPM child-poverty estimates run ~+25% above the Census target (median)**
+   — investigate (vintage / measure / calibration before concluding it's a
+   PE error); consider adding a state child-poverty calibration target.
 3. **NY ESCC and MD CTC cost** — investigate the large gaps (modeling vs target).
 
 ## Method notes & caveats

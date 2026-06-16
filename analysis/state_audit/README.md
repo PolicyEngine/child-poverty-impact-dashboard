@@ -66,5 +66,6 @@ python analysis/state_audit/build_csvs.py
 - **Child population cuts** (under-1/under-6/under-18) have no exact
   calibration target; only total and under-5 are exact.
 - **State datasets are calibrated to population / AGI / SNAP, not poverty**,
-  so poverty divergence vs the Census target is expected and is a key finding
-  of this audit.
+  so a poverty gap vs the Census target is one plausible source of the
+  divergence — alongside vintage (2026 vs 2023) and measure differences. The
+  divergence is something to investigate, not a confirmed PolicyEngine error.
