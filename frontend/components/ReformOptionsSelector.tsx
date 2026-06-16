@@ -204,6 +204,11 @@ export default function ReformOptionsSelector({
               onToggle={() => toggleOption(option.id)}
               parameterValues={parameterValues[option.id] || {}}
               onParameterChange={(paramName, value) => {
+                // Configuring a wizard reform auto-includes it, so the user
+                // doesn't have to also click the card to select it.
+                if (!selectedOptions.includes(option.id)) {
+                  onSelectionChange([...selectedOptions, option.id]);
+                }
                 onParameterChange?.(option.id, paramName, value);
               }}
             />
@@ -234,6 +239,11 @@ function ReformOptionCard({
 }) {
   const hasAdjustableParams = option.is_configurable && option.adjustable_params && option.adjustable_params.length > 0;
   const inDevelopment = option.in_development === true;
+  // Child allowance + state CTC tabs have a single option, so show its
+  // inputs as a wizard immediately (no card-click to expand) and use typed
+  // input boxes rather than sliders.
+  const wizardMode =
+    option.category === 'child_allowance' || option.category === 'state_ctc';
 
   return (
     <div
@@ -297,8 +307,8 @@ function ReformOptionCard({
         )}
       </div>
 
-      {/* Adjustable Parameters - shown when selected */}
-      {!inDevelopment && isSelected && hasAdjustableParams && (
+      {/* Adjustable Parameters - shown when selected, or always in wizard mode */}
+      {!inDevelopment && (isSelected || wizardMode) && hasAdjustableParams && (
         <div className="mt-4 pt-4 border-t border-pe-gray-200 space-y-4">
           {option.adjustable_params!.map((param) => {
             // Hide params gated behind a toggle that's currently off.
@@ -334,11 +344,14 @@ function ReformOptionCard({
 
             return (
               <div key={param.name} className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <label className="text-sm font-medium text-gray-700">
                     {param.label}
                   </label>
                   <div className="flex items-center gap-2">
+                    {param.unit === '$' && (
+                      <span className="text-sm text-gray-500">$</span>
+                    )}
                     <input
                       type="number"
                       value={currentValue}
@@ -351,26 +364,31 @@ function ReformOptionCard({
                       min={param.min_value}
                       max={param.max_value}
                       step={param.step}
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-pe-teal-500 focus:border-transparent"
+                      className={`${wizardMode ? 'w-28' : 'w-20'} px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-pe-teal-500 focus:border-transparent`}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <span className="text-sm text-gray-500 w-6">{param.unit}</span>
+                    {param.unit !== '$' && (
+                      <span className="text-sm text-gray-500 w-6">{param.unit}</span>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 w-8">{param.min_value}{param.unit}</span>
-                  <input
-                    type="range"
-                    value={currentValue}
-                    onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
-                    min={param.min_value}
-                    max={param.max_value}
-                    step={param.step}
-                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pe-teal-500"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <span className="text-xs text-gray-400 w-10 text-right">{param.max_value}{param.unit}</span>
-                </div>
+                {/* Slider only outside wizard mode (CTC / child allowance use typed boxes). */}
+                {!wizardMode && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400 w-8">{param.min_value}{param.unit}</span>
+                    <input
+                      type="range"
+                      value={currentValue}
+                      onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
+                      min={param.min_value}
+                      max={param.max_value}
+                      step={param.step}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pe-teal-500"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <span className="text-xs text-gray-400 w-10 text-right">{param.max_value}{param.unit}</span>
+                  </div>
+                )}
                 {param.description && (
                   <p className="text-xs text-gray-500">{param.description}</p>
                 )}

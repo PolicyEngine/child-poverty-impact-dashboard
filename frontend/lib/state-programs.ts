@@ -431,7 +431,8 @@ function buildFederalOptions(): ReformOption[] {
 interface CtcParam {
   name: string;
   label: string;
-  path: string;
+  path?: string; // single target path
+  paths?: string[]; // multiple target paths set to the same value (e.g. CO's 5 filing statuses)
   default_value: number;
   min_value: number;
   max_value: number;
@@ -439,6 +440,7 @@ interface CtcParam {
   unit: string;
   description: string;
   divide_by?: number; // UI percent -> /1 rate when set to 100
+  control?: 'toggle'; // render as a checkbox (stored 0/1)
 }
 
 interface CtcRegistryEntry {
@@ -657,7 +659,135 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       },
     ],
   },
+  // --- Income-bracketed-amount states (amount is a per-income-tier scale).
+  // We expose each tier's dollar amount; the income thresholds stay fixed.
+  CO: {
+    name: 'Colorado Child Tax Credit',
+    description:
+      'Refundable credit for children under 6, paid as a per-child amount that steps down with federal AGI (same tier amounts across filing statuses; income thresholds differ). Edit each tier amount.',
+    params: [
+      coTier(0, 1200, 'Tier 1 amount (lowest AGI)'),
+      coTier(1, 600, 'Tier 2 amount (middle AGI)'),
+      coTier(2, 200, 'Tier 3 amount (upper AGI)'),
+      AGE('gov.states.co.tax.income.credits.ctc.age_threshold', 6),
+    ],
+  },
+  NE: {
+    name: 'Nebraska Refundable Child Tax Credit',
+    description:
+      'Refundable credit for children age 5 or under, stepping down with AGI ($2,000 under $75k; $1,000 to $150k).',
+    params: [
+      bracketAmt('gov.states.ne.tax.income.credits.ctc.refundable.amount', 0, 2000, 'Amount (AGI under $75k)'),
+      bracketAmt('gov.states.ne.tax.income.credits.ctc.refundable.amount', 1, 1000, 'Amount (AGI $75k–$150k)'),
+      AGE('gov.states.ne.tax.income.credits.ctc.refundable.age_threshold', 5),
+      DOLLAR('threshold_1', 'Lower tier ends (AGI)', 'gov.states.ne.tax.income.credits.ctc.refundable.amount[1].threshold', 75000, 'AGI where the credit steps down to the second tier.', 300000),
+      DOLLAR('threshold_2', 'Credit ends (AGI)', 'gov.states.ne.tax.income.credits.ctc.refundable.amount[2].threshold', 150000, 'AGI at/above which no credit is paid.', 500000),
+    ],
+  },
+  NJ: {
+    name: 'New Jersey Child Tax Credit',
+    description:
+      'Non-refundable credit for children under 6, stepping down with NJ taxable income ($1,000 down to $0). Edit each tier amount.',
+    params: [
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 0, 1000, 'Amount (income under $30k)'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 1, 800, 'Amount ($30k–$40k)'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 2, 600, 'Amount ($40k–$50k)'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 3, 400, 'Amount ($50k–$60k)'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 4, 200, 'Amount ($60k–$80k)'),
+      AGE('gov.states.nj.tax.income.credits.ctc.age_limit', 6),
+    ],
+  },
+  NM: {
+    name: 'New Mexico Child Income Tax Credit',
+    description:
+      'Refundable credit for all qualifying children, stepping down with federal AGI ($637 down to $26). Edit each tier amount.',
+    params: [
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 0, 637, 'Amount (AGI under $25k)', 2000),
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 1, 424, 'Amount ($25k–$50k)', 2000),
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 2, 212, 'Amount ($50k–$75k)', 2000),
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 3, 106, 'Amount ($75k–$100k)', 2000),
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 4, 79, 'Amount ($100k–$200k)', 2000),
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 5, 53, 'Amount ($200k–$350k)', 2000),
+      bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 6, 26, 'Amount ($350k+)', 2000),
+    ],
+  },
+  // --- New York: handled specially (year-aware) by buildNyCtcReform.
+  NY: {
+    name: 'New York Empire State Child Credit',
+    description:
+      'Current (2025–2027) structure pays by child age and phases out by filing status. After 2027 it reverts to the regular 33%-of-federal credit unless you extend it below.',
+    params: [
+      {
+        name: 'extend',
+        label: 'Extend the 2025–2027 credit beyond 2027',
+        control: 'toggle',
+        default_value: 0,
+        min_value: 0,
+        max_value: 1,
+        step: 1,
+        unit: '',
+        description:
+          'For analysis years 2028+, keep the current age-based credit in effect instead of reverting to the regular (33% of federal) credit. No effect for 2026–2027.',
+      },
+      DOLLAR('young_amount', 'Amount — ages 0–3', '', 1000, 'Credit per child under age 4.', 5000),
+      DOLLAR('older_amount', 'Amount — ages 4–16', '', 500, 'Credit per child age 4–16.', 5000),
+      DOLLAR('threshold_single', 'Phase-out — single', '', 75000, 'Federal AGI where phase-out begins (single).'),
+      DOLLAR('threshold_joint', 'Phase-out — joint', '', 110000, 'Federal AGI where phase-out begins (joint).'),
+      DOLLAR('threshold_hoh', 'Phase-out — head of household', '', 75000, 'Federal AGI where phase-out begins (HoH).'),
+      DOLLAR('threshold_separate', 'Phase-out — separate', '', 55000, 'Federal AGI where phase-out begins (separate).'),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', '', 110000, 'Federal AGI where phase-out begins (surviving spouse).'),
+      {
+        name: 'rate',
+        label: 'Phase-out rate',
+        default_value: 16.5,
+        min_value: 0,
+        max_value: 100,
+        step: 0.5,
+        unit: '%',
+        description: 'Percent of each $1,000 of AGI over the threshold that reduces the credit.',
+      },
+    ],
+  },
 };
+
+// Colorado tier amount, applied to all five filing-status scales at once.
+function coTier(idx: number, def: number, label: string): CtcParam {
+  const statuses = ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse'];
+  return {
+    name: `tier${idx + 1}`,
+    label,
+    paths: statuses.map(
+      (s) => `gov.states.co.tax.income.credits.ctc.amount.${s}[${idx}].amount`,
+    ),
+    default_value: def,
+    min_value: 0,
+    max_value: 3000,
+    step: 50,
+    unit: '$',
+    description: 'Per-child credit for this income tier (all filing statuses).',
+  };
+}
+
+// A single bracket-scale amount (e.g. ``...amount[2].amount``).
+function bracketAmt(
+  scalePath: string,
+  idx: number,
+  def: number,
+  label: string,
+  max = 3000,
+): CtcParam {
+  return {
+    name: `tier${idx + 1}`,
+    label,
+    path: `${scalePath}[${idx}].amount`,
+    default_value: def,
+    min_value: 0,
+    max_value: max,
+    step: 50,
+    unit: '$',
+    description: 'Per-child credit for this income tier.',
+  };
+}
 
 /** Reform options for the selected state's current-law CTC (one card with
  *  its modifiable parameters), or [] if the state has no wired CTC. */
@@ -682,25 +812,87 @@ export function buildStateCtcOptions(stateCode: string): ReformOption[] {
         step: p.step,
         unit: p.unit,
         description: p.description,
+        ...(p.control ? { control: p.control } : {}),
       })),
     },
   ];
 }
 
 /** PolicyEngine-US reform dict for a state's CTC. Emits ONLY parameters the
- *  user changed from current law, so an unmodified selection is a no-op. */
+ *  user changed from current law, so an unmodified selection is a no-op.
+ *  NY is handled specially (year-aware) because its current structure
+ *  reverts after 2027. */
 export function buildStateCtcReform(
   stateCode: string,
   paramValues?: Record<string, number>,
-): Record<string, number> {
-  const entry = CTC_REFORMS[stateCode.toUpperCase()];
+  year = 2026,
+): Record<string, number | boolean> {
+  const code = stateCode.toUpperCase();
+  if (code === 'NY') return buildNyCtcReform(paramValues, year);
+  const entry = CTC_REFORMS[code];
   if (!entry) return {};
   const out: Record<string, number> = {};
   for (const p of entry.params) {
     const ui = paramValues?.[p.name];
     if (ui === undefined || ui === p.default_value) continue; // unchanged
-    out[p.path] = p.divide_by ? ui / p.divide_by : ui;
+    const value = p.divide_by ? ui / p.divide_by : ui;
+    for (const path of p.paths ?? [p.path!]) out[path] = value;
   }
+  return out;
+}
+
+/** New York Empire State Child Credit. The 2025-2027 age-based structure
+ *  reverts after 2027, so for analysis years 2028+ the whole post-2024
+ *  block (in_effect + amounts + phase-out) must be restored to keep it,
+ *  and only if the user opts to "extend". For 2026-2027 it's already
+ *  current law, so we emit only the params the user changed. */
+function buildNyCtcReform(
+  pv: Record<string, number> | undefined,
+  year: number,
+): Record<string, number | boolean> {
+  const P = 'gov.states.ny.tax.income.credits.ctc.post_2024';
+  const out: Record<string, number | boolean> = {};
+  const reverts = year >= 2028;
+  const extend = (pv?.extend ?? 0) > 0;
+  const young = pv?.young_amount ?? 1000;
+  const older = pv?.older_amount ?? 500;
+  const tSingle = pv?.threshold_single ?? 75000;
+  const tJoint = pv?.threshold_joint ?? 110000;
+  const tHoh = pv?.threshold_hoh ?? 75000;
+  const tSep = pv?.threshold_separate ?? 55000;
+  const tSurv = pv?.threshold_surviving_spouse ?? 110000;
+  const rate = pv?.rate ?? 16.5;
+
+  if (reverts) {
+    // Post-2024 has reverted to $0/off. Without "extend", current law is the
+    // regular 33%-of-federal credit, so emit nothing (baseline).
+    if (!extend) return {};
+    // Restore the full block (all $0/false in the 2028 baseline).
+    out[`${P}.in_effect`] = true;
+    out[`${P}.amount[0].amount`] = young;
+    out[`${P}.amount[1].amount`] = older;
+    out[`${P}.phase_out.threshold.SINGLE`] = tSingle;
+    out[`${P}.phase_out.threshold.JOINT`] = tJoint;
+    out[`${P}.phase_out.threshold.HEAD_OF_HOUSEHOLD`] = tHoh;
+    out[`${P}.phase_out.threshold.SEPARATE`] = tSep;
+    out[`${P}.phase_out.threshold.SURVIVING_SPOUSE`] = tSurv;
+    out[`${P}.phase_out.rate`] = rate;
+    out[`${P}.phase_out.increment`] = 1000;
+    return out;
+  }
+
+  // 2026-2027: post-2024 is current law; emit only changed params.
+  const set = (key: string, val: number, def: number) => {
+    if (val !== def) out[key] = val;
+  };
+  set(`${P}.amount[0].amount`, young, 1000);
+  set(`${P}.amount[1].amount`, older, 500);
+  set(`${P}.phase_out.threshold.SINGLE`, tSingle, 75000);
+  set(`${P}.phase_out.threshold.JOINT`, tJoint, 110000);
+  set(`${P}.phase_out.threshold.HEAD_OF_HOUSEHOLD`, tHoh, 75000);
+  set(`${P}.phase_out.threshold.SEPARATE`, tSep, 55000);
+  set(`${P}.phase_out.threshold.SURVIVING_SPOUSE`, tSurv, 110000);
+  set(`${P}.phase_out.rate`, rate, 16.5);
   return out;
 }
 

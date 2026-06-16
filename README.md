@@ -25,15 +25,22 @@ don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
 - **State EITC** (40 states + DC): adjustable match rate as a percentage
   of the federal EITC; creates, expands, or converts-to-refundable
   depending on the state's current law.
-- **State CTC** (current law, 9 states): when the selected state has a
+- **State CTC** (current law, 14 states): when the selected state has a
   Child Tax Credit, its existing parameters — credit amount, age limit,
-  and phase-out (threshold(s)/rate) — are exposed as sliders so the credit
-  can be modified. Wired states: **CA** (young-child), **DC**, **GA**,
-  **IL** (% of state EITC), **MD**, **MN**, **OR**, **UT**, **VT**. Only
-  parameters you change from current law are sent, so an unmodified
-  selection is a no-op. (Income-bracketed-amount states — CO, NE, NJ, NM —
-  and NY's by-age amounts are deferred; states with no CTC can use the
-  federal child allowance above instead.)
+  and phase-out (threshold(s)/rate) — appear as typed input boxes so the
+  credit can be modified. Only parameters you change from current law are
+  sent, so an unmodified selection is a no-op.
+  - Flat-amount: **CA** (young-child), **DC**, **GA**, **IL** (% of state
+    EITC), **MD**, **MN**, **OR**, **UT**, **VT**.
+  - Income-bracketed amount (per-tier inputs): **CO**, **NE**, **NJ**, **NM**.
+  - **NY** (Empire State Child Credit): by-age amounts + phase-out by
+    filing status. Its 2025–2027 structure reverts after 2027, so for
+    analysis years 2028+ there's an **"extend"** toggle — on keeps the
+    age-based credit, off reverts to the regular 33%-of-federal credit.
+
+  States with no current-law CTC can use the federal child allowance above
+  instead. (Excluded: NC — repealed; WV — its credit is for seniors, not
+  children; ID — dormant; OK — childcare hybrid.)
 
 **Shown but in development** (greyed-out, non-selectable until wired to a
 PE-US lever): SNAP benefit increases and the 50% federal EITC expansion.

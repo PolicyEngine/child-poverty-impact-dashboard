@@ -129,6 +129,38 @@ describe('buildReformDict', () => {
     ).toEqual({}); // 1000 == current-law default -> no-op
   });
 
+  it('sets all five filing-status paths for a Colorado bracket tier', () => {
+    const reform = buildReformDict(['co_ctc'], { co_ctc: { tier1: 2000 } }, 2026);
+    for (const s of ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse']) {
+      expect(reform[`gov.states.co.tax.income.credits.ctc.amount.${s}[0].amount`]).toBe(2000);
+    }
+  });
+
+  it('sets a bracket-indexed amount for New Mexico', () => {
+    const reform = buildReformDict(['nm_ctc'], { nm_ctc: { tier1: 1000 } }, 2026);
+    expect(reform['gov.states.nm.tax.income.credits.ctc.amount[0].amount']).toBe(1000);
+  });
+
+  it('NY 2026: emits only a changed post-2024 amount', () => {
+    const reform = buildReformDict(['ny_ctc'], { ny_ctc: { young_amount: 2000 } }, 2026);
+    expect(reform['gov.states.ny.tax.income.credits.ctc.post_2024.amount[0].amount']).toBe(2000);
+    expect(reform['gov.states.ny.tax.income.credits.ctc.post_2024.in_effect']).toBeUndefined();
+  });
+
+  it('NY 2028 without extend is a no-op (reverts to the regular credit)', () => {
+    expect(buildReformDict(['ny_ctc'], { ny_ctc: { young_amount: 2000 } }, 2028)).toEqual({});
+  });
+
+  it('NY 2028 with extend restores the full post-2024 block', () => {
+    const reform = buildReformDict(['ny_ctc'], { ny_ctc: { extend: 1 } }, 2028);
+    const P = 'gov.states.ny.tax.income.credits.ctc.post_2024';
+    expect(reform[`${P}.in_effect`]).toBe(true);
+    expect(reform[`${P}.amount[0].amount`]).toBe(1000);
+    expect(reform[`${P}.amount[1].amount`]).toBe(500);
+    expect(reform[`${P}.phase_out.threshold.HEAD_OF_HOUSEHOLD`]).toBe(75000);
+    expect(reform[`${P}.phase_out.rate`]).toBe(16.5);
+  });
+
   it('throws on an unknown / unwired reform option', () => {
     expect(() => buildReformDict(['snap_increase_15'], undefined, 2026)).toThrow(
       /Unknown or unwired/,

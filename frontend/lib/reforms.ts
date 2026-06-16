@@ -71,7 +71,10 @@ function applyReformOption(
   // does not end in ``_ctc``, so no collision). Emits only changed params.
   if (id.endsWith('_ctc')) {
     const state = id.slice(0, 2).toUpperCase();
-    Object.assign(reform, buildStateCtcReform(state, parameterValues?.[id]));
+    Object.assign(
+      reform,
+      buildStateCtcReform(state, parameterValues?.[id], year),
+    );
     return;
   }
 
