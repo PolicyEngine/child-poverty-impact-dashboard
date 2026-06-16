@@ -1,6 +1,6 @@
 state,eitc_cost_target,ctc_cost_target,source
 AZ,,,
-CA,,,
+CA,1050000000,400000000,"CA FTB: ~$1.4B combined CalEITC+YCTC (TY2024), YCTC ~$0.4B (approx split)"
 CO,,,
 CT,,,
 DC,,,
@@ -9,22 +9,22 @@ GA,,,
 HI,,,
 IA,,,
 ID,,,
-IL,,,
+IL,530000000,100000000,"IL EITC ~20% of federal; CTC $100M permanent FY2026 (IL budget / Econ Security Project)"
 IN,,,
 KS,,,
 LA,,,
 MA,,,
-MD,,,
+MD,510000000,9000000,"MD Comptroller: ~$519M combined EITC+CTC (TY2024); CTC small ($15k AGI cap, $500/child)"
 ME,,,
 MI,,,
-MN,,,
+MN,145000000,580000000,"MN House Research TY2023: $724.8M combined CWFC (~80% CTC / ~20% WFC)"
 MO,,,
 MT,,,
 NC,,,
 NE,,,
-NJ,,,
+NJ,550000000,150000000,"NJ EITC 40% of federal (~$550M); CTC ~$120-150M (FY2024 expansion, NJPP)"
 NM,,,
-NY,,,
+NY,1100000000,825000000,"NY Tax Dept: EITC ~30% of federal (~$1.1B); ESCC ~$350M base + $471M FY26 enhancement (approx total)"
 OH,,,
 OK,,,
 OR,,,
