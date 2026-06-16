@@ -138,10 +138,10 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           positive={poverty_impact.children_lifted_out_of_poverty > 0}
         />
         <HeadlineCard
-          label="State fiscal impact"
-          value={formatBillions(-fiscal_cost.state_cost_billions)}
-          subtext="Annual net revenue"
-          positive={fiscal_cost.state_cost_billions < 0}
+          label="Total cost"
+          value={formatBillions(fiscal_cost.total_cost_billions).replace(/^\+/, '')}
+          subtext="Annual, federal + state"
+          positive={fiscal_cost.total_cost_billions <= 0}
         />
         <HeadlineCard
           label="Residents gaining"
@@ -311,16 +311,22 @@ export function StatewidePoverty({ results }: TabProps) {
 export function StatewideFiscal({ results, year }: TabProps) {
   const { fiscal_cost } = results;
 
-  // Net revenue impact = negative of cost (cost_billions is positive when it's a cost)
+  // Net revenue impact = negative of cost (cost_billions is positive when it's
+  // a cost). The child allowance (UBI) is a benefit, so it lands in neither
+  // the federal nor the state *tax* change — fold it into State so the
+  // Federal + State cards always add up to Total. Federal is then the
+  // remainder (so the three cards reconcile exactly).
   const totalImpact = -fiscal_cost.total_cost_billions;
-  const federalImpact = -fiscal_cost.federal_cost_billions;
-  const stateImpact = -fiscal_cost.state_cost_billions;
+  const stateImpact = -(
+    fiscal_cost.state_cost_billions + (fiscal_cost.ubi_cost_billions ?? 0)
+  );
+  const federalImpact = totalImpact - stateImpact;
 
   const programBreakdown = [
     { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions },
     { name: 'State EITC', value: fiscal_cost.eitc_cost_billions },
+    { name: 'Child allowance', value: fiscal_cost.ubi_cost_billions },
     { name: 'SNAP', value: fiscal_cost.snap_cost_billions },
-    { name: 'UBI', value: fiscal_cost.ubi_cost_billions },
     { name: 'Dependent exemption', value: fiscal_cost.dependent_exemption_cost_billions },
   ].filter((p) => Math.abs(p.value) > 0.001);
 
