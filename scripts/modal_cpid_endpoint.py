@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-16-peus-1.729.5-allowance-phaseout"})
+    .env({"CPID_BUILD_REV": "2026-06-16-cors-localhost-any-port"})
 )
 
 
