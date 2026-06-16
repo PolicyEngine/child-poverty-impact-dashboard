@@ -16,31 +16,52 @@ describe('buildReformDict', () => {
     expect(reform['gov.irs.credits.ctc.phase_out.arpa.in_effect']).toBe(true);
   });
 
-  it('wires a two-tier child allowance with defaults', () => {
+  it('wires a three-tier child allowance with defaults (cutoff 18)', () => {
     const reform = buildReformDict(['child_allowance'], undefined, 2026);
-    expect(reform[`${BI}[0].amount`]).toBe(3600); // ages 0–5
-    expect(reform[`${BI}[1].amount`]).toBe(3000); // ages 6–17
+    // Brackets re-cut to 0 / 1 / 6 / cutoff.
+    expect(reform[`${BI}[1].threshold`]).toBe(1);
+    expect(reform[`${BI}[2].threshold`]).toBe(6);
+    expect(reform[`${BI}[3].threshold`]).toBe(18);
+    // Tier amounts.
+    expect(reform[`${BI}[0].amount`]).toBe(3600); // under 1
+    expect(reform[`${BI}[1].amount`]).toBe(3000); // ages 1–5
+    expect(reform[`${BI}[2].amount`]).toBe(3000); // ages 6 to cutoff
   });
 
-  it('respects custom child-allowance amounts', () => {
+  it('respects custom per-tier amounts and the under-19 cutoff', () => {
     const reform = buildReformDict(
       ['child_allowance'],
-      { child_allowance: { young_child_amount: 5000, older_child_amount: 4000 } },
+      {
+        child_allowance: {
+          infant_amount: 5000,
+          young_child_amount: 4000,
+          older_child_amount: 1000,
+          cutoff_age: 19,
+        },
+      },
       2026,
     );
     expect(reform[`${BI}[0].amount`]).toBe(5000);
     expect(reform[`${BI}[1].amount`]).toBe(4000);
+    expect(reform[`${BI}[2].amount`]).toBe(1000);
+    expect(reform[`${BI}[3].threshold`]).toBe(19); // children under 19
   });
 
-  it('limits the baby bonus to children under 1', () => {
+  it('supports a flat allowance via three equal amounts', () => {
     const reform = buildReformDict(
-      ['baby_bonus'],
-      { baby_bonus: { amount: 2500 } },
+      ['child_allowance'],
+      {
+        child_allowance: {
+          infant_amount: 1000,
+          young_child_amount: 1000,
+          older_child_amount: 1000,
+        },
+      },
       2026,
     );
-    // Narrow the young-child bracket boundary to age 1 so only age 0 is paid.
-    expect(reform[`${BI}[1].threshold`]).toBe(1);
-    expect(reform[`${BI}[0].amount`]).toBe(2500);
+    expect(reform[`${BI}[0].amount`]).toBe(1000);
+    expect(reform[`${BI}[1].amount`]).toBe(1000);
+    expect(reform[`${BI}[2].amount`]).toBe(1000);
   });
 
   it('throws on an unknown / unwired reform option', () => {

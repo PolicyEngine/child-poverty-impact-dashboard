@@ -24,16 +24,18 @@ export type ReformDict = Record<string, ReformDictValue>;
 
 type ParameterValues = Record<string, Record<string, number>>;
 
-// Child-allowance / baby-bonus defaults (annual $ per child). The
-// ubi_center basic-income amounts are annual (period: year), matching the
-// 2021 expanded-CTC tiers of $3,600 / $3,000.
-export const CHILD_ALLOWANCE_DEFAULT_YOUNG = 3600;
-export const CHILD_ALLOWANCE_DEFAULT_OLDER = 3000;
-export const BABY_BONUS_DEFAULT = 2000;
+// Child-allowance defaults (annual $ per child). The ubi_center
+// basic-income amounts are annual (period: year). Three age tiers plus an
+// adjustable top cutoff; set all three equal for a flat allowance.
+export const CHILD_ALLOWANCE_DEFAULT_INFANT = 3600; // under 1
+export const CHILD_ALLOWANCE_DEFAULT_YOUNG = 3000; //  ages 1–5
+export const CHILD_ALLOWANCE_DEFAULT_OLDER = 3000; //  ages 6 to cutoff
+export const CHILD_ALLOWANCE_DEFAULT_CUTOFF = 18; //   under 18 vs under 19
 
-// ubi_center basic income, age-bracketed schedule. Bracket [0] covers
-// ages 0–5, [1] covers 6–17, [2] 18–24, [3] 25–64, [4] 65+. We only ever
-// touch the two child brackets.
+// ubi_center basic income, age-bracketed schedule. Baseline brackets are
+// [0]≥0, [1]≥6, [2]≥18, [3]≥25, [4]≥65 (all $0). The child allowance
+// re-cuts the lower brackets to 0 / 1 / 6 / cutoff so we get three child
+// tiers (under 1, 1–5, 6 to cutoff) with adults left at $0.
 const BI = 'gov.contrib.ubi_center.basic_income.amount.person.by_age';
 
 // CTC ARPA amount schedule: bracket [0] = under 6, [1] = 6–17.
@@ -68,25 +70,22 @@ function applyReformOption(
       return;
     }
     case 'child_allowance': {
-      // Two-tier unconditional child allowance via ubi_center basic income.
-      const young =
-        parameterValues?.['child_allowance']?.young_child_amount ??
-        CHILD_ALLOWANCE_DEFAULT_YOUNG;
-      const older =
-        parameterValues?.['child_allowance']?.older_child_amount ??
-        CHILD_ALLOWANCE_DEFAULT_OLDER;
-      reform[`${BI}[0].amount`] = young; // ages 0–5
-      reform[`${BI}[1].amount`] = older; // ages 6–17
-      return;
-    }
-    case 'baby_bonus': {
-      // Same mechanism, but only children under 1. Narrow the young-child
-      // bracket boundary from age 6 down to age 1 so bracket [0] covers
-      // only age 0; the [1] (now age 1–17) amount stays at its $0 default.
-      const amount =
-        parameterValues?.['baby_bonus']?.amount ?? BABY_BONUS_DEFAULT;
-      reform[`${BI}[1].threshold`] = 1;
-      reform[`${BI}[0].amount`] = amount;
+      // Three-tier unconditional child allowance via ubi_center basic
+      // income: under 1, ages 1–5, and ages 6 up to an adjustable cutoff
+      // (under 18 or under 19). Re-cut the bracket boundaries to 0/1/6/
+      // cutoff, then set each tier's amount. All three tiers compose, so a
+      // flat allowance is just three equal amounts.
+      const pv = parameterValues?.['child_allowance'];
+      const infant = pv?.infant_amount ?? CHILD_ALLOWANCE_DEFAULT_INFANT;
+      const young = pv?.young_child_amount ?? CHILD_ALLOWANCE_DEFAULT_YOUNG;
+      const older = pv?.older_child_amount ?? CHILD_ALLOWANCE_DEFAULT_OLDER;
+      const cutoff = pv?.cutoff_age ?? CHILD_ALLOWANCE_DEFAULT_CUTOFF;
+      reform[`${BI}[1].threshold`] = 1; // ages 1–5 band starts at 1
+      reform[`${BI}[2].threshold`] = 6; // ages 6+ band starts at 6
+      reform[`${BI}[3].threshold`] = cutoff; // adults (=$0) start at cutoff
+      reform[`${BI}[0].amount`] = infant; // under 1
+      reform[`${BI}[1].amount`] = young; // ages 1–5
+      reform[`${BI}[2].amount`] = older; // ages 6 to cutoff
       return;
     }
     default:

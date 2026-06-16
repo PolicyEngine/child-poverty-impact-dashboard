@@ -137,9 +137,12 @@ export interface ReformOption {
   estimated_household_impact?: number;
   adjustable_params?: AdjustableParameter[];
   /** IDs that cannot be selected at the same time as this option. Used by
-   *  the selector to deselect conflicting reforms (e.g. the child
-   *  allowance and baby bonus both rewrite the basic-income age schedule). */
+   *  the selector to deselect conflicting reforms. */
   exclusive_with?: string[];
+  /** When true the option is shown greyed-out and cannot be selected — it
+   *  is surfaced so users can see it's planned, but isn't wired to a PE-US
+   *  lever yet. */
+  in_development?: boolean;
 }
 
 export interface StateReformOptions {
@@ -217,67 +220,89 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
   ];
 }
 
-/** Federal, age-tiered unconditional child allowance plus a baby-bonus
- *  variant, both implemented through the ubi_center basic-income schedule
- *  (see lib/reforms.ts). The two are mutually exclusive because they
- *  rewrite the same age-bracketed parameter. */
+/** Federal, age-tiered unconditional child allowance, implemented through
+ *  the ubi_center basic-income schedule (see lib/reforms.ts). Three tiers
+ *  (under 1, 1–5, 6 to an adjustable cutoff) that all compose — set them
+ *  equal for a flat allowance, or zero out a tier to exclude it. */
 function buildChildAllowanceOptions(): ReformOption[] {
   return [
     {
       id: 'child_allowance',
       name: 'Child allowance',
       description:
-        'Unconditional annual cash payment for every child, with separate amounts for young children (0–5) and older children (6–17).',
+        'Unconditional annual cash payment per child, by age tier. Set all three amounts equal for a flat allowance, or set any to $0 to drop that tier.',
       category: 'child_allowance',
       is_new_program: true,
       is_enhancement: false,
       is_configurable: true,
-      exclusive_with: ['baby_bonus'],
       adjustable_params: [
         {
-          name: 'young_child_amount',
-          label: 'Young child (0–5)',
+          name: 'infant_amount',
+          label: 'Under 1',
           min_value: 0,
-          max_value: 6000,
+          max_value: 12000,
           default_value: 3600,
-          step: 100,
-          unit: '$',
-          description: 'Annual amount per child under age 6.',
-        },
-        {
-          name: 'older_child_amount',
-          label: 'Older child (6–17)',
-          min_value: 0,
-          max_value: 6000,
-          default_value: 3000,
-          step: 100,
-          unit: '$',
-          description: 'Annual amount per child age 6–17.',
-        },
-      ],
-    },
-    {
-      id: 'baby_bonus',
-      name: 'Baby bonus',
-      description:
-        'Unconditional annual payment for children under age 1, using the same child-allowance mechanism.',
-      category: 'child_allowance',
-      is_new_program: true,
-      is_enhancement: false,
-      is_configurable: true,
-      exclusive_with: ['child_allowance'],
-      adjustable_params: [
-        {
-          name: 'amount',
-          label: 'Amount per infant',
-          min_value: 0,
-          max_value: 10000,
-          default_value: 2000,
           step: 100,
           unit: '$',
           description: 'Annual amount per child under age 1.',
         },
+        {
+          name: 'young_child_amount',
+          label: 'Ages 1–5 (under 6)',
+          min_value: 0,
+          max_value: 12000,
+          default_value: 3000,
+          step: 100,
+          unit: '$',
+          description: 'Annual amount per child age 1 through 5.',
+        },
+        {
+          name: 'older_child_amount',
+          label: 'Ages 6+ (to cutoff)',
+          min_value: 0,
+          max_value: 12000,
+          default_value: 3000,
+          step: 100,
+          unit: '$',
+          description: 'Annual amount per child age 6 up to the cutoff age.',
+        },
+        {
+          name: 'cutoff_age',
+          label: 'Top age cutoff',
+          min_value: 18,
+          max_value: 19,
+          default_value: 18,
+          step: 1,
+          unit: 'yr',
+          description:
+            'Oldest eligible age band: 18 = children under 18, 19 = children under 19.',
+        },
       ],
+    },
+  ];
+}
+
+/** SNAP benefit increases. Not yet wired — PolicyEngine-US has no single
+ *  "scale all SNAP benefits by X%" lever — so these are shown greyed-out. */
+function buildSnapOptions(): ReformOption[] {
+  return [
+    {
+      id: 'snap_increase_15',
+      name: '15% SNAP benefit increase',
+      description: 'Increase SNAP benefits by 15% for all recipients.',
+      category: 'snap',
+      is_new_program: false,
+      is_enhancement: true,
+      in_development: true,
+    },
+    {
+      id: 'snap_increase_25',
+      name: '25% SNAP benefit increase',
+      description: 'Increase SNAP benefits by 25% for all recipients.',
+      category: 'snap',
+      is_new_program: false,
+      is_enhancement: true,
+      in_development: true,
     },
   ];
 }
@@ -294,6 +319,15 @@ function buildFederalOptions(): ReformOption[] {
       is_enhancement: true,
       estimated_household_impact: 2400,
     },
+    {
+      id: 'federal_eitc_expansion',
+      name: '50% EITC expansion',
+      description: 'Increase the federal EITC by 50%.',
+      category: 'federal_eitc',
+      is_new_program: false,
+      is_enhancement: true,
+      in_development: true,
+    },
   ];
 }
 
@@ -309,7 +343,7 @@ export function getReformOptionsForState(
       existing_programs: {},
       ctc_options: [],
       eitc_options: [],
-      snap_options: [],
+      snap_options: buildSnapOptions(),
       child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(),
     };
@@ -326,7 +360,7 @@ export function getReformOptionsForState(
     },
     ctc_options: [],
     eitc_options: buildEitcOptions(programs),
-    snap_options: [],
+    snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(),
   };

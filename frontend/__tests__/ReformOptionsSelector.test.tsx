@@ -138,6 +138,33 @@ describe('ReformOptionsSelector', () => {
     expect(onSelectionChange).toHaveBeenCalledWith(['child_allowance']);
   });
 
+  it('renders an in-development option greyed-out and non-selectable', () => {
+    const onSelectionChange = vi.fn();
+    const snap: ReformOption = {
+      id: 'snap_increase_15',
+      name: '15% SNAP benefit increase',
+      description: 'Increase SNAP benefits by 15%.',
+      category: 'snap',
+      is_new_program: false,
+      is_enhancement: true,
+      customizable_params: [],
+      in_development: true,
+    };
+    render(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={{ ...reformOptions, snap_options: [snap] }}
+        selectedOptions={[]}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('SNAP'));
+    expect(screen.getByText('In development')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('15% SNAP benefit increase'));
+    expect(onSelectionChange).not.toHaveBeenCalled();
+  });
+
   it('shows an empty-tab message when the active tab has no options', () => {
     render(
       <ReformOptionsSelector

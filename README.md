@@ -15,18 +15,16 @@ don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
   structure (`gov.irs.credits.ctc.amount.arpa`,
   `…refundable.fully_refundable`, `…phase_out.arpa.in_effect`).
 - **Child allowance** (federal): unconditional annual cash payment per
-  child, with separate young-child (0–5) and older-child (6–17) amounts,
-  via the ubi_center basic income (`gov.contrib.ubi_center.basic_income`).
-- **Baby bonus** (federal): the same mechanism limited to children under
-  age 1. Mutually exclusive with the child allowance (both rewrite the
-  basic-income age schedule).
+  child across three composable age tiers — under 1, ages 1–5, and ages 6
+  up to an adjustable cutoff (under 18 or under 19) — via the ubi_center
+  basic income (`gov.contrib.ubi_center.basic_income`). Set the three
+  amounts equal for a flat allowance, or any tier to $0 to drop it.
 - **State EITC** (40 states + DC): adjustable match rate as a percentage
   of the federal EITC; creates, expands, or converts-to-refundable
   depending on the state's current law.
 
-**Not yet wired** (no single PE-US lever; tracked as follow-up): federal
-EITC expansion, SNAP benefit increases, dependent-exemption changes, and
-state CTC levers.
+**Shown but in development** (greyed-out, non-selectable until wired to a
+PE-US lever): SNAP benefit increases and the 50% federal EITC expansion.
 
 ### Results Display
 - Fiscal costs (federal and state)

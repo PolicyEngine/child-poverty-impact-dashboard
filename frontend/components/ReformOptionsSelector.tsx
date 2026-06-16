@@ -57,9 +57,6 @@ export default function ReformOptionsSelector({
       onSelectionChange(selectedOptions.filter((id) => id !== optionId));
       return;
     }
-    // Selecting an option drops any reform it declares itself mutually
-    // exclusive with (e.g. child allowance ⇄ baby bonus, which rewrite the
-    // same age-bracketed parameter).
     const allOptions = reformOptions
       ? [
           ...reformOptions.ctc_options,
@@ -69,9 +66,12 @@ export default function ReformOptionsSelector({
           ...reformOptions.federal_options,
         ]
       : [];
-    const exclusive = new Set(
-      allOptions.find((o) => o.id === optionId)?.exclusive_with ?? [],
-    );
+    const option = allOptions.find((o) => o.id === optionId);
+    // In-development reforms are surfaced but not selectable.
+    if (option?.in_development) return;
+    // Selecting an option drops any reform it declares itself mutually
+    // exclusive with.
+    const exclusive = new Set(option?.exclusive_with ?? []);
     onSelectionChange([
       ...selectedOptions.filter((id) => !exclusive.has(id)),
       optionId,
@@ -233,54 +233,72 @@ function ReformOptionCard({
   onParameterChange: (paramName: string, value: number) => void;
 }) {
   const hasAdjustableParams = option.is_configurable && option.adjustable_params && option.adjustable_params.length > 0;
+  const inDevelopment = option.in_development === true;
 
   return (
     <div
       className={`p-4 border-2 rounded-xl transition-all duration-200 ${
-        isSelected
-          ? 'border-pe-teal-500 bg-pe-teal-50'
-          : 'border-pe-gray-200 hover:border-pe-gray-300 hover:shadow-sm'
+        inDevelopment
+          ? 'border-pe-gray-200 bg-pe-gray-50 opacity-60'
+          : isSelected
+            ? 'border-pe-teal-500 bg-pe-teal-50'
+            : 'border-pe-gray-200 hover:border-pe-gray-300 hover:shadow-sm'
       }`}
+      aria-disabled={inDevelopment}
     >
-      {/* Header - clickable to toggle */}
+      {/* Header - clickable to toggle (disabled while in development) */}
       <div
-        onClick={onToggle}
-        className="flex items-start justify-between cursor-pointer"
+        onClick={inDevelopment ? undefined : onToggle}
+        className={`flex items-start justify-between ${
+          inDevelopment ? 'cursor-not-allowed' : 'cursor-pointer'
+        }`}
       >
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-semibold text-gray-800">{option.name}</h4>
-            {option.is_new_program && (
+            {inDevelopment && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                In development
+              </span>
+            )}
+            {!inDevelopment && option.is_new_program && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                 New Program
               </span>
             )}
-            {option.is_enhancement && (
+            {!inDevelopment && option.is_enhancement && (
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                 Enhancement
               </span>
             )}
-            {hasAdjustableParams && (
+            {!inDevelopment && hasAdjustableParams && (
               <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
                 Configurable
               </span>
             )}
           </div>
           <p className="text-sm text-gray-600 mt-1">{option.description}</p>
+          {inDevelopment && (
+            <p className="text-xs text-amber-700 mt-1">
+              Not yet available — coming soon.
+            </p>
+          )}
         </div>
-        <div
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-4 ${
-            isSelected
-              ? 'bg-pe-teal-500 border-pe-teal-500'
-              : 'border-pe-gray-300'
-          }`}
-        >
-          {isSelected && <span className="text-white text-sm">✓</span>}
-        </div>
+        {!inDevelopment && (
+          <div
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-4 ${
+              isSelected
+                ? 'bg-pe-teal-500 border-pe-teal-500'
+                : 'border-pe-gray-300'
+            }`}
+          >
+            {isSelected && <span className="text-white text-sm">✓</span>}
+          </div>
+        )}
       </div>
 
       {/* Adjustable Parameters - shown when selected */}
-      {isSelected && hasAdjustableParams && (
+      {!inDevelopment && isSelected && hasAdjustableParams && (
         <div className="mt-4 pt-4 border-t border-pe-gray-200 space-y-4">
           {option.adjustable_params!.map((param) => {
             const currentValue = parameterValues[param.name] ?? param.default_value;

@@ -96,6 +96,8 @@ export interface ReformOption {
   adjustable_params?: AdjustableParameter[];
   /** IDs that cannot be selected at the same time as this option. */
   exclusive_with?: string[];
+  /** Shown greyed-out and non-selectable — planned but not yet wired. */
+  in_development?: boolean;
 }
 
 export interface StateReformOptions {
