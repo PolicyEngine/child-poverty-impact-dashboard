@@ -32,11 +32,20 @@ export const CHILD_ALLOWANCE_DEFAULT_YOUNG = 3000; //  ages 1–5
 export const CHILD_ALLOWANCE_DEFAULT_OLDER = 3000; //  ages 6 to cutoff
 export const CHILD_ALLOWANCE_DEFAULT_CUTOFF = 18; //   under 18 vs under 19
 
-// ubi_center basic income, age-bracketed schedule. Baseline brackets are
-// [0]≥0, [1]≥6, [2]≥18, [3]≥25, [4]≥65 (all $0). The child allowance
-// re-cuts the lower brackets to 0 / 1 / 6 / cutoff so we get three child
-// tiers (under 1, 1–5, 6 to cutoff) with adults left at $0.
+// Optional AGI-based phase-out (turns the allowance into an income-tested
+// CTC). Rate is a percent in the UI; thresholds are AGI dollars by filing
+// status. Defaults: 5% above $100k single/HoH/separate, $200k joint/
+// surviving-spouse.
+export const CHILD_ALLOWANCE_DEFAULT_PHASEOUT_RATE = 5; // percent
+export const CHILD_ALLOWANCE_DEFAULT_THRESHOLD_SINGLE = 100000;
+export const CHILD_ALLOWANCE_DEFAULT_THRESHOLD_JOINT = 200000;
+
+// ubi_center basic income paths. BI is the age-bracketed amount schedule
+// (baseline brackets [0]≥0, [1]≥6, [2]≥18, [3]≥25, [4]≥65, all $0); the
+// child allowance re-cuts the lower brackets to 0 / 1 / 6 / cutoff for
+// three child tiers. PO is the (sibling) phase-out node.
 const BI = 'gov.contrib.ubi_center.basic_income.amount.person.by_age';
+const PO = 'gov.contrib.ubi_center.basic_income.phase_out';
 
 // CTC ARPA amount schedule: bracket [0] = under 6, [1] = 6–17.
 const BI_CTC_ARPA = 'gov.irs.credits.ctc.amount.arpa';
@@ -86,6 +95,37 @@ function applyReformOption(
       reform[`${BI}[0].amount`] = infant; // under 1
       reform[`${BI}[1].amount`] = young; // ages 1–5
       reform[`${BI}[2].amount`] = older; // ages 6 to cutoff
+
+      // Optional AGI phase-out — turns the flat allowance into an
+      // income-tested credit. Off by default (rate stays 0). When on, the
+      // allowance phases out at `rate` per $1 of AGI above the filing-
+      // status threshold. taxable stays false (its default) so the
+      // phase-out applies.
+      if (pv?.phaseout_enabled) {
+        const ratePct = pv?.phaseout_rate ?? CHILD_ALLOWANCE_DEFAULT_PHASEOUT_RATE;
+        const single =
+          pv?.phaseout_threshold_single ??
+          CHILD_ALLOWANCE_DEFAULT_THRESHOLD_SINGLE;
+        const hoh =
+          pv?.phaseout_threshold_hoh ??
+          CHILD_ALLOWANCE_DEFAULT_THRESHOLD_SINGLE;
+        const separate =
+          pv?.phaseout_threshold_separate ??
+          CHILD_ALLOWANCE_DEFAULT_THRESHOLD_SINGLE;
+        const joint =
+          pv?.phaseout_threshold_joint ??
+          CHILD_ALLOWANCE_DEFAULT_THRESHOLD_JOINT;
+        const survivingSpouse =
+          pv?.phaseout_threshold_surviving_spouse ??
+          CHILD_ALLOWANCE_DEFAULT_THRESHOLD_JOINT;
+        reform[`${PO}.by_rate`] = true;
+        reform[`${PO}.rate`] = ratePct / 100; // percent → /1
+        reform[`${PO}.threshold.SINGLE`] = single;
+        reform[`${PO}.threshold.HEAD_OF_HOUSEHOLD`] = hoh;
+        reform[`${PO}.threshold.SEPARATE`] = separate;
+        reform[`${PO}.threshold.JOINT`] = joint;
+        reform[`${PO}.threshold.SURVIVING_SPOUSE`] = survivingSpouse;
+      }
       return;
     }
     default:

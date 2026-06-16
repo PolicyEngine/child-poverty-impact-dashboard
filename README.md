@@ -14,11 +14,14 @@ don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
   $3,000 for ages 6–17, fully refundable, with the ARPA phase-out
   structure (`gov.irs.credits.ctc.amount.arpa`,
   `…refundable.fully_refundable`, `…phase_out.arpa.in_effect`).
-- **Child allowance** (federal): unconditional annual cash payment per
-  child across three composable age tiers — under 1, ages 1–5, and ages 6
-  up to an adjustable cutoff (under 18 or under 19) — via the ubi_center
-  basic income (`gov.contrib.ubi_center.basic_income`). Set the three
-  amounts equal for a flat allowance, or any tier to $0 to drop it.
+- **Child allowance** (federal, available in every state): annual cash
+  payment per child across three composable age tiers — under 1, ages 1–5,
+  and ages 6 up to an adjustable cutoff (under 18 or under 19) — via the
+  ubi_center basic income (`gov.contrib.ubi_center.basic_income`). Set the
+  three amounts equal for a flat allowance, or any tier to $0 to drop it.
+  An optional **AGI phase-out** (toggle + rate + thresholds by filing
+  status, via `…basic_income.phase_out`) income-tests it into a CTC-style
+  credit — so states with no CTC can use this rather than a bespoke one.
 - **State EITC** (40 states + DC): adjustable match rate as a percentage
   of the federal EITC; creates, expands, or converts-to-refundable
   depending on the state's current law.
@@ -65,7 +68,7 @@ on the Vercel project (Production + Preview) and in
 `frontend/.env.local` for dev. When the env var is empty, the frontend
 falls back to the local FastAPI in `backend/` (handy for offline work).
 
-The Modal image pins `policyengine-us==1.715.2` for reproducibility —
+The Modal image pins `policyengine-us==1.729.5` for reproducibility —
 bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
 we want to refresh.
 

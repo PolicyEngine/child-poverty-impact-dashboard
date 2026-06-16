@@ -81,6 +81,10 @@ export interface AdjustableParameter {
   step: number;
   unit: string;
   description: string;
+  /** 'number' (default) renders an input + slider; 'toggle' a checkbox. */
+  control?: 'number' | 'toggle';
+  /** Only show when the named sibling param is truthy (>0). */
+  depends_on?: string;
 }
 
 export interface ReformOption {

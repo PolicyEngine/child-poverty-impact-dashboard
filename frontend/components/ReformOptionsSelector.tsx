@@ -301,7 +301,37 @@ function ReformOptionCard({
       {!inDevelopment && isSelected && hasAdjustableParams && (
         <div className="mt-4 pt-4 border-t border-pe-gray-200 space-y-4">
           {option.adjustable_params!.map((param) => {
+            // Hide params gated behind a toggle that's currently off.
+            if (param.depends_on && !(parameterValues[param.depends_on] ?? 0)) {
+              return null;
+            }
             const currentValue = parameterValues[param.name] ?? param.default_value;
+
+            // Checkbox control (stored as 0/1).
+            if (param.control === 'toggle') {
+              return (
+                <div key={param.name} className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={currentValue > 0}
+                    onChange={(e) =>
+                      onParameterChange(param.name, e.target.checked ? 1 : 0)
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-0.5 h-4 w-4 accent-pe-teal-500"
+                  />
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      {param.label}
+                    </label>
+                    {param.description && (
+                      <p className="text-xs text-gray-500">{param.description}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={param.name} className="space-y-2">
                 <div className="flex items-center justify-between">

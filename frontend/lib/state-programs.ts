@@ -124,6 +124,12 @@ export interface AdjustableParameter {
   step: number;
   unit: string;
   description: string;
+  /** Control type. 'number' (default) renders a number input + slider;
+   *  'toggle' renders a checkbox (stored as 0/1). */
+  control?: 'number' | 'toggle';
+  /** Only render this parameter when the named sibling param is truthy
+   *  (>0). Used to reveal phase-out inputs behind their enable toggle. */
+  depends_on?: string;
 }
 
 export interface ReformOption {
@@ -230,7 +236,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
       id: 'child_allowance',
       name: 'Child allowance',
       description:
-        'Unconditional annual cash payment per child, by age tier. Set all three amounts equal for a flat allowance, or set any to $0 to drop that tier.',
+        'Annual cash payment per child, by age tier. Set all three amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a child tax credit — works in every state, including those with no state CTC.',
       category: 'child_allowance',
       is_new_program: true,
       is_enhancement: false,
@@ -276,6 +282,85 @@ function buildChildAllowanceOptions(): ReformOption[] {
           unit: 'yr',
           description:
             'Oldest eligible age band: 18 = children under 18, 19 = children under 19.',
+        },
+        {
+          name: 'phaseout_enabled',
+          label: 'Phase out by income',
+          control: 'toggle',
+          min_value: 0,
+          max_value: 1,
+          default_value: 0,
+          step: 1,
+          unit: '',
+          description:
+            'Income-test the allowance (turns it into a CTC-style credit). Phases out against adjusted gross income (AGI) above the thresholds below.',
+        },
+        {
+          name: 'phaseout_rate',
+          label: 'Phase-out rate',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 50,
+          default_value: 5,
+          step: 1,
+          unit: '%',
+          description: 'Reduction per $1 of AGI above the threshold.',
+        },
+        {
+          name: 'phaseout_threshold_single',
+          label: 'Threshold — single',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 1000000,
+          default_value: 100000,
+          step: 5000,
+          unit: '$',
+          description: 'AGI where the phase-out begins for single filers.',
+        },
+        {
+          name: 'phaseout_threshold_hoh',
+          label: 'Threshold — head of household',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 1000000,
+          default_value: 100000,
+          step: 5000,
+          unit: '$',
+          description: 'AGI where the phase-out begins for heads of household.',
+        },
+        {
+          name: 'phaseout_threshold_separate',
+          label: 'Threshold — married filing separately',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 1000000,
+          default_value: 100000,
+          step: 5000,
+          unit: '$',
+          description:
+            'AGI where the phase-out begins for married-filing-separately.',
+        },
+        {
+          name: 'phaseout_threshold_joint',
+          label: 'Threshold — married filing jointly',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 1000000,
+          default_value: 200000,
+          step: 5000,
+          unit: '$',
+          description: 'AGI where the phase-out begins for joint filers.',
+        },
+        {
+          name: 'phaseout_threshold_surviving_spouse',
+          label: 'Threshold — surviving spouse',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 1000000,
+          default_value: 200000,
+          step: 5000,
+          unit: '$',
+          description: 'AGI where the phase-out begins for surviving spouses.',
         },
       ],
     },

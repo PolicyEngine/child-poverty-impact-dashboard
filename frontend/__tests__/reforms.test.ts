@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildReformDict } from '@/lib/reforms';
 
 const BI = 'gov.contrib.ubi_center.basic_income.amount.person.by_age';
+const PO = 'gov.contrib.ubi_center.basic_income.phase_out';
 
 describe('buildReformDict', () => {
   it('returns an empty dict when nothing is selected', () => {
@@ -45,6 +46,45 @@ describe('buildReformDict', () => {
     expect(reform[`${BI}[1].amount`]).toBe(4000);
     expect(reform[`${BI}[2].amount`]).toBe(1000);
     expect(reform[`${BI}[3].threshold`]).toBe(19); // children under 19
+  });
+
+  it('omits the phase-out unless explicitly enabled', () => {
+    const reform = buildReformDict(['child_allowance'], undefined, 2026);
+    expect(reform[`${PO}.rate`]).toBeUndefined();
+    expect(reform[`${PO}.threshold.SINGLE`]).toBeUndefined();
+  });
+
+  it('applies an AGI phase-out with defaults when enabled', () => {
+    const reform = buildReformDict(
+      ['child_allowance'],
+      { child_allowance: { phaseout_enabled: 1 } },
+      2026,
+    );
+    expect(reform[`${PO}.by_rate`]).toBe(true);
+    expect(reform[`${PO}.rate`]).toBeCloseTo(0.05); // 5% -> /1
+    expect(reform[`${PO}.threshold.SINGLE`]).toBe(100000);
+    expect(reform[`${PO}.threshold.HEAD_OF_HOUSEHOLD`]).toBe(100000);
+    expect(reform[`${PO}.threshold.SEPARATE`]).toBe(100000);
+    expect(reform[`${PO}.threshold.JOINT`]).toBe(200000);
+    expect(reform[`${PO}.threshold.SURVIVING_SPOUSE`]).toBe(200000);
+  });
+
+  it('respects custom phase-out rate and per-status thresholds', () => {
+    const reform = buildReformDict(
+      ['child_allowance'],
+      {
+        child_allowance: {
+          phaseout_enabled: 1,
+          phaseout_rate: 10,
+          phaseout_threshold_single: 75000,
+          phaseout_threshold_joint: 150000,
+        },
+      },
+      2026,
+    );
+    expect(reform[`${PO}.rate`]).toBeCloseTo(0.1);
+    expect(reform[`${PO}.threshold.SINGLE`]).toBe(75000);
+    expect(reform[`${PO}.threshold.JOINT`]).toBe(150000);
   });
 
   it('supports a flat allowance via three equal amounts', () => {

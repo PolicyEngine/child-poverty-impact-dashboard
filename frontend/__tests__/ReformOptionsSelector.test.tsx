@@ -165,6 +165,75 @@ describe('ReformOptionsSelector', () => {
     expect(onSelectionChange).not.toHaveBeenCalled();
   });
 
+  it('reveals depends_on params only when the toggle is on', () => {
+    const onParameterChange = vi.fn();
+    const opt: ReformOption = {
+      id: 'child_allowance',
+      name: 'Child allowance',
+      description: 'allowance',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      customizable_params: [],
+      is_configurable: true,
+      adjustable_params: [
+        {
+          name: 'phaseout_enabled',
+          label: 'Phase out by income',
+          control: 'toggle',
+          min_value: 0,
+          max_value: 1,
+          default_value: 0,
+          step: 1,
+          unit: '',
+          description: 'toggle',
+        },
+        {
+          name: 'phaseout_rate',
+          label: 'Phase-out rate',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 50,
+          default_value: 5,
+          step: 1,
+          unit: '%',
+          description: 'rate',
+        },
+      ],
+    };
+    const opts = { ...reformOptions, eitc_options: [opt] };
+    const { rerender } = render(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={opts}
+        selectedOptions={['child_allowance']}
+        onSelectionChange={() => {}}
+        parameterValues={{ child_allowance: { phaseout_enabled: 0 } }}
+        onParameterChange={onParameterChange}
+      />,
+    );
+    // Gated input hidden while the toggle is off.
+    expect(screen.queryByText('Phase-out rate')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox'));
+    expect(onParameterChange).toHaveBeenCalledWith(
+      'child_allowance',
+      'phaseout_enabled',
+      1,
+    );
+    // With the toggle on, the gated input appears.
+    rerender(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={opts}
+        selectedOptions={['child_allowance']}
+        onSelectionChange={() => {}}
+        parameterValues={{ child_allowance: { phaseout_enabled: 1 } }}
+        onParameterChange={onParameterChange}
+      />,
+    );
+    expect(screen.getByText('Phase-out rate')).toBeInTheDocument();
+  });
+
   it('shows an empty-tab message when the active tab has no options', () => {
     render(
       <ReformOptionsSelector
