@@ -321,6 +321,8 @@ def compute_economy(payload: dict) -> dict:
     snap_change = _delta("snap")
     state_ctc_change = _delta("state_ctc")
     state_eitc_change = _delta("state_eitc")
+    # ubi_center basic income — the child allowance / baby bonus reforms.
+    ubi_change = _delta("basic_income")
     _log("fiscal done")
 
     # ---- Poverty: overall, children, young children (0-3), deep child poverty.
@@ -567,6 +569,7 @@ def compute_economy(payload: dict) -> dict:
             "snap_change": snap_change,
             "state_ctc_change": state_ctc_change,
             "state_eitc_change": state_eitc_change,
+            "ubi_change": ubi_change,
         },
         "poverty": {
             "overall_baseline_rate": _rate(pov_bl_arr, all_mask),

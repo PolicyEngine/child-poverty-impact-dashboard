@@ -55,9 +55,27 @@ export default function ReformOptionsSelector({
   const toggleOption = (optionId: string) => {
     if (selectedOptions.includes(optionId)) {
       onSelectionChange(selectedOptions.filter((id) => id !== optionId));
-    } else {
-      onSelectionChange([...selectedOptions, optionId]);
+      return;
     }
+    // Selecting an option drops any reform it declares itself mutually
+    // exclusive with (e.g. child allowance ⇄ baby bonus, which rewrite the
+    // same age-bracketed parameter).
+    const allOptions = reformOptions
+      ? [
+          ...reformOptions.ctc_options,
+          ...reformOptions.eitc_options,
+          ...reformOptions.snap_options,
+          ...reformOptions.child_allowance_options,
+          ...reformOptions.federal_options,
+        ]
+      : [];
+    const exclusive = new Set(
+      allOptions.find((o) => o.id === optionId)?.exclusive_with ?? [],
+    );
+    onSelectionChange([
+      ...selectedOptions.filter((id) => !exclusive.has(id)),
+      optionId,
+    ]);
   };
 
   const clearAll = () => {

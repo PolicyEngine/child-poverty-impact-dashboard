@@ -97,6 +97,47 @@ describe('ReformOptionsSelector', () => {
     expect(screen.getByText(/Loading reform options for NY/)).toBeInTheDocument();
   });
 
+  it('deselects a mutually exclusive reform when its counterpart is chosen', () => {
+    const onSelectionChange = vi.fn();
+    const childAllowance: ReformOption = {
+      id: 'child_allowance',
+      name: 'Child allowance',
+      description: 'Two-tier child allowance.',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      customizable_params: [],
+      exclusive_with: ['baby_bonus'],
+    };
+    const babyBonus: ReformOption = {
+      id: 'baby_bonus',
+      name: 'Baby bonus',
+      description: 'Under-1 payment.',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      customizable_params: [],
+      exclusive_with: ['child_allowance'],
+    };
+    render(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={{
+          ...reformOptions,
+          child_allowance_options: [childAllowance, babyBonus],
+        }}
+        selectedOptions={['baby_bonus']}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    // Child Allowance is not the default tab; switch to it first.
+    fireEvent.click(screen.getByText('Child Allowance'));
+    fireEvent.click(screen.getByText('Child allowance'));
+    // baby_bonus is dropped because child_allowance excludes it.
+    expect(onSelectionChange).toHaveBeenCalledWith(['child_allowance']);
+  });
+
   it('shows an empty-tab message when the active tab has no options', () => {
     render(
       <ReformOptionsSelector

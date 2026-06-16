@@ -5,12 +5,28 @@ A specialized analytical interface for modeling and comparing policy reforms acr
 ## Features
 
 ### Policy Reforms
-- **Child Tax Credit (CTC)**: Variations by amount, age eligibility (prenatal-3, 0-5, 0-17), income basis, and phaseout structure
-- **Earned Income Tax Credit (EITC)**: Individualization and expansion options
-- **Dependent Exemptions**: Federal and state-level modifications
-- **Universal Basic Income**: Child allowance programs
-- **SNAP Modifications**: Benefit expansions and eligibility changes
-- **State-Specific Policy Levers**: Custom state CTC programs and local reforms
+
+Each reform below is wired end-to-end to a real PolicyEngine-US parameter,
+so selecting it produces an actual microsimulated impact. Options that
+don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
+
+- **Restore 2021 expanded CTC** (federal): $3,600 for children under 6,
+  $3,000 for ages 6–17, fully refundable, with the ARPA phase-out
+  structure (`gov.irs.credits.ctc.amount.arpa`,
+  `…refundable.fully_refundable`, `…phase_out.arpa.in_effect`).
+- **Child allowance** (federal): unconditional annual cash payment per
+  child, with separate young-child (0–5) and older-child (6–17) amounts,
+  via the ubi_center basic income (`gov.contrib.ubi_center.basic_income`).
+- **Baby bonus** (federal): the same mechanism limited to children under
+  age 1. Mutually exclusive with the child allowance (both rewrite the
+  basic-income age schedule).
+- **State EITC** (40 states + DC): adjustable match rate as a percentage
+  of the federal EITC; creates, expands, or converts-to-refundable
+  depending on the state's current law.
+
+**Not yet wired** (no single PE-US lever; tracked as follow-up): federal
+EITC expansion, SNAP benefit increases, dependent-exemption changes, and
+state CTC levers.
 
 ### Results Display
 - Fiscal costs (federal and state)

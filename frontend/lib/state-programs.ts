@@ -136,6 +136,10 @@ export interface ReformOption {
   is_configurable?: boolean;
   estimated_household_impact?: number;
   adjustable_params?: AdjustableParameter[];
+  /** IDs that cannot be selected at the same time as this option. Used by
+   *  the selector to deselect conflicting reforms (e.g. the child
+   *  allowance and baby bonus both rewrite the basic-income age schedule). */
+  exclusive_with?: string[];
 }
 
 export interface StateReformOptions {
@@ -213,25 +217,67 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
   ];
 }
 
-function buildSnapOptions(): ReformOption[] {
+/** Federal, age-tiered unconditional child allowance plus a baby-bonus
+ *  variant, both implemented through the ubi_center basic-income schedule
+ *  (see lib/reforms.ts). The two are mutually exclusive because they
+ *  rewrite the same age-bracketed parameter. */
+function buildChildAllowanceOptions(): ReformOption[] {
   return [
     {
-      id: 'snap_increase_15',
-      name: '15% SNAP Benefit Increase',
-      description: 'Increase SNAP benefits by 15% for all recipients',
-      category: 'snap',
-      is_new_program: false,
-      is_enhancement: true,
-      estimated_household_impact: 600,
+      id: 'child_allowance',
+      name: 'Child allowance',
+      description:
+        'Unconditional annual cash payment for every child, with separate amounts for young children (0–5) and older children (6–17).',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      is_configurable: true,
+      exclusive_with: ['baby_bonus'],
+      adjustable_params: [
+        {
+          name: 'young_child_amount',
+          label: 'Young child (0–5)',
+          min_value: 0,
+          max_value: 6000,
+          default_value: 3600,
+          step: 100,
+          unit: '$',
+          description: 'Annual amount per child under age 6.',
+        },
+        {
+          name: 'older_child_amount',
+          label: 'Older child (6–17)',
+          min_value: 0,
+          max_value: 6000,
+          default_value: 3000,
+          step: 100,
+          unit: '$',
+          description: 'Annual amount per child age 6–17.',
+        },
+      ],
     },
     {
-      id: 'snap_increase_25',
-      name: '25% SNAP Benefit Increase',
-      description: 'Increase SNAP benefits by 25% for all recipients',
-      category: 'snap',
-      is_new_program: false,
-      is_enhancement: true,
-      estimated_household_impact: 1000,
+      id: 'baby_bonus',
+      name: 'Baby bonus',
+      description:
+        'Unconditional annual payment for children under age 1, using the same child-allowance mechanism.',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      is_configurable: true,
+      exclusive_with: ['child_allowance'],
+      adjustable_params: [
+        {
+          name: 'amount',
+          label: 'Amount per infant',
+          min_value: 0,
+          max_value: 10000,
+          default_value: 2000,
+          step: 100,
+          unit: '$',
+          description: 'Annual amount per child under age 1.',
+        },
+      ],
     },
   ];
 }
@@ -248,24 +294,6 @@ function buildFederalOptions(): ReformOption[] {
       is_enhancement: true,
       estimated_household_impact: 2400,
     },
-    {
-      id: 'federal_ctc_universal',
-      name: 'Universal child allowance',
-      description: '$3,000 per child with no income phaseout.',
-      category: 'federal_ctc',
-      is_new_program: false,
-      is_enhancement: true,
-      estimated_household_impact: 3000,
-    },
-    {
-      id: 'federal_eitc_expansion',
-      name: '50% EITC expansion',
-      description: 'Increase federal EITC by 50%.',
-      category: 'federal_eitc',
-      is_new_program: false,
-      is_enhancement: true,
-      estimated_household_impact: 1500,
-    },
   ];
 }
 
@@ -281,8 +309,8 @@ export function getReformOptionsForState(
       existing_programs: {},
       ctc_options: [],
       eitc_options: [],
-      snap_options: buildSnapOptions(),
-      child_allowance_options: [],
+      snap_options: [],
+      child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(),
     };
   }
@@ -298,8 +326,8 @@ export function getReformOptionsForState(
     },
     ctc_options: [],
     eitc_options: buildEitcOptions(programs),
-    snap_options: buildSnapOptions(),
-    child_allowance_options: [],
+    snap_options: [],
+    child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(),
   };
 }

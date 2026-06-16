@@ -94,6 +94,8 @@ export interface ReformOption {
   customizable_params: string[];
   is_configurable?: boolean;
   adjustable_params?: AdjustableParameter[];
+  /** IDs that cannot be selected at the same time as this option. */
+  exclusive_with?: string[];
 }
 
 export interface StateReformOptions {
