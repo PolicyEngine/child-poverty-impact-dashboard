@@ -392,6 +392,14 @@ export function StatewideFiscal({ results, year }: TabProps) {
               </tbody>
             </table>
           </div>
+          {fiscal_cost.state === 'MN' && (
+            <p className="text-xs text-gray-500 italic mt-2">
+              Note: Minnesota administers its Working Family Credit as part of
+              the combined Child &amp; Working Families Credit, so a change to
+              the Working Family Credit appears under “State CTC” above rather
+              than “State EITC.”
+            </p>
+          )}
         </div>
       )}
 
