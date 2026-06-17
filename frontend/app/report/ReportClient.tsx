@@ -178,13 +178,25 @@ export default function ReportBuilderPage() {
           ...reformOptions.federal_options,
         ]
       : [];
+    // $ goes in front of the amount ($600, not 600$); other units suffix (50%).
+    const fmtValue = (val: number, unit: string) =>
+      unit === '$' ? `$${val.toLocaleString()}` : `${val}${unit}`;
     const reformLabels = config.selectedReforms.map((id) => {
       const opt = allOptions.find((o) => o.id === id);
       const name = opt?.name ?? id;
       const pv = config.parameterValues?.[id];
       const params = (opt?.adjustable_params ?? [])
         .filter((p) => pv?.[p.name] !== undefined && p.control !== 'toggle')
-        .map((p) => `${p.label} ${pv![p.name]}${p.unit}`);
+        .map((p) => {
+          const cur = pv![p.name];
+          // Show the change from current law when the user moved it
+          // (e.g. "Match rate 40% → 50%"), otherwise just the value.
+          const value =
+            cur !== p.default_value
+              ? `${fmtValue(p.default_value, p.unit)} → ${fmtValue(cur, p.unit)}`
+              : fmtValue(cur, p.unit);
+          return `${p.label} ${value}`;
+        });
       return params.length ? `${name} — ${params.join(', ')}` : name;
     });
 

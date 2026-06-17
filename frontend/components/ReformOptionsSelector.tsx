@@ -383,7 +383,7 @@ function ReformOptionCard({
                 {/* Slider only outside wizard mode (CTC / child allowance use typed boxes). */}
                 {!wizardMode && (
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 w-8">{param.min_value}{param.unit}</span>
+                    <span className="text-xs text-gray-400 w-8">{param.unit === '$' ? `$${param.min_value}` : `${param.min_value}${param.unit}`}</span>
                     <input
                       type="range"
                       value={currentValue}
@@ -394,7 +394,7 @@ function ReformOptionCard({
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pe-teal-500"
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <span className="text-xs text-gray-400 w-10 text-right">{param.max_value}{param.unit}</span>
+                    <span className="text-xs text-gray-400 w-10 text-right">{param.unit === '$' ? `$${param.max_value}` : `${param.max_value}${param.unit}`}</span>
                   </div>
                 )}
                 {param.description && (
