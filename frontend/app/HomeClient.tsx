@@ -262,6 +262,17 @@ export default function HomePage() {
               title="State CTCs"
               description="Create or expand state-level child tax credits across all 50 states."
             />
+
+            <ReformCard
+              delay={700}
+              icon={
+                <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 21h18M4 21V10l8-5 8 5v11M9 21v-6h6v6" />
+                </svg>
+              }
+              title="Federal CTC & EITC"
+              description="Preset federal reforms — restore the 2021 expanded CTC, the American Family Act, and a 50% EITC expansion."
+            />
           </div>
         </div>
       </section>
