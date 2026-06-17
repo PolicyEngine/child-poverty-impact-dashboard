@@ -123,6 +123,7 @@ function mapEconomyToAnalysisResponse(
   const eitcCostBillions = (economy.fiscal?.eitc_change ?? 0) / 1e9;
   const snapCostBillions = (economy.fiscal?.snap_change ?? 0) / 1e9;
   const stateCtcCostBillions = (economy.fiscal?.state_ctc_change ?? 0) / 1e9;
+  const stateEitcCostBillions = (economy.fiscal?.state_eitc_change ?? 0) / 1e9;
   // ubi_change covers the child allowance / baby bonus (ubi_center basic
   // income). Older Modal deployments don't return it — falls back to 0.
   const ubiCostBillions = (economy.fiscal?.ubi_change ?? 0) / 1e9;
@@ -165,6 +166,7 @@ function mapEconomyToAnalysisResponse(
       ubi_cost_billions: ubiCostBillions,
       snap_cost_billions: snapCostBillions,
       state_ctc_cost_billions: stateCtcCostBillions,
+      state_eitc_cost_billions: stateEitcCostBillions,
       income_tax_change_billions:
         (economy.fiscal?.federal_tax_change ?? 0) / 1e9
         + (economy.fiscal?.state_tax_change ?? 0) / 1e9,

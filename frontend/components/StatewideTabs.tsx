@@ -322,9 +322,15 @@ export function StatewideFiscal({ results, year }: TabProps) {
   );
   const federalImpact = totalImpact - stateImpact;
 
+  // One row per program that actually moved. Federal vs. state EITC/CTC are
+  // distinct Modal deltas — earlier this table labelled the FEDERAL eitc
+  // change as "State EITC", so a state-EITC reform (federal delta ≈ 0) showed
+  // nothing. Each row now reads its own field.
   const programBreakdown = [
+    { name: 'Federal CTC', value: fiscal_cost.ctc_cost_billions },
+    { name: 'Federal EITC', value: fiscal_cost.eitc_cost_billions },
     { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions },
-    { name: 'State EITC', value: fiscal_cost.eitc_cost_billions },
+    { name: 'State EITC', value: fiscal_cost.state_eitc_cost_billions },
     { name: 'Child allowance', value: fiscal_cost.ubi_cost_billions },
     { name: 'SNAP', value: fiscal_cost.snap_cost_billions },
     { name: 'Dependent exemption', value: fiscal_cost.dependent_exemption_cost_billions },
