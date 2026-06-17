@@ -93,7 +93,7 @@ export default function ReformOptionsSelector({
   );
   const tabs: { id: TabId; label: string; options: ReformOption[] }[] = [
     { id: 'ctc', label: 'State CTC', options: reformOptions.ctc_options },
-    { id: 'eitc', label: 'State EITC', options: reformOptions.eitc_options },
+    { id: 'eitc', label: 'State EITC / WFC', options: reformOptions.eitc_options },
     { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
     { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
     { id: 'fedctc', label: 'Federal CTC', options: federalCtc },

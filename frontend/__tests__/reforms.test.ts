@@ -163,6 +163,39 @@ describe('buildReformDict', () => {
     expect(reform[`${P}.phase_out.increment`]).toBe(1000);
   });
 
+  it('wires Minnesota WFC phase-in rate (percent -> /1) via the structured EITC', () => {
+    const reform = buildReformDict(['mn_eitc'], { mn_eitc: { phase_in_rate: 8 } }, 2026);
+    expect(
+      reform['gov.states.mn.tax.income.credits.cwfc.wfc.phase_in[0].rate'],
+    ).toBeCloseTo(0.08);
+  });
+
+  it('sets a bracket-indexed Minnesota WFC additional amount', () => {
+    const reform = buildReformDict(
+      ['mn_eitc'],
+      { mn_eitc: { additional_2_children: 3000 } },
+      2026,
+    );
+    expect(
+      reform['gov.states.mn.tax.income.credits.cwfc.wfc.additional.amount[2].amount'],
+    ).toBe(3000);
+  });
+
+  it('is a no-op when the Minnesota WFC is selected but unchanged', () => {
+    expect(buildReformDict(['mn_eitc'], undefined, 2026)).toEqual({});
+    // 4% phase-in is current law -> no param emitted.
+    expect(
+      buildReformDict(['mn_eitc'], { mn_eitc: { phase_in_rate: 4 } }, 2026),
+    ).toEqual({});
+  });
+
+  it('wires Washington WFTC per-child amounts (no income tax)', () => {
+    const reform = buildReformDict(['wa_eitc'], { wa_eitc: { amount_1_child: 1000 } }, 2026);
+    expect(
+      reform['gov.states.wa.tax.income.credits.working_families_tax_credit.amount[1].amount'],
+    ).toBe(1000);
+  });
+
   it('activates the American Family Act via its contrib flag', () => {
     const reform = buildReformDict(['federal_afa'], undefined, 2026);
     expect(reform['gov.contrib.congress.afa.in_effect']).toBe(true);

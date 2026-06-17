@@ -105,6 +105,192 @@ export function buildStateEitcReform(
   return reform;
 }
 
+// ---- Structured (non-match) state EITCs ----------------------------------
+// Minnesota and Washington don't run a percentage-of-federal EITC: MN's
+// Working Family Credit phases in on earnings with a per-child add-on, and
+// WA's Working Families Tax Credit is a standalone refundable rebate (WA has
+// no income tax). Both are wired here with their own parameters instead of a
+// single match-rate slider. Reuses the CtcParam shape (path + default + range).
+//
+// Defaults are the latest published (2025) figures; PE uprates the dollar
+// amounts to the analysis year. As with the CTC, buildStructuredEitcReform
+// emits ONLY params the user changed, so an untouched slider is a no-op and
+// the true (uprated) baseline is used. The non-uprated rates (MN's 4% phase-in
+// and 12% phase-out) are exact.
+interface StructuredEitcEntry {
+  name: string;
+  description: string;
+  /** WA's WFTC is a rebate with no income tax; skip the has_income_tax gate
+   *  that blocks ordinary state-EITC options. MN keeps it (true). */
+  requires_income_tax: boolean;
+  params: CtcParam[];
+}
+
+const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
+  MN: {
+    name: 'Minnesota Working Family Credit',
+    description:
+      "Minnesota's Working Family Credit — the state's EITC-equivalent. It phases in on earned income, adds an amount per qualifying child over 18, and phases out with income (the phase-out is shared with the state Child Tax Credit).",
+    requires_income_tax: true,
+    params: [
+      {
+        name: 'phase_in_rate',
+        label: 'Phase-in rate',
+        path: 'gov.states.mn.tax.income.credits.cwfc.wfc.phase_in[0].rate',
+        default_value: 4,
+        min_value: 0,
+        max_value: 20,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description:
+          'Credit as a share of earned income during phase-in. Current: 4%.',
+      },
+      {
+        name: 'additional_1_child',
+        label: 'Additional amount (1 child)',
+        path: 'gov.states.mn.tax.income.credits.cwfc.wfc.additional.amount[1].amount',
+        default_value: 1000,
+        min_value: 0,
+        max_value: 5000,
+        step: 50,
+        unit: '$',
+        description:
+          'Extra credit for one qualifying child over 18. Current: $1,000 (2025).',
+      },
+      {
+        name: 'additional_2_children',
+        label: 'Additional amount (2 children)',
+        path: 'gov.states.mn.tax.income.credits.cwfc.wfc.additional.amount[2].amount',
+        default_value: 2270,
+        min_value: 0,
+        max_value: 7000,
+        step: 50,
+        unit: '$',
+        description:
+          'Extra credit for two qualifying children over 18. Current: $2,270 (2025).',
+      },
+      {
+        name: 'additional_3_children',
+        label: 'Additional amount (3+ children)',
+        path: 'gov.states.mn.tax.income.credits.cwfc.wfc.additional.amount[3].amount',
+        default_value: 2710,
+        min_value: 0,
+        max_value: 8000,
+        step: 50,
+        unit: '$',
+        description:
+          'Extra credit for three or more qualifying children over 18. Current: $2,710 (2025).',
+      },
+      {
+        name: 'phase_out_rate',
+        label: 'Phase-out rate',
+        path: 'gov.states.mn.tax.income.credits.cwfc.phase_out.rate.main',
+        default_value: 12,
+        min_value: 0,
+        max_value: 30,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description:
+          'Rate at which the credit phases out above the income threshold (shared with the MN child tax credit). Current: 12%.',
+      },
+    ],
+  },
+  WA: {
+    name: 'Washington Working Families Tax Credit',
+    description:
+      "Washington's Working Families Tax Credit — a refundable EITC-style credit (Washington has no income tax). The maximum amount rises with the number of qualifying children.",
+    requires_income_tax: false,
+    params: [
+      {
+        name: 'amount_0_children',
+        label: 'Max amount (no children)',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.amount[0].amount',
+        default_value: 335,
+        min_value: 0,
+        max_value: 3000,
+        step: 5,
+        unit: '$',
+        description:
+          'Maximum credit for a filer with no qualifying children. Current: $335 (2025).',
+      },
+      {
+        name: 'amount_1_child',
+        label: 'Max amount (1 child)',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.amount[1].amount',
+        default_value: 660,
+        min_value: 0,
+        max_value: 4000,
+        step: 5,
+        unit: '$',
+        description:
+          'Maximum credit with one qualifying child. Current: $660 (2025).',
+      },
+      {
+        name: 'amount_2_children',
+        label: 'Max amount (2 children)',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.amount[2].amount',
+        default_value: 995,
+        min_value: 0,
+        max_value: 5000,
+        step: 5,
+        unit: '$',
+        description:
+          'Maximum credit with two qualifying children. Current: $995 (2025).',
+      },
+      {
+        name: 'amount_3_children',
+        label: 'Max amount (3+ children)',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.amount[3].amount',
+        default_value: 1330,
+        min_value: 0,
+        max_value: 6000,
+        step: 5,
+        unit: '$',
+        description:
+          'Maximum credit with three or more qualifying children. Current: $1,330 (2025).',
+      },
+      {
+        name: 'min_amount',
+        label: 'Minimum amount',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.min_amount',
+        default_value: 50,
+        min_value: 0,
+        max_value: 500,
+        step: 5,
+        unit: '$',
+        description:
+          'Minimum credit for an eligible filer with a nonzero benefit. Current: $50.',
+      },
+    ],
+  },
+};
+
+export function eitcStructured(stateCode: string): boolean {
+  return stateCode.toUpperCase() in STRUCTURED_EITC;
+}
+
+/** PolicyEngine-US reform dict for a structured (non-match) state EITC — MN's
+ *  Working Family Credit or WA's Working Families Tax Credit. Emits ONLY the
+ *  parameters the user changed from current law (same no-op contract as
+ *  buildStateCtcReform), so an unmodified selection produces no reform. */
+export function buildStructuredEitcReform(
+  stateCode: string,
+  paramValues?: Record<string, number>,
+): Record<string, number> {
+  const entry = STRUCTURED_EITC[stateCode.toUpperCase()];
+  if (!entry) return {};
+  const out: Record<string, number> = {};
+  for (const p of entry.params) {
+    const ui = paramValues?.[p.name];
+    if (ui === undefined || ui === p.default_value) continue; // unchanged
+    const value = p.divide_by ? ui / p.divide_by : ui;
+    for (const path of p.paths ?? [p.path!]) out[path] = value;
+  }
+  return out;
+}
+
 // ---- Reform options registry --------------------------------------------
 
 export type ReformCategory =
@@ -199,6 +385,33 @@ function describeEitcAction(programs: StateProgramRecord): {
 }
 
 function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
+  // MN / WA: structured Working Family (Tax) Credit, not a federal match.
+  const struct = STRUCTURED_EITC[programs.state_code.toUpperCase()];
+  if (struct) {
+    if (struct.requires_income_tax && !programs.has_income_tax) return [];
+    return [
+      {
+        id: `${programs.state_code.toLowerCase()}_eitc`,
+        name: struct.name,
+        description: struct.description,
+        category: 'state_eitc',
+        is_new_program: false,
+        is_enhancement: true,
+        is_configurable: true,
+        adjustable_params: struct.params.map((p) => ({
+          name: p.name,
+          label: p.label,
+          min_value: p.min_value,
+          max_value: p.max_value,
+          default_value: p.default_value,
+          step: p.step,
+          unit: p.unit,
+          description: p.description,
+          ...(p.control ? { control: p.control } : {}),
+        })),
+      },
+    ];
+  }
   if (!programs.has_income_tax) return [];
   if (!eitcConfigurable(programs.state_code)) return [];
   const { current_rate, description } = describeEitcAction(programs);
@@ -404,7 +617,6 @@ function buildFederalOptions(): ReformOption[] {
       category: 'federal_ctc',
       is_new_program: false,
       is_enhancement: true,
-      estimated_household_impact: 2400,
     },
     {
       id: 'federal_afa',
@@ -414,7 +626,6 @@ function buildFederalOptions(): ReformOption[] {
       category: 'federal_ctc',
       is_new_program: false,
       is_enhancement: true,
-      estimated_household_impact: 3000,
     },
     {
       id: 'federal_eitc_expansion',

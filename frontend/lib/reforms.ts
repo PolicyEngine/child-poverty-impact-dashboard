@@ -14,7 +14,12 @@
  * ``Reform.from_dict`` resolves the ``[i]`` syntax.
  */
 
-import { buildStateEitcReform, buildStateCtcReform } from './state-programs';
+import {
+  buildStateEitcReform,
+  buildStateCtcReform,
+  eitcStructured,
+  buildStructuredEitcReform,
+} from './state-programs';
 
 export type ReformDictValue =
   | number
@@ -59,9 +64,18 @@ function applyReformOption(
   parameterValues: ParameterValues | undefined,
   year: number,
 ): void {
-  // State EITC — IDs look like ``ca_eitc`` / ``dc_eitc``.
+  // State EITC — IDs look like ``ca_eitc`` / ``dc_eitc``. MN and WA run a
+  // structured Working Family (Tax) Credit rather than a federal-percentage
+  // match, so they go through their own multi-parameter builder.
   if (id.endsWith('_eitc')) {
     const state = id.slice(0, 2).toUpperCase();
+    if (eitcStructured(state)) {
+      Object.assign(
+        reform,
+        buildStructuredEitcReform(state, parameterValues?.[id]),
+      );
+      return;
+    }
     const ratePct = parameterValues?.[id]?.match_rate ?? 30;
     Object.assign(reform, buildStateEitcReform(state, ratePct / 100, year));
     return;
