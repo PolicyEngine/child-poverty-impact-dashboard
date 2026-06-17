@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ReformOption, StateReformOptions, StatePrograms, AdjustableParameter } from '@/lib/household-types';
-import { eitcStructured } from '@/lib/state-programs';
+import { eitcStructured, eitcIsWfc } from '@/lib/state-programs';
 
 // Track parameter values for configurable options
 export interface ParameterValues {
@@ -97,8 +97,9 @@ export default function ReformOptionsSelector({
     {
       id: 'eitc',
       // MN/WA run a Working Family (Tax) Credit rather than a federal-match
-      // EITC, so label the tab to match the state's actual program.
-      label: eitcStructured(reformOptions.state_code) ? 'State WFC' : 'State EITC',
+      // EITC, so label the tab to match the state's actual program. WI/OR are
+      // still federal-EITC matches (just multi-rate), so they stay "EITC".
+      label: eitcIsWfc(reformOptions.state_code) ? 'State WFC' : 'State EITC',
       options: reformOptions.eitc_options,
     },
     { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
@@ -137,7 +138,7 @@ export default function ReformOptionsSelector({
               </span>
               <div>
                 <span className="font-medium">
-                  {eitcStructured(statePrograms.state_code) ? 'State WFC:' : 'State EITC:'}
+                  {eitcIsWfc(statePrograms.state_code) ? 'State WFC:' : 'State EITC:'}
                 </span>
                 {statePrograms.has_state_eitc ? (
                   <span className="text-gray-600 ml-1">

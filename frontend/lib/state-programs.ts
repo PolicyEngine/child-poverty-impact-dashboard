@@ -120,8 +120,13 @@ export function buildStateEitcReform(
 interface StructuredEitcEntry {
   name: string;
   description: string;
+  /** 'wfc' = a Working Family (Tax) Credit, not a percentage of the federal
+   *  EITC (MN, WA) — labelled "State WFC". 'match' = a real federal-EITC match
+   *  that just has more than one rate (WI by child count, OR by young-child
+   *  status) — still labelled "State EITC". */
+  kind: 'wfc' | 'match';
   /** WA's WFTC is a rebate with no income tax; skip the has_income_tax gate
-   *  that blocks ordinary state-EITC options. MN keeps it (true). */
+   *  that blocks ordinary state-EITC options. The others keep it (true). */
   requires_income_tax: boolean;
   params: CtcParam[];
 }
@@ -131,6 +136,7 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
     name: 'Minnesota Working Family Credit',
     description:
       "Minnesota's Working Family Credit — the state's EITC-equivalent. It phases in on earned income, adds an amount per qualifying child over 18, and phases out with income (the phase-out is shared with the state Child Tax Credit).",
+    kind: 'wfc',
     requires_income_tax: true,
     params: [
       {
@@ -201,6 +207,7 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
     name: 'Washington Working Families Tax Credit',
     description:
       "Washington's Working Families Tax Credit — a refundable EITC-style credit (Washington has no income tax). The maximum amount rises with the number of qualifying children.",
+    kind: 'wfc',
     requires_income_tax: false,
     params: [
       {
@@ -265,10 +272,94 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
       },
     ],
   },
+  WI: {
+    name: 'Wisconsin earned income credit',
+    description:
+      "Wisconsin's earned income credit is a percentage of the federal EITC that rises with the number of qualifying children. Set the match rate for each family size.",
+    kind: 'match',
+    requires_income_tax: true,
+    params: [
+      {
+        name: 'match_1_child',
+        label: 'Match rate (1 child)',
+        path: 'gov.states.wi.tax.income.credits.earned_income.fraction[1].amount',
+        default_value: 4,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description: 'Percentage of the federal EITC with one qualifying child. Current: 4%.',
+      },
+      {
+        name: 'match_2_children',
+        label: 'Match rate (2 children)',
+        path: 'gov.states.wi.tax.income.credits.earned_income.fraction[2].amount',
+        default_value: 11,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description: 'Percentage of the federal EITC with two qualifying children. Current: 11%.',
+      },
+      {
+        name: 'match_3_children',
+        label: 'Match rate (3+ children)',
+        path: 'gov.states.wi.tax.income.credits.earned_income.fraction[3].amount',
+        default_value: 34,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description: 'Percentage of the federal EITC with three or more qualifying children. Current: 34%.',
+      },
+    ],
+  },
+  OR: {
+    name: 'Oregon earned income credit',
+    description:
+      "Oregon's earned income credit is a percentage of the federal EITC, with a higher rate for filers who have a young child (under 3). Set each rate.",
+    kind: 'match',
+    requires_income_tax: true,
+    params: [
+      {
+        name: 'match_young_child',
+        label: 'Match rate (with young child)',
+        path: 'gov.states.or.tax.income.credits.eitc.match.has_young_child',
+        default_value: 12,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description: 'Percentage of the federal EITC for filers with a child under 3. Current: 12%.',
+      },
+      {
+        name: 'match_no_young_child',
+        label: 'Match rate (no young child)',
+        path: 'gov.states.or.tax.income.credits.eitc.match.no_young_child',
+        default_value: 9,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description: 'Percentage of the federal EITC for filers with no child under 3. Current: 9%.',
+      },
+    ],
+  },
 };
 
 export function eitcStructured(stateCode: string): boolean {
   return stateCode.toUpperCase() in STRUCTURED_EITC;
+}
+
+/** True only for Working Family (Tax) Credit states (MN, WA) — not for
+ *  multi-rate federal-EITC matches (WI, OR), which stay labelled "EITC". */
+export function eitcIsWfc(stateCode: string): boolean {
+  return STRUCTURED_EITC[stateCode.toUpperCase()]?.kind === 'wfc';
 }
 
 /** PolicyEngine-US reform dict for a structured (non-match) state EITC — MN's
@@ -415,15 +506,22 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
   if (!programs.has_income_tax) return [];
   if (!eitcConfigurable(programs.state_code)) return [];
   const { current_rate, description } = describeEitcAction(programs);
+  // Nonrefundable state EITCs (e.g. SC, MO, OH, UT) can't be modelled as a
+  // simple match-rate reform without PE-US changes, so surface the option
+  // greyed-out (non-selectable) rather than wiring a misleading slider.
+  const nonrefundable = programs.eitc?.refundable === false;
   return [
     {
       id: `${programs.state_code.toLowerCase()}_eitc`,
       name: `${programs.state_name} EITC`,
-      description,
+      description: nonrefundable
+        ? `${programs.state_name}'s EITC is nonrefundable; modelling a reform to it requires upcoming PolicyEngine-US changes.`
+        : description,
       category: 'state_eitc',
       is_new_program: programs.eitc === null,
       is_enhancement: programs.eitc !== null,
-      is_configurable: true,
+      is_configurable: !nonrefundable,
+      ...(nonrefundable ? { in_development: true } : {}),
       estimated_household_impact: 500,
       adjustable_params: [
         {

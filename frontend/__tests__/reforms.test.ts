@@ -196,6 +196,40 @@ describe('buildReformDict', () => {
     ).toBe(1000);
   });
 
+  it('wires Wisconsin EITC per-child-count match rates (percent -> /1)', () => {
+    const reform = buildReformDict(
+      ['wi_eitc'],
+      { wi_eitc: { match_2_children: 20 } },
+      2026,
+    );
+    expect(
+      reform['gov.states.wi.tax.income.credits.earned_income.fraction[2].amount'],
+    ).toBeCloseTo(0.2);
+    // Unchanged brackets emit nothing.
+    expect(
+      reform['gov.states.wi.tax.income.credits.earned_income.fraction[1].amount'],
+    ).toBeUndefined();
+  });
+
+  it('wires both Oregon EITC rates (young child / no young child)', () => {
+    const reform = buildReformDict(
+      ['or_eitc'],
+      { or_eitc: { match_young_child: 15, match_no_young_child: 11 } },
+      2026,
+    );
+    expect(
+      reform['gov.states.or.tax.income.credits.eitc.match.has_young_child'],
+    ).toBeCloseTo(0.15);
+    expect(
+      reform['gov.states.or.tax.income.credits.eitc.match.no_young_child'],
+    ).toBeCloseTo(0.11);
+  });
+
+  it('is a no-op when WI/OR rates are left at current law', () => {
+    expect(buildReformDict(['wi_eitc'], { wi_eitc: { match_3_children: 34 } }, 2026)).toEqual({});
+    expect(buildReformDict(['or_eitc'], { or_eitc: { match_young_child: 12 } }, 2026)).toEqual({});
+  });
+
   it('activates the American Family Act via its contrib flag', () => {
     const reform = buildReformDict(['federal_afa'], undefined, 2026);
     expect(reform['gov.contrib.congress.afa.in_effect']).toBe(true);
