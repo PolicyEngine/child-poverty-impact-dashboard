@@ -503,7 +503,7 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing statewide impact"
-              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+              hint="Running the microsimulation on Modal — this can take a few minutes."
             />
           )
         ) : activeTab === 'poverty' ? (
@@ -518,7 +518,7 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing poverty impact"
-              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+              hint="Running the microsimulation on Modal — this can take a few minutes."
             />
           )
         ) : activeTab === 'fiscal' ? (
@@ -533,7 +533,7 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing fiscal impact"
-              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+              hint="Running the microsimulation on Modal — this can take a few minutes."
             />
           )
         ) : activeTab === 'distributional' ? (
@@ -548,7 +548,7 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing distributional impact"
-              hint="Running the microsimulation on Modal — this can take 1–2 minutes."
+              hint="Running the microsimulation on Modal — this can take a few minutes."
             />
           )
         ) : null}
@@ -1299,7 +1299,7 @@ function CompareTab({
       {completedCount === 0 ? (
         <TabSkeleton
           title="Computing comparison"
-          hint={`Running ${states.length} parallel microsimulations on Modal — usually 1–2 minutes each.`}
+          hint={`Running ${states.length} parallel microsimulations on Modal — usually a few minutes each.`}
         />
       ) : (
         <>
