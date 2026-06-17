@@ -994,9 +994,9 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     ],
   },
   NE: {
-    name: 'Nebraska Refundable Child Tax Credit',
+    name: 'Nebraska Child Care Tax Credit',
     description:
-      'Refundable credit for children age 5 or under, stepping down with AGI ($2,000 under $75k; $1,000 to $150k).',
+      'Refundable Child Care Tax Credit Act credit (not a traditional per-child CTC) for children age 5 or under who are in a licensed child care program, stepping down with AGI ($2,000 under $75k; $1,000 to $150k). PolicyEngine approximates the licensed-care requirement as the family reporting child care expenses or being income-eligible.',
     params: [
       bracketAmt('gov.states.ne.tax.income.credits.ctc.refundable.amount', 0, 2000, 'Amount (AGI under $75k)'),
       bracketAmt('gov.states.ne.tax.income.credits.ctc.refundable.amount', 1, 1000, 'Amount (AGI $75k–$150k)'),

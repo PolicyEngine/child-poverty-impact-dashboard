@@ -997,18 +997,18 @@
     "state_name": "Nebraska",
     "has_income_tax": true,
     "ctc": {
-      "name": "Nebraska Refundable Child Tax Credit",
-      "max_amount": 1000,
+      "name": "Nebraska Child Care Tax Credit",
+      "max_amount": 2000,
       "amount_young": null,
       "amount_older": null,
-      "age_limit": 17,
+      "age_limit": 5,
       "young_child_age": 6,
       "refundable": true,
-      "income_limit": null,
+      "income_limit": 150000,
       "phaseout_start": null,
       "phaseout_rate": null,
-      "notes": "",
-      "pe_variable": "ne_ctc"
+      "notes": "Child Care Tax Credit Act (Neb. Rev. Stat. 77-7202/7203, Form 7203), not a traditional per-child CTC: requires a child age <=5 in licensed child care. $2,000/child under $75k AGI, $1,000 to $150k. PE approximates the licensed-care gate as reported childcare expenses or income eligibility.",
+      "pe_variable": "ne_refundable_ctc"
     },
     "eitc": {
       "name": "Nebraska EITC",
