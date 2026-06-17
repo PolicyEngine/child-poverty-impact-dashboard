@@ -158,7 +158,7 @@ export default function HomePage() {
                 </svg>
               }
               title="Model Policy Reforms"
-              description="Simulate Child Tax Credit expansions, EITC reforms, SNAP modifications, universal basic income, and state-specific programs with granular controls."
+              description="Simulate Child Tax Credit expansions, EITC reforms, SNAP modifications, child allowances, and state-specific programs with granular controls."
             />
 
             <FeatureCard
@@ -234,22 +234,11 @@ export default function HomePage() {
               delay={300}
               icon={
                 <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              }
-              title="Dependent Exemptions"
-              description="Restore personal exemptions with various amounts and refundability options."
-            />
-
-            <ReformCard
-              delay={400}
-              icon={
-                <svg className="w-5 h-5 text-pe-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               }
-              title="Universal Basic Income"
-              description="Child allowances and full UBI with optional income phaseouts."
+              title="Child Allowance"
+              description="Per-child cash payments by age tier, with optional income phaseouts."
             />
 
             <ReformCard
