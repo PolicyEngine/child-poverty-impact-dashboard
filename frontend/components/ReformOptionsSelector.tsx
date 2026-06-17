@@ -284,11 +284,6 @@ function ReformOptionCard({
                 Enhancement
               </span>
             )}
-            {!inDevelopment && hasAdjustableParams && (
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                Configurable
-              </span>
-            )}
           </div>
           <p className="text-sm text-gray-600 mt-1">{option.description}</p>
           {inDevelopment && (
