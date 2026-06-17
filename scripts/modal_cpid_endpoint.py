@@ -43,6 +43,15 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
         "policyengine-us==1.715.2",
+        # ``policyengine-us==1.715.2`` only requires ``policyengine-core>=3.26.0``,
+        # but 3.26.8 added a strict computation-mode check that breaks every
+        # contrib reform whose update_variable() inherits ``adds`` from a
+        # baseline (e.g. the MO refundable-WFTC reform crashes on
+        # ``mo_refundable_credits``). PE-core 3.27.1 exempts baseline-inherited
+        # attributes from that check, so pin ``>=3.27.1`` here to keep the
+        # 13 contrib EITC reforms (AL/AZ/AR/GA/ID/KY/MS/MO/NC/ND/OH/UT/WV)
+        # working without touching upstream PE-US.
+        "policyengine-core>=3.27.1",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
@@ -51,8 +60,182 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-03-reform-dict-payload"})
+    .env({"CPID_BUILD_REV": "2026-06-15-mo-ut-reform-patch"})
 )
+
+
+def _patch_pe_us_contrib_reforms() -> None:
+    """Override the bundled MO and UT refundable-EITC contrib reforms so
+    they resolve refundable-credits parameter paths to a list before
+    handing them to ``add()``.
+
+    PE-US 1.715.2 ships two reforms (``create_mo_refundable_eitc`` and
+    ``create_ut_fully_refundable_eitc``) whose ``*_credits.formula``
+    methods call ``add()`` like::
+
+        add(tax_unit, period, "gov.states.mo.tax.income.credits.refundable")
+        add(tax_unit, period, "gov.states.ut.tax.income.credits.non_refundable")
+
+    PE-core's ``add()`` expects a ``List[str]`` of variable names, not a
+    parameter path. The string is iterated character-by-character —
+    ``get_variable("g")`` returns ``None`` — and the simulation raises
+    ``AttributeError: 'NoneType' object has no attribute 'entity'``.
+    Result: ``household_net_income`` silently collapses to 0 under the
+    reform.
+
+    Tracked upstream at
+    https://github.com/PolicyEngine/policyengine-us/issues/8640. Until a
+    PE-US release lands the fix, rebuild each reform's variable classes
+    here with a formula that reads the parameter list first, then calls
+    ``add()`` with the resolved list. Replace the bundled factory
+    functions so the rest of PE-US's reform pipeline picks them up
+    automatically. Idempotent — safe to call from each Modal entrypoint.
+    """
+    from policyengine_us.model_api import (
+        Variable,
+        TaxUnit,
+        USD,
+        YEAR,
+        StateCode,
+        Reform,
+        add,
+    )
+    from policyengine_us.reforms.states.mo.eitc import (
+        mo_refundable_eitc_reform as _mo_mod,
+    )
+    from policyengine_us.reforms.states.ut.child_poverty_eitc import (
+        ut_fully_refundable_eitc_reform as _ut_mod,
+    )
+
+    if not getattr(_mo_mod, "_cpid_patched", False):
+        def create_mo_refundable_eitc():
+            class mo_refundable_wftc(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Missouri refundable Working Families Tax Credit"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.MO
+
+                def formula(tax_unit, period, parameters):
+                    return tax_unit("mo_wftc", period)
+
+            class mo_non_refundable_wftc(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Missouri nonrefundable Working Families Tax Credit"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.MO
+
+                def formula(tax_unit, period, parameters):
+                    return 0
+
+            class mo_non_refundable_credits(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Missouri non-refundable credits"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.MO
+
+                def formula(tax_unit, period, parameters):
+                    return tax_unit("mo_non_refundable_wftc", period)
+
+            class mo_refundable_credits(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Missouri refundable credits"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.MO
+
+                def formula(tax_unit, period, parameters):
+                    refundable_list = (
+                        parameters(period).gov.states.mo.tax.income.credits.refundable
+                    )
+                    other_refundable = add(tax_unit, period, refundable_list)
+                    refundable_wftc = tax_unit("mo_refundable_wftc", period)
+                    return other_refundable + refundable_wftc
+
+            class reform(Reform):
+                def apply(self):
+                    self.update_variable(mo_refundable_wftc)
+                    self.update_variable(mo_non_refundable_wftc)
+                    self.update_variable(mo_non_refundable_credits)
+                    self.update_variable(mo_refundable_credits)
+
+            return reform
+
+        _mo_mod.create_mo_refundable_eitc = create_mo_refundable_eitc
+        _mo_mod._cpid_patched = True
+
+    if not getattr(_ut_mod, "_cpid_patched", False):
+        def create_ut_fully_refundable_eitc():
+            class ut_fully_refundable_eitc(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Utah fully refundable EITC"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.UT
+
+                def formula(tax_unit, period, parameters):
+                    return tax_unit("ut_eitc", period)
+
+            class ut_non_refundable_eitc(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Utah nonrefundable EITC"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.UT
+
+                def formula(tax_unit, period, parameters):
+                    return 0
+
+            class ut_non_refundable_credits(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Utah non-refundable tax credits"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.UT
+
+                def formula(tax_unit, period, parameters):
+                    non_refundable_list = (
+                        parameters(period)
+                        .gov.states.ut.tax.income.credits.non_refundable
+                    )
+                    baseline_non_refundable = add(
+                        tax_unit, period, non_refundable_list
+                    )
+                    ut_eitc = tax_unit("ut_eitc", period)
+                    nonrefundable_eitc = tax_unit("ut_non_refundable_eitc", period)
+                    return baseline_non_refundable - ut_eitc + nonrefundable_eitc
+
+            class ut_refundable_credits(Variable):
+                value_type = float
+                entity = TaxUnit
+                label = "Utah refundable credits"
+                unit = USD
+                definition_period = YEAR
+                defined_for = StateCode.UT
+
+                def formula(tax_unit, period, parameters):
+                    return tax_unit("ut_fully_refundable_eitc", period)
+
+            class reform(Reform):
+                def apply(self):
+                    self.update_variable(ut_fully_refundable_eitc)
+                    self.update_variable(ut_non_refundable_eitc)
+                    self.update_variable(ut_non_refundable_credits)
+                    self.update_variable(ut_refundable_credits)
+
+            return reform
+
+        _ut_mod.create_ut_fully_refundable_eitc = create_ut_fully_refundable_eitc
+        _ut_mod._cpid_patched = True
 
 
 def _build_core_reform_dict(reform: dict | None, year: int) -> dict | None:
@@ -159,7 +342,14 @@ def _household_point(sim_baseline, sim_reform, year: int) -> dict:
     def _val(sim, name: str) -> float:
         try:
             return float(sim.calculate(name, period=year)[0])
-        except Exception:
+        except Exception as exc:  # noqa: BLE001
+            # Log but don't crash the whole sweep — one variable failing
+            # under a reform shouldn't tank the entire job. If you're
+            # debugging silently-zero outputs, this is where to look.
+            print(
+                f"_val({name}) failed under reform: {type(exc).__name__}: {exc}",
+                flush=True,
+            )
             return 0.0
 
     return {
@@ -191,6 +381,8 @@ def compute_household_sweep(payload: dict) -> dict:
     import numpy as np
     from policyengine_core.reforms import Reform
     from policyengine_us import Simulation
+
+    _patch_pe_us_contrib_reforms()
 
     t0 = time.perf_counter()
 
@@ -250,6 +442,8 @@ def compute_economy(payload: dict) -> dict:
     import numpy as np
     from policyengine_core.reforms import Reform
     from policyengine_us import Microsimulation
+
+    _patch_pe_us_contrib_reforms()
 
     t0 = time.perf_counter()
 
