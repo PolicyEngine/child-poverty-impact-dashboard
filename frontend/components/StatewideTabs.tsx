@@ -114,6 +114,17 @@ interface TabProps {
 export function StatewideOverview({ results, state, year }: TabProps) {
   const { poverty_impact, fiscal_cost, distributional_impact } = results;
 
+  // Relative (percent) change in the deep child poverty rate — the response
+  // only ships the pp change for deep poverty, so derive the relative version
+  // from the baseline/reform rates to match the other "Poverty reduction" rows.
+  const deepPovertyPercentChange =
+    poverty_impact.baseline_deep_child_poverty_rate > 0
+      ? ((poverty_impact.reform_deep_child_poverty_rate -
+          poverty_impact.baseline_deep_child_poverty_rate) /
+          poverty_impact.baseline_deep_child_poverty_rate) *
+        100
+      : 0;
+
   return (
     <div className="space-y-6">
       <div>
@@ -158,9 +169,9 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           <StatGroup
             title="Poverty reduction"
             rows={[
-              { label: 'Child poverty rate change', value: `${poverty_impact.child_poverty_change_pp.toFixed(2)}pp` },
-              { label: 'Young child poverty change', value: `${poverty_impact.young_child_poverty_change_pp.toFixed(2)}pp` },
-              { label: 'Deep poverty change', value: `${poverty_impact.deep_poverty_change_pp.toFixed(2)}pp` },
+              { label: 'Child poverty change', value: formatPercentWithSign(poverty_impact.child_poverty_percent_change) },
+              { label: 'Young child poverty change', value: formatPercentWithSign(poverty_impact.young_child_poverty_percent_change) },
+              { label: 'Deep poverty change', value: formatPercentWithSign(deepPovertyPercentChange) },
             ]}
           />
           <StatGroup
