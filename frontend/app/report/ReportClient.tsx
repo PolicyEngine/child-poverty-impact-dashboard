@@ -118,7 +118,7 @@ export default function ReportBuilderPage() {
       try {
         const [programs, options] = await Promise.all([
           getStatePrograms(lookupState),
-          getReformOptions(lookupState),
+          getReformOptions(lookupState, config.year ?? 2026),
         ]);
         setStatePrograms(programs);
         setReformOptions(options);
@@ -130,7 +130,7 @@ export default function ReportBuilderPage() {
     };
 
     fetchStateData();
-  }, [primaryState, config.states]);
+  }, [primaryState, config.states, config.year]);
 
   const currentStepIndex = STEPS.findIndex(s => s.key === step);
 
@@ -166,10 +166,45 @@ export default function ReportBuilderPage() {
       ? 'statewide'
       : 'household';
     const household = skipHousehold ? null : householdOverride ?? config.household;
+
+    // Human-readable labels for the selected reforms (name + the parameter
+    // values the user set), so the results header shows the actual reform.
+    const allOptions = reformOptions
+      ? [
+          ...reformOptions.ctc_options,
+          ...reformOptions.eitc_options,
+          ...reformOptions.snap_options,
+          ...reformOptions.child_allowance_options,
+          ...reformOptions.federal_options,
+        ]
+      : [];
+    // $ goes in front of the amount ($600, not 600$); other units suffix (50%).
+    const fmtValue = (val: number, unit: string) =>
+      unit === '$' ? `$${val.toLocaleString()}` : `${val}${unit}`;
+    const reformLabels = config.selectedReforms.map((id) => {
+      const opt = allOptions.find((o) => o.id === id);
+      const name = opt?.name ?? id;
+      const pv = config.parameterValues?.[id];
+      const params = (opt?.adjustable_params ?? [])
+        .filter((p) => pv?.[p.name] !== undefined && p.control !== 'toggle')
+        .map((p) => {
+          const cur = pv![p.name];
+          // Show the change from current law when the user moved it
+          // (e.g. "Match rate 40% → 50%"), otherwise just the value.
+          const value =
+            cur !== p.default_value
+              ? `${fmtValue(p.default_value, p.unit)} → ${fmtValue(cur, p.unit)}`
+              : fmtValue(cur, p.unit);
+          return `${p.label} ${value}`;
+        });
+      return params.length ? `${name} — ${params.join(', ')}` : name;
+    });
+
     const payload = {
       ...config,
       populationType,
       household,
+      reformLabels,
     };
     sessionStorage.setItem('reportConfig', JSON.stringify(payload));
     router.push('/report/results');
@@ -253,81 +288,41 @@ export default function ReportBuilderPage() {
             <div className="space-y-6">
               {/* State Selection */}
               <div className="card">
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div>
-                    <h2 className="text-xl font-semibold text-pe-gray-800">Select states</h2>
-                    <p className="text-pe-gray-500 mt-1">
-                      Pick one state for a single-state report, or two or more
-                      to compare reform impacts side by side.
-                    </p>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setConfig((c) => ({ ...c, states: Object.keys(US_STATES) }))
-                      }
-                      className="btn btn-ghost btn-sm"
-                    >
-                      Select all
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfig((c) => ({ ...c, states: [] }))}
-                      className="btn btn-ghost btn-sm"
-                    >
-                      Clear
-                    </button>
-                  </div>
+                <div className="mb-2">
+                  <h2 className="text-xl font-semibold text-pe-gray-800">Select state</h2>
+                  <p className="text-pe-gray-500 mt-1">
+                    Pick the state for this report.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mt-4">
                   {Object.entries(US_STATES).map(([code, name]) => {
-                    const selected = config.states.includes(code);
-                    const inputId = `state-${code}`;
-                    const toggle = () =>
-                      setConfig((c) => ({
-                        ...c,
-                        states: selected
-                          ? c.states.filter((s) => s !== code)
-                          : [...c.states, code],
-                        // Drop household when we shift into multi-state
-                        // mode — household analysis isn't run there.
-                        household:
-                          !selected && c.states.length >= 1
-                            ? null
-                            : c.household,
-                      }));
+                    const selected = config.states[0] === code;
+                    const select = () =>
+                      setConfig((c) => ({ ...c, states: [code] }));
                     return (
-                      <label
+                      <button
                         key={code}
-                        htmlFor={inputId}
+                        type="button"
+                        onClick={select}
                         title={name}
-                        className={`flex items-center justify-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                        aria-pressed={selected}
+                        className={`flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
                           selected
                             ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
                             : 'border-pe-gray-200 text-pe-gray-700'
                         }`}
                       >
-                        <input
-                          id={inputId}
-                          type="checkbox"
-                          checked={selected}
-                          onChange={toggle}
-                          className="h-3.5 w-3.5 accent-pe-teal-500 cursor-pointer"
-                        />
                         <span className="font-semibold text-sm">{code}</span>
-                      </label>
+                      </button>
                     );
                   })}
                 </div>
 
                 <p className="text-xs text-pe-gray-500 mt-3">
                   {config.states.length === 0
-                    ? 'No states selected.'
-                    : config.states.length === 1
-                    ? `${US_STATES[config.states[0]]} — single-state report.`
-                    : `${config.states.length} states selected — comparison report.`}
+                    ? 'No state selected.'
+                    : `${US_STATES[config.states[0]]} — single-state report.`}
                 </p>
               </div>
 
@@ -409,15 +404,6 @@ export default function ReportBuilderPage() {
                   Choose one or more policy reforms to analyze.
                 </p>
 
-                {isMultiState && (
-                  <div className="mb-4 rounded-md border border-pe-teal-200 bg-pe-teal-50 px-4 py-3 text-sm text-pe-teal-800">
-                    Comparing {config.states.length} states — only federal
-                    reforms are listed below. State-specific reforms (state
-                    CTC/EITC/SNAP, child allowances) only apply in one
-                    state and aren't comparable across states.
-                  </div>
-                )}
-
                 <ReformOptionsSelector
                   stateCode={config.states[0] || 'CA'}
                   statePrograms={statePrograms || undefined}
@@ -427,7 +413,6 @@ export default function ReportBuilderPage() {
                   parameterValues={config.parameterValues}
                   onParameterChange={handleParameterChange}
                   isLoading={loadingState}
-                  federalOnly={isMultiState}
                 />
 
                 <div className="flex justify-between items-center mt-8 pt-6 border-t border-pe-gray-100">

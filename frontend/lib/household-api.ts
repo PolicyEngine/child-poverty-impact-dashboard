@@ -15,7 +15,7 @@ import {
   modalConfigured,
   runHouseholdSweepOnModal,
 } from './modalApi';
-import { buildStateEitcReform } from './state-programs';
+import { buildReformDict } from './reforms';
 
 const api = axios.create({
   baseURL: '/api',
@@ -37,8 +37,9 @@ export async function getStatePrograms(stateCode: string): Promise<StatePrograms
 
 export async function getReformOptions(
   stateCode: string,
+  year = 2026,
 ): Promise<StateReformOptions> {
-  return getReformOptionsForState(stateCode) as unknown as StateReformOptions;
+  return getReformOptionsForState(stateCode, year) as unknown as StateReformOptions;
 }
 
 /** Map a single Modal IncomeSweep point into our HouseholdResults shape.
@@ -54,6 +55,7 @@ function pointToResults(
     federal_eitc: number;
     state_ctc: number;
     state_eitc: number;
+    child_allowance?: number;
     snap_benefits: number;
     in_poverty: boolean;
   },
@@ -77,8 +79,9 @@ function pointToResults(
     federal_eitc: point.federal_eitc,
     state_ctc: point.state_ctc,
     state_eitc: point.state_eitc,
+    child_allowance: point.child_allowance ?? 0,
     snap_benefits: point.snap_benefits,
-    total_benefits: point.snap_benefits,
+    total_benefits: point.snap_benefits + (point.child_allowance ?? 0),
     in_poverty: point.in_poverty,
     in_deep_poverty: false,
     poverty_gap: 0,
@@ -151,9 +154,9 @@ export async function calculateImpact(
   if (modalConfigured()) {
     try {
       const reformDict = buildReformDict(
-        household,
         reformOptionIds,
         parameterValues,
+        household.year,
       );
       const { baseline, reform } = await singlePointOnModal(
         household,
@@ -193,32 +196,6 @@ function buildIncomes(min: number, max: number, step: number): number[] {
   return xs;
 }
 
-/** Build the PolicyEngine-US parameter dict for the reforms this dashboard
- *  exposes. Mirrors pe-api.ts::reformFromOptions but kept inline here so
- *  the Modal path doesn't pull in the full pe-api module. */
-function buildReformDict(
-  household: HouseholdInput,
-  reformOptionIds: string[],
-  parameterValues?: Record<string, Record<string, number>>,
-): Record<string, number | boolean | Record<string, number | boolean>> {
-  const year = household.year;
-  const reform: Record<string, number | boolean | Record<string, number | boolean>> = {};
-  for (const id of reformOptionIds) {
-    if (id.endsWith('_eitc')) {
-      const state = id.slice(0, 2).toUpperCase();
-      const ratePct = parameterValues?.[id]?.match_rate ?? 30;
-      Object.assign(reform, buildStateEitcReform(state, ratePct / 100, year));
-    }
-    if (id === 'federal_ctc_expanded') {
-      // Scalar reform values — see api.ts for rationale.
-      reform['gov.irs.credits.ctc.refundable.fully_refundable'] = true;
-      reform['gov.irs.credits.ctc.phase_out.threshold.SINGLE'] = 75_000;
-      reform['gov.irs.credits.ctc.phase_out.threshold.JOINT'] = 150_000;
-    }
-  }
-  return reform;
-}
-
 // Run income sweep analysis. Modal first (if configured), then the local
 // FastAPI shim, then a direct api.policyengine.org sweep.
 export async function runIncomeSweep(
@@ -232,7 +209,7 @@ export async function runIncomeSweep(
   const ids = reformOptionIds ?? [];
   if (modalConfigured()) {
     try {
-      const reform = buildReformDict(household, ids, parameterValues);
+      const reform = buildReformDict(ids, parameterValues, household.year);
       return await runHouseholdSweepOnModal({
         reform: Object.keys(reform).length > 0 ? reform : null,
         year: household.year,

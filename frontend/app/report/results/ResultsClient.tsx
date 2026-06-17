@@ -14,6 +14,8 @@ import type {
 import type { AnalysisResponse } from '@/lib/types';
 import { US_STATES } from '@/lib/household-types';
 import {
+  LineChart,
+  Line,
   BarChart,
   Bar,
   XAxis,
@@ -23,7 +25,6 @@ import {
   ResponsiveContainer,
   ReferenceLine,
   Cell,
-  Legend,
 } from 'recharts';
 import {
   StatewideOverview,
@@ -99,8 +100,24 @@ interface ReportConfig {
   populationType: 'household' | 'statewide';
   household: HouseholdInput | null;
   selectedReforms: string[];
+  /** Human-readable labels for the selected reforms (with their configured
+   *  parameter values), built by the wizard so the results header can show
+   *  the actual reform instead of just a count. */
+  reformLabels?: string[];
   year: number;
   parameterValues?: Record<string, Record<string, number>>;
+}
+
+/** One-line description of the household example (e.g. "single, age 23,
+ *  child 1 age 5, child 2 age 8, employment income $40,000"). */
+function householdSummary(h: HouseholdInput): string {
+  const parts: string[] = [];
+  const filing = h.filing_status?.startsWith('married') ? 'married' : 'single';
+  const ages = (h.adults ?? []).map((a) => a.age);
+  parts.push(ages.length ? `${filing}, age ${ages.join(' & ')}` : filing);
+  (h.children ?? []).forEach((c, i) => parts.push(`child ${i + 1} age ${c.age}`));
+  parts.push(`employment income $${(h.income?.employment_income ?? 0).toLocaleString()}`);
+  return parts.join(', ');
 }
 
 function normaliseStates(c: ReportConfig): string[] {
@@ -287,7 +304,11 @@ export default function ReportResultsPage() {
     ) {
       Promise.all([
         calculateBaseline(config.household),
-        calculateImpact(config.household, config.selectedReforms),
+        calculateImpact(
+          config.household,
+          config.selectedReforms,
+          config.parameterValues,
+        ),
       ])
         .then(([baseline, impact]) => {
           setBaselineResults(baseline);
@@ -305,7 +326,8 @@ export default function ReportResultsPage() {
         config.selectedReforms,
         0,
         400_000,
-        10_000,
+        500,
+        config.parameterValues,
       )
         .then((sweep) => setIncomeSweep(sweep))
         .catch((err: unknown) => {
@@ -353,8 +375,41 @@ export default function ReportResultsPage() {
                   ? 'Loading report…'
                   : isCompareMode
                   ? `${states.length} states • Comparison • ${config.selectedReforms.length} reform(s)`
-                  : `${primaryState ? US_STATES[primaryState] : 'Analysis'} • ${config.populationType === 'statewide' ? 'Statewide' : 'Household'} • ${config.selectedReforms.length} reform(s)`}
+                  : `${primaryState ? US_STATES[primaryState] : 'Analysis'} • ${config.populationType === 'statewide' ? 'Statewide' : 'Household'}`}
               </p>
+              {config && (
+                <div className="mt-3 space-y-2">
+                  {config.reformLabels && config.reformLabels.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-medium text-pe-gray-500">
+                        Reform:
+                      </span>
+                      {config.reformLabels.map((label, i) => (
+                        <span
+                          key={i}
+                          className="text-xs bg-pe-teal-50 text-pe-teal-700 border border-pe-teal-200 px-2.5 py-1 rounded-full"
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  ) : config.selectedReforms.length === 0 ? (
+                    <span className="text-xs text-pe-gray-500">
+                      No reform selected — baseline only
+                    </span>
+                  ) : null}
+                  {config.populationType === 'household' && config.household && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-medium text-pe-gray-500">
+                        Household:
+                      </span>
+                      <span className="text-xs bg-pe-teal-50 text-pe-teal-700 border border-pe-teal-200 px-2.5 py-1 rounded-full">
+                        {householdSummary(config.household)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <button
               onClick={() => router.push('/report')}
@@ -593,7 +648,7 @@ const PROVISION_FIELDS: {
 }[] = [
   { key: 'federal_ctc', label: 'Federal CTC' },
   { key: 'federal_eitc', label: 'Federal EITC' },
-  { key: 'state_ctc', label: 'State CTC' },
+  { key: 'state_ctc', label: 'State CTC + Child Allowance' },
   { key: 'state_eitc', label: 'State EITC' },
   { key: 'snap_benefits', label: 'SNAP' },
 ];
@@ -673,7 +728,7 @@ function NetIncomeChangeTooltip({
           <span>{fmt(p.federal_eitc_change)}</span>
         </div>
         <div className="flex justify-between gap-3">
-          <span>State CTC</span>
+          <span>State CTC + Child Allowance</span>
           <span>{fmt(p.state_ctc_change)}</span>
         </div>
         <div className="flex justify-between gap-3">
@@ -724,7 +779,9 @@ function HouseholdOverviewTab({
         net_income_change: r.net_income - b.net_income,
         federal_ctc_change: r.federal_ctc - b.federal_ctc,
         federal_eitc_change: r.federal_eitc - b.federal_eitc,
-        state_ctc_change: r.state_ctc - b.state_ctc,
+        state_ctc_change:
+          (r.state_ctc + (r.child_allowance ?? 0)) -
+          (b.state_ctc + (b.child_allowance ?? 0)),
         state_eitc_change: r.state_eitc - b.state_eitc,
         snap_change: r.snap_benefits - b.snap_benefits,
       });
@@ -749,13 +806,18 @@ function HouseholdOverviewTab({
 
       {/* Per-provision change cards (federal/state income tax intentionally excluded) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {PROVISION_FIELDS.map(({ key, label }) => (
-          <ChangeCard
-            key={key}
-            label={label}
-            change={(reform[key] as number) - (baselineHH[key] as number)}
-          />
-        ))}
+        {PROVISION_FIELDS.map(({ key, label }) => {
+          // State CTC card also includes the child allowance (basic income).
+          const reformVal =
+            (reform[key] as number) +
+            (key === 'state_ctc' ? reform.child_allowance ?? 0 : 0);
+          const baseVal =
+            (baselineHH[key] as number) +
+            (key === 'state_ctc' ? baselineHH.child_allowance ?? 0 : 0);
+          return (
+            <ChangeCard key={key} label={label} change={reformVal - baseVal} />
+          );
+        })}
         <ChangeCard
           label="Net income"
           change={net_income_change}
@@ -789,7 +851,7 @@ function HouseholdOverviewTab({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={360}>
-            <BarChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+            <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis
                 dataKey="income"
@@ -807,9 +869,16 @@ function HouseholdOverviewTab({
                 width={80}
               />
               <ReferenceLine y={0} stroke="#9CA3AF" />
-              <Tooltip content={<NetIncomeChangeTooltip />} cursor={{ fill: 'rgba(49,151,149,0.08)' }} />
-              <Bar dataKey="net_income_change" fill={COLORS.primary} maxBarSize={6} />
-            </BarChart>
+              <Tooltip content={<NetIncomeChangeTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="net_income_change"
+                stroke={COLORS.primary}
+                strokeWidth={2.5}
+                dot={false}
+                name="Net income change"
+              />
+            </LineChart>
           </ResponsiveContainer>
         )}
       </div>
@@ -908,7 +977,11 @@ function HouseholdFiscalTab({
 
   const benefitChanges = [
     { name: 'Federal CTC', baseline: baseline.federal_ctc, reform: reform.federal_ctc },
-    { name: 'State CTC', baseline: baseline.state_ctc, reform: reform.state_ctc },
+    {
+      name: 'State CTC + Child Allowance',
+      baseline: baseline.state_ctc + (baseline.child_allowance ?? 0),
+      reform: reform.state_ctc + (reform.child_allowance ?? 0),
+    },
     { name: 'Federal EITC', baseline: baseline.federal_eitc, reform: reform.federal_eitc },
     { name: 'State EITC', baseline: baseline.state_eitc, reform: reform.state_eitc },
     { name: 'SNAP Benefits', baseline: baseline.snap_benefits, reform: reform.snap_benefits },

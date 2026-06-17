@@ -97,6 +97,143 @@ describe('ReformOptionsSelector', () => {
     expect(screen.getByText(/Loading reform options for NY/)).toBeInTheDocument();
   });
 
+  it('deselects a mutually exclusive reform when its counterpart is chosen', () => {
+    const onSelectionChange = vi.fn();
+    const childAllowance: ReformOption = {
+      id: 'child_allowance',
+      name: 'Child allowance',
+      description: 'Two-tier child allowance.',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      customizable_params: [],
+      exclusive_with: ['baby_bonus'],
+    };
+    const babyBonus: ReformOption = {
+      id: 'baby_bonus',
+      name: 'Baby bonus',
+      description: 'Under-1 payment.',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      customizable_params: [],
+      exclusive_with: ['child_allowance'],
+    };
+    render(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={{
+          ...reformOptions,
+          child_allowance_options: [childAllowance, babyBonus],
+        }}
+        selectedOptions={['baby_bonus']}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    // Child Allowance is not the default tab; switch to it first.
+    fireEvent.click(screen.getByText('Child Allowance'));
+    fireEvent.click(screen.getByText('Child allowance'));
+    // baby_bonus is dropped because child_allowance excludes it.
+    expect(onSelectionChange).toHaveBeenCalledWith(['child_allowance']);
+  });
+
+  it('renders an in-development option greyed-out and non-selectable', () => {
+    const onSelectionChange = vi.fn();
+    const snap: ReformOption = {
+      id: 'snap_increase_15',
+      name: '15% SNAP benefit increase',
+      description: 'Increase SNAP benefits by 15%.',
+      category: 'snap',
+      is_new_program: false,
+      is_enhancement: true,
+      customizable_params: [],
+      in_development: true,
+    };
+    render(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={{ ...reformOptions, snap_options: [snap] }}
+        selectedOptions={[]}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('SNAP'));
+    expect(screen.getByText('In development')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('15% SNAP benefit increase'));
+    expect(onSelectionChange).not.toHaveBeenCalled();
+  });
+
+  it('reveals depends_on params only when the toggle is on', () => {
+    const onParameterChange = vi.fn();
+    const opt: ReformOption = {
+      id: 'child_allowance',
+      name: 'Child allowance',
+      description: 'allowance',
+      category: 'child_allowance',
+      is_new_program: true,
+      is_enhancement: false,
+      customizable_params: [],
+      is_configurable: true,
+      adjustable_params: [
+        {
+          name: 'phaseout_enabled',
+          label: 'Phase out by income',
+          control: 'toggle',
+          min_value: 0,
+          max_value: 1,
+          default_value: 0,
+          step: 1,
+          unit: '',
+          description: 'toggle',
+        },
+        {
+          name: 'phaseout_rate',
+          label: 'Phase-out rate',
+          depends_on: 'phaseout_enabled',
+          min_value: 0,
+          max_value: 50,
+          default_value: 5,
+          step: 1,
+          unit: '%',
+          description: 'rate',
+        },
+      ],
+    };
+    const opts = { ...reformOptions, eitc_options: [opt] };
+    const { rerender } = render(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={opts}
+        selectedOptions={['child_allowance']}
+        onSelectionChange={() => {}}
+        parameterValues={{ child_allowance: { phaseout_enabled: 0 } }}
+        onParameterChange={onParameterChange}
+      />,
+    );
+    // Gated input hidden while the toggle is off.
+    expect(screen.queryByText('Phase-out rate')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox'));
+    expect(onParameterChange).toHaveBeenCalledWith(
+      'child_allowance',
+      'phaseout_enabled',
+      1,
+    );
+    // With the toggle on, the gated input appears.
+    rerender(
+      <ReformOptionsSelector
+        stateCode="NY"
+        reformOptions={opts}
+        selectedOptions={['child_allowance']}
+        onSelectionChange={() => {}}
+        parameterValues={{ child_allowance: { phaseout_enabled: 1 } }}
+        onParameterChange={onParameterChange}
+      />,
+    );
+    expect(screen.getByText('Phase-out rate')).toBeInTheDocument();
+  });
+
   it('shows an empty-tab message when the active tab has no options', () => {
     render(
       <ReformOptionsSelector

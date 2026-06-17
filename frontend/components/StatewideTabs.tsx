@@ -114,6 +114,17 @@ interface TabProps {
 export function StatewideOverview({ results, state, year }: TabProps) {
   const { poverty_impact, fiscal_cost, distributional_impact } = results;
 
+  // Relative (percent) change in the deep child poverty rate — the response
+  // only ships the pp change for deep poverty, so derive the relative version
+  // from the baseline/reform rates to match the other "Poverty reduction" rows.
+  const deepPovertyPercentChange =
+    poverty_impact.baseline_deep_child_poverty_rate > 0
+      ? ((poverty_impact.reform_deep_child_poverty_rate -
+          poverty_impact.baseline_deep_child_poverty_rate) /
+          poverty_impact.baseline_deep_child_poverty_rate) *
+        100
+      : 0;
+
   return (
     <div className="space-y-6">
       <div>
@@ -133,20 +144,20 @@ export function StatewideOverview({ results, state, year }: TabProps) {
         />
         <HeadlineCard
           label="Children lifted"
-          value={poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+          value={Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
           subtext="Out of poverty"
           positive={poverty_impact.children_lifted_out_of_poverty > 0}
         />
         <HeadlineCard
-          label="State fiscal impact"
-          value={formatBillions(-fiscal_cost.state_cost_billions)}
-          subtext="Annual net revenue"
-          positive={fiscal_cost.state_cost_billions < 0}
+          label="Total cost"
+          value={formatBillions(fiscal_cost.total_cost_billions).replace(/^\+/, '')}
+          subtext="Annual, federal + state"
+          positive={fiscal_cost.total_cost_billions <= 0}
         />
         <HeadlineCard
-          label="Households gaining"
+          label="Residents gaining"
           value={formatPercent(distributional_impact.percent_gaining)}
-          subtext="Of all households"
+          subtext="Of all residents"
           positive={distributional_impact.percent_gaining > distributional_impact.percent_losing}
         />
       </div>
@@ -158,9 +169,9 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           <StatGroup
             title="Poverty reduction"
             rows={[
-              { label: 'Child poverty rate change', value: `${poverty_impact.child_poverty_change_pp.toFixed(2)}pp` },
-              { label: 'Young child poverty change', value: `${poverty_impact.young_child_poverty_change_pp.toFixed(2)}pp` },
-              { label: 'Deep poverty change', value: `${poverty_impact.deep_poverty_change_pp.toFixed(2)}pp` },
+              { label: 'Child poverty change', value: formatPercentWithSign(poverty_impact.child_poverty_percent_change) },
+              { label: 'Young child poverty change', value: formatPercentWithSign(poverty_impact.young_child_poverty_percent_change) },
+              { label: 'Deep poverty change', value: formatPercentWithSign(deepPovertyPercentChange) },
             ]}
           />
           <StatGroup
@@ -168,7 +179,6 @@ export function StatewideOverview({ results, state, year }: TabProps) {
             rows={[
               { label: 'State revenue impact', value: formatBillions(-fiscal_cost.state_cost_billions) },
               { label: 'Cost per child lifted', value: formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty) },
-              { label: 'Cost per child (all)', value: formatCurrency(fiscal_cost.cost_per_child) },
             ]}
           />
           <StatGroup
@@ -229,14 +239,14 @@ export function StatewidePoverty({ results }: TabProps) {
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.primary}08`, borderColor: COLORS.primary }}>
           <p className="text-sm text-gray-700 mb-2">Children lifted out of poverty</p>
           <p className="text-4xl font-bold" style={{ color: COLORS.primary }}>
-            {poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+            {Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Ages 0–17</p>
         </div>
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.primaryDark}08`, borderColor: COLORS.primaryDark }}>
           <p className="text-sm text-gray-700 mb-2">Young children lifted</p>
           <p className="text-4xl font-bold" style={{ color: COLORS.primaryDark }}>
-            {poverty_impact.young_children_lifted_out_of_poverty.toLocaleString()}
+            {Math.round(poverty_impact.young_children_lifted_out_of_poverty).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Ages 0–5</p>
         </div>
@@ -311,16 +321,28 @@ export function StatewidePoverty({ results }: TabProps) {
 export function StatewideFiscal({ results, year }: TabProps) {
   const { fiscal_cost } = results;
 
-  // Net revenue impact = negative of cost (cost_billions is positive when it's a cost)
+  // Net revenue impact = negative of cost (cost_billions is positive when it's
+  // a cost). The child allowance (UBI) is a benefit, so it lands in neither
+  // the federal nor the state *tax* change — fold it into State so the
+  // Federal + State cards always add up to Total. Federal is then the
+  // remainder (so the three cards reconcile exactly).
   const totalImpact = -fiscal_cost.total_cost_billions;
-  const federalImpact = -fiscal_cost.federal_cost_billions;
-  const stateImpact = -fiscal_cost.state_cost_billions;
+  const stateImpact = -(
+    fiscal_cost.state_cost_billions + (fiscal_cost.ubi_cost_billions ?? 0)
+  );
+  const federalImpact = totalImpact - stateImpact;
 
+  // One row per program that actually moved. Federal vs. state EITC/CTC are
+  // distinct Modal deltas — earlier this table labelled the FEDERAL eitc
+  // change as "State EITC", so a state-EITC reform (federal delta ≈ 0) showed
+  // nothing. Each row now reads its own field.
   const programBreakdown = [
+    { name: 'Federal CTC', value: fiscal_cost.ctc_cost_billions },
+    { name: 'Federal EITC', value: fiscal_cost.eitc_cost_billions },
     { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions },
-    { name: 'State EITC', value: fiscal_cost.eitc_cost_billions },
+    { name: 'State EITC', value: fiscal_cost.state_eitc_cost_billions },
+    { name: 'Child allowance', value: fiscal_cost.ubi_cost_billions },
     { name: 'SNAP', value: fiscal_cost.snap_cost_billions },
-    { name: 'UBI', value: fiscal_cost.ubi_cost_billions },
     { name: 'Dependent exemption', value: fiscal_cost.dependent_exemption_cost_billions },
   ].filter((p) => Math.abs(p.value) > 0.001);
 
@@ -339,17 +361,11 @@ export function StatewideFiscal({ results, year }: TabProps) {
       {/* Cost effectiveness */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Cost effectiveness</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div className="rounded-lg p-5 border border-gray-200 bg-white">
             <p className="text-sm text-gray-700 mb-2">Cost per child lifted from poverty</p>
             <p className="text-2xl font-bold" style={{ color: COLORS.primary }}>
               {formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty)}
-            </p>
-          </div>
-          <div className="rounded-lg p-5 border border-gray-200 bg-white">
-            <p className="text-sm text-gray-700 mb-2">Cost per child (all children)</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatCurrency(fiscal_cost.cost_per_child)}
             </p>
           </div>
         </div>
@@ -380,6 +396,14 @@ export function StatewideFiscal({ results, year }: TabProps) {
               </tbody>
             </table>
           </div>
+          {fiscal_cost.state === 'MN' && (
+            <p className="text-xs text-gray-500 italic mt-2">
+              Note: Minnesota administers its Working Family Credit as part of
+              the combined Child &amp; Working Families Credit, so a change to
+              the Working Family Credit appears under “State CTC” above rather
+              than “State EITC.”
+            </p>
+          )}
         </div>
       )}
 
@@ -605,17 +629,17 @@ function WinnersLosersView({
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.gainMore5}08`, borderColor: COLORS.gainMore5 }}>
           <p className="text-sm text-gray-700 mb-2">Winners</p>
           <p className="text-3xl font-bold" style={{ color: COLORS.gainMore5 }}>{distributional.percent_gaining.toFixed(1)}%</p>
-          <p className="text-xs text-gray-600 mt-1">Households gain income</p>
+          <p className="text-xs text-gray-600 mt-1">Residents gain income</p>
         </div>
         <div className="rounded-lg p-6 border border-gray-300 bg-gray-50">
           <p className="text-sm text-gray-700 mb-2">No change</p>
           <p className="text-3xl font-bold text-gray-600">{distributional.percent_unchanged.toFixed(1)}%</p>
-          <p className="text-xs text-gray-600 mt-1">Unaffected households</p>
+          <p className="text-xs text-gray-600 mt-1">Unaffected residents</p>
         </div>
         <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.loseMore5}08`, borderColor: COLORS.loseMore5 }}>
           <p className="text-sm text-gray-700 mb-2">Losers</p>
           <p className="text-3xl font-bold" style={{ color: COLORS.loseMore5 }}>{distributional.percent_losing.toFixed(1)}%</p>
-          <p className="text-xs text-gray-600 mt-1">Households lose income</p>
+          <p className="text-xs text-gray-600 mt-1">Residents lose income</p>
         </div>
       </div>
 
@@ -656,7 +680,7 @@ function WinnersLosersView({
       {/* Average gain summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
-          <p className="text-sm text-gray-600">Average gain (all households)</p>
+          <p className="text-sm text-gray-600">Average gain (all residents)</p>
           <p className="text-2xl font-bold mt-1" style={{ color: distributional.average_gain_all >= 0 ? COLORS.primary : '#6B7280' }}>
             {formatCurrencyWithSign(distributional.average_gain_all)}
           </p>

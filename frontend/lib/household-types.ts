@@ -53,6 +53,7 @@ export interface HouseholdResults {
   federal_eitc: number;
   state_ctc: number;
   state_eitc: number;
+  child_allowance: number;
   snap_benefits: number;
   total_benefits: number;
   in_poverty: boolean;
@@ -81,6 +82,12 @@ export interface AdjustableParameter {
   step: number;
   unit: string;
   description: string;
+  /** 'number' (default) renders an input + slider; 'toggle' a checkbox. */
+  control?: 'number' | 'toggle';
+  /** Only show when the named sibling param is truthy (>0). */
+  depends_on?: string;
+  /** Only show when the named sibling param is falsy (0). */
+  depends_on_off?: string;
 }
 
 export interface ReformOption {
@@ -94,6 +101,10 @@ export interface ReformOption {
   customizable_params: string[];
   is_configurable?: boolean;
   adjustable_params?: AdjustableParameter[];
+  /** IDs that cannot be selected at the same time as this option. */
+  exclusive_with?: string[];
+  /** Shown greyed-out and non-selectable — planned but not yet wired. */
+  in_development?: boolean;
 }
 
 export interface StateReformOptions {
@@ -131,6 +142,7 @@ export interface IncomeSweepDataPoint {
   state_ctc: number;
   federal_eitc: number;
   state_eitc: number;
+  child_allowance: number;
   snap_benefits: number;
   total_benefits: number;
   effective_tax_rate: number;

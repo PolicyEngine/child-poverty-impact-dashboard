@@ -57,6 +57,9 @@ export interface EconomyImpactResult {
     snap_change: number;
     state_ctc_change: number;
     state_eitc_change: number;
+    /** Basic-income (child allowance / baby bonus) outlay. Optional:
+     *  older Modal deployments don't return it. */
+    ubi_change?: number;
   };
   poverty: {
     overall_baseline_rate: number;

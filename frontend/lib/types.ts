@@ -119,6 +119,7 @@ export interface FiscalCostResponse {
   ubi_cost_billions: number;
   snap_cost_billions: number;
   state_ctc_cost_billions: number;
+  state_eitc_cost_billions: number;
   income_tax_change_billions: number;
   payroll_tax_change_billions: number;
   cost_per_child: number;

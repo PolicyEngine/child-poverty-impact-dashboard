@@ -55,7 +55,7 @@ function HeadlineStats({ results }: { results: AnalysisResponse }) {
         </div>
         <div className="stat-card bg-blue-50">
           <div className="stat-value text-blue-700">
-            {poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+            {Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
           </div>
           <div className="stat-label">Children Lifted from Poverty</div>
         </div>
@@ -137,12 +137,12 @@ function PovertyImpactSection({ results }: { results: AnalysisResponse }) {
           />
           <MetricRow
             label="Children Lifted (All)"
-            value={poverty_impact.children_lifted_out_of_poverty.toLocaleString()}
+            value={Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
             positive={poverty_impact.children_lifted_out_of_poverty > 0}
           />
           <MetricRow
             label="Young Children Lifted"
-            value={poverty_impact.young_children_lifted_out_of_poverty.toLocaleString()}
+            value={Math.round(poverty_impact.young_children_lifted_out_of_poverty).toLocaleString()}
             positive={poverty_impact.young_children_lifted_out_of_poverty > 0}
           />
         </div>
@@ -291,11 +291,11 @@ function DistributionalSection({ results }: { results: AnalysisResponse }) {
 
           <div className="border-t pt-4 mt-4">
             <MetricRow
-              label="Households Gaining"
+              label="Residents Gaining"
               value={`${distributional_impact.percent_gaining.toFixed(1)}%`}
             />
             <MetricRow
-              label="Households Losing"
+              label="Residents Losing"
               value={`${distributional_impact.percent_losing.toFixed(1)}%`}
             />
           </div>
