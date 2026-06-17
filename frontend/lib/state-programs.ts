@@ -893,6 +893,24 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       AGE('gov.states.il.tax.income.credits.ctc.age_limit', 12),
     ],
   },
+  MA: {
+    name: 'Massachusetts Child and Family Tax Credit',
+    description:
+      'Refundable credit per qualifying dependent (child under 13, adult 65 or older, or disabled); no cap on the number of dependents.',
+    params: [
+      {
+        name: 'amount',
+        label: 'Credit amount per dependent',
+        path: 'gov.states.ma.tax.income.credits.child_and_family.amount',
+        default_value: 440,
+        min_value: 0,
+        max_value: 5000,
+        step: 10,
+        unit: '$',
+        description: 'Refundable credit per qualifying dependent. Current: $440.',
+      },
+    ],
+  },
   MD: {
     name: 'Maryland Child Tax Credit',
     description:

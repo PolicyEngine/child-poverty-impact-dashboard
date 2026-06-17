@@ -136,6 +136,12 @@ describe('buildReformDict', () => {
     }
   });
 
+  it('emits the Massachusetts child & family credit amount (no-op when unchanged)', () => {
+    const reform = buildReformDict(['ma_ctc'], { ma_ctc: { amount: 600 } }, 2026);
+    expect(reform['gov.states.ma.tax.income.credits.child_and_family.amount']).toBe(600);
+    expect(buildReformDict(['ma_ctc'], { ma_ctc: { amount: 440 } }, 2026)).toEqual({});
+  });
+
   it('sets a bracket-indexed amount for New Mexico', () => {
     const reform = buildReformDict(['nm_ctc'], { nm_ctc: { tier1: 1000 } }, 2026);
     expect(reform['gov.states.nm.tax.income.credits.ctc.amount[0].amount']).toBe(1000);
