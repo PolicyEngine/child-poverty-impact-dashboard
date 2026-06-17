@@ -399,12 +399,14 @@ export default function ReportResultsPage() {
                     </span>
                   ) : null}
                   {config.populationType === 'household' && config.household && (
-                    <p className="text-sm text-pe-gray-600">
-                      <span className="font-medium text-pe-gray-500">
-                        Household:{' '}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-medium text-pe-gray-500">
+                        Household:
                       </span>
-                      {householdSummary(config.household)}
-                    </p>
+                      <span className="text-xs bg-pe-teal-50 text-pe-teal-700 border border-pe-teal-200 px-2.5 py-1 rounded-full">
+                        {householdSummary(config.household)}
+                      </span>
+                    </div>
                   )}
                 </div>
               )}
