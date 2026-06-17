@@ -768,6 +768,10 @@ interface CtcRegistryEntry {
   name: string;
   description: string;
   params: CtcParam[];
+  /** Surface the option greyed-out / non-selectable — wired in PE-US but the
+   *  current modelling is too rough to expose as a reform (e.g. NE's Child
+   *  Care Tax Credit, whose licensed-care gate PE only approximates). */
+  in_development?: boolean;
 }
 
 const AMT = (
@@ -995,8 +999,13 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   },
   NE: {
     name: 'Nebraska Child Care Tax Credit',
+    // Greyed out until we can better model it: this is the Child Care Tax
+    // Credit Act credit (not a traditional per-child CTC), and PE only
+    // approximates its licensed-care gate (reported childcare expenses OR
+    // income eligibility), so a reform here would be unreliable.
+    in_development: true,
     description:
-      'Refundable Child Care Tax Credit Act credit (not a traditional per-child CTC) for children age 5 or under who are in a licensed child care program, stepping down with AGI ($2,000 under $75k; $1,000 to $150k). PolicyEngine approximates the licensed-care requirement as the family reporting child care expenses or being income-eligible.',
+      'Refundable credit for children age 5 or under in licensed child care, stepping down with AGI ($2,000 under $75k; $1,000 to $150k).',
     params: [
       bracketAmt('gov.states.ne.tax.income.credits.ctc.refundable.amount', 0, 2000, 'Amount (AGI under $75k)'),
       bracketAmt('gov.states.ne.tax.income.credits.ctc.refundable.amount', 1, 1000, 'Amount (AGI $75k–$150k)'),
@@ -1173,7 +1182,8 @@ export function buildStateCtcOptions(
       category: 'state_ctc',
       is_new_program: false,
       is_enhancement: true,
-      is_configurable: true,
+      is_configurable: !entry.in_development,
+      ...(entry.in_development ? { in_development: true } : {}),
       adjustable_params,
     },
   ];
