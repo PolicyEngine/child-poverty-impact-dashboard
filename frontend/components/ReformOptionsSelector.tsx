@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ReformOption, StateReformOptions, StatePrograms, AdjustableParameter } from '@/lib/household-types';
+import { eitcStructured } from '@/lib/state-programs';
 
 // Track parameter values for configurable options
 export interface ParameterValues {
@@ -93,7 +94,13 @@ export default function ReformOptionsSelector({
   );
   const tabs: { id: TabId; label: string; options: ReformOption[] }[] = [
     { id: 'ctc', label: 'State CTC', options: reformOptions.ctc_options },
-    { id: 'eitc', label: 'State EITC / WFC', options: reformOptions.eitc_options },
+    {
+      id: 'eitc',
+      // MN/WA run a Working Family (Tax) Credit rather than a federal-match
+      // EITC, so label the tab to match the state's actual program.
+      label: eitcStructured(reformOptions.state_code) ? 'State WFC' : 'State EITC',
+      options: reformOptions.eitc_options,
+    },
     { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
     { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
     { id: 'fedctc', label: 'Federal CTC', options: federalCtc },
@@ -129,11 +136,18 @@ export default function ReformOptionsSelector({
                 {statePrograms.has_state_eitc ? '✓' : '✗'}
               </span>
               <div>
-                <span className="font-medium">State EITC:</span>
+                <span className="font-medium">
+                  {eitcStructured(statePrograms.state_code) ? 'State WFC:' : 'State EITC:'}
+                </span>
                 {statePrograms.has_state_eitc ? (
                   <span className="text-gray-600 ml-1">
-                    {statePrograms.eitc_name} - {(statePrograms.eitc_match_rate! * 100).toFixed(0)}%
-                    match
+                    {statePrograms.eitc_name}
+                    {/* MN/WA aren't a percentage of the federal EITC, so the
+                        "% match" descriptor is misleading — show name only. */}
+                    {!eitcStructured(statePrograms.state_code) &&
+                    statePrograms.eitc_match_rate != null
+                      ? ` - ${(statePrograms.eitc_match_rate * 100).toFixed(0)}% match`
+                      : ''}
                   </span>
                 ) : (
                   <span className="text-gray-400 ml-1">None</span>
