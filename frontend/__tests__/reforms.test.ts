@@ -241,6 +241,22 @@ describe('buildReformDict', () => {
     expect(reform['gov.contrib.congress.afa.in_effect']).toBe(true);
   });
 
+  it('wires the Tax Cuts for Workers Act childless-EITC expansion', () => {
+    const reform = buildReformDict(['federal_tax_cuts_for_workers'], undefined, 2026);
+    expect(reform['gov.irs.credits.eitc.max[0].amount']).toBe(1502);
+    expect(reform['gov.irs.credits.eitc.phase_in_rate[0].amount']).toBeCloseTo(0.153);
+    expect(reform['gov.irs.credits.eitc.phase_out.rate[0].amount']).toBeCloseTo(0.153);
+    expect(reform['gov.irs.credits.eitc.eligibility.age.min']).toBe(19);
+    expect(reform['gov.irs.credits.eitc.eligibility.age.max']).toBe(200);
+  });
+
+  it('activates the Working Parents Tax Relief Act via its contrib flag', () => {
+    const reform = buildReformDict(['federal_working_parents_tax_relief'], undefined, 2026);
+    expect(
+      reform['gov.contrib.congress.mcdonald_rivet.working_parents_tax_relief_act.in_effect'],
+    ).toBe(true);
+  });
+
   it('NY 2028 without extend edits the regular (old-format) credit', () => {
     const reform = buildReformDict(
       ['ny_ctc'],
