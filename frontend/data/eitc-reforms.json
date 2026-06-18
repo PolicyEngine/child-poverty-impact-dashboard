@@ -131,7 +131,8 @@
     "in_effect": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.states.mo.tax.income.credits.wftc.match",
     "current_rate": 0.20,
-    "note": "MO WFTC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter."
+    "refundable_ready": false,
+    "note": "MO WFTC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter. refundable_ready stays false until the upstream PE-US reform is fixed and released (see policyengine-us issue)."
   },
   "MT": {
     "type": "existing",
@@ -178,7 +179,8 @@
     "in_effect": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.states.oh.tax.income.credits.eitc.rate",
     "current_rate": 0.30,
-    "note": "OH EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter."
+    "refundable_ready": false,
+    "note": "OH EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter. refundable_ready stays false until the upstream PE-US reform is fixed and released (see policyengine-us issue)."
   },
   "OK": {
     "type": "existing",
@@ -206,7 +208,9 @@
     "type": "existing",
     "match": "gov.states.sc.tax.income.credits.eitc.rate",
     "current_rate": 1.25,
-    "note": "SC has a 125% nonrefundable match."
+    "cap": "gov.states.sc.tax.income.credits.eitc.max",
+    "refundable_ready": false,
+    "note": "SC has a 125% nonrefundable match capped at $200 (2026). The cap param is a baseline lever (adjustable / removable) with no upstream dependency. Full refundability needs a new PE-US contrib reform (gov.contrib.states.sc.child_poverty_impact_dashboard.eitc) — refundable_ready stays false until that lands."
   },
   "SD": null,
   "TN": null,
@@ -216,7 +220,8 @@
     "in_effect": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.states.ut.tax.income.credits.earned_income.rate",
     "current_rate": 0.20,
-    "note": "UT EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter."
+    "refundable_ready": false,
+    "note": "UT EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter. refundable_ready stays false until the upstream PE-US reform is fixed and released (see policyengine-us issue)."
   },
   "VT": {
     "type": "existing",

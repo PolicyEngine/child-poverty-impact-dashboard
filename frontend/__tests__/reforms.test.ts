@@ -236,6 +236,48 @@ describe('buildReformDict', () => {
     expect(buildReformDict(['or_eitc'], { or_eitc: { match_young_child: 12 } }, 2026)).toEqual({});
   });
 
+  it('makes a nonrefundable EITC refundable only when the checkbox is set', () => {
+    const IN_EFFECT =
+      'gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect';
+    const MATCH = 'gov.states.mo.tax.income.credits.wftc.match';
+    // Checkbox on + slider moved: flip the contrib flag AND set the match.
+    const refundable = buildReformDict(
+      ['mo_eitc'],
+      { mo_eitc: { make_refundable: 1, match_rate: 25 } },
+      2026,
+    );
+    expect(refundable[IN_EFFECT]).toBe(true);
+    expect(refundable[MATCH]).toBeCloseTo(0.25);
+    // Checkbox off: adjust the (still nonrefundable) match, no contrib flag.
+    const stillNonrefundable = buildReformDict(
+      ['mo_eitc'],
+      { mo_eitc: { match_rate: 25 } },
+      2026,
+    );
+    expect(stillNonrefundable[IN_EFFECT]).toBeUndefined();
+    expect(stillNonrefundable[MATCH]).toBeCloseTo(0.25);
+  });
+
+  it('adjusts the SC EITC cap and leaves the match at current law', () => {
+    const reform = buildReformDict(['sc_eitc'], { sc_eitc: { eitc_cap: 1000 } }, 2026);
+    expect(reform['gov.states.sc.tax.income.credits.eitc.max']).toBe(1000);
+    expect(reform['gov.states.sc.tax.income.credits.eitc.rate']).toBeCloseTo(1.25);
+  });
+
+  it('eliminates the SC EITC cap (raises it to $1B), overriding any amount', () => {
+    const reform = buildReformDict(
+      ['sc_eitc'],
+      { sc_eitc: { eliminate_cap: 1, eitc_cap: 1000 } },
+      2026,
+    );
+    expect(reform['gov.states.sc.tax.income.credits.eitc.max']).toBe(1_000_000_000);
+  });
+
+  it('does not touch the SC cap when neither cap control is used', () => {
+    const reform = buildReformDict(['sc_eitc'], undefined, 2026);
+    expect(reform['gov.states.sc.tax.income.credits.eitc.max']).toBeUndefined();
+  });
+
   it('activates the American Family Act via its contrib flag', () => {
     const reform = buildReformDict(['federal_afa'], undefined, 2026);
     expect(reform['gov.contrib.congress.afa.in_effect']).toBe(true);
