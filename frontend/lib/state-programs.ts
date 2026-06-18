@@ -726,13 +726,23 @@ function buildFederalOptions(): ReformOption[] {
       is_enhancement: true,
     },
     {
-      id: 'federal_eitc_expansion',
-      name: '50% EITC expansion',
-      description: 'Increase the federal EITC by 50%.',
+      // ID must not end in `_eitc` (that routes to the state-EITC builder).
+      id: 'federal_tax_cuts_for_workers',
+      name: 'Tax Cuts for Workers Act',
+      description:
+        'EITC expansion for workers without qualifying children: roughly doubles the maximum credit (to ~$1,500), raises the phase-in and phase-out rates to 15.3%, and broadens age eligibility to 19+ with no upper limit.',
       category: 'federal_eitc',
       is_new_program: false,
       is_enhancement: true,
-      in_development: true,
+    },
+    {
+      id: 'federal_working_parents_tax_relief',
+      name: 'Working Parents Tax Relief Act',
+      description:
+        "McDonald–Rivet's Working Parents Tax Relief Act: boosts the EITC for parents of young children (under 4) — a higher credit percentage per young child and a larger phase-out threshold.",
+      category: 'federal_eitc',
+      is_new_program: false,
+      is_enhancement: true,
     },
   ];
 }

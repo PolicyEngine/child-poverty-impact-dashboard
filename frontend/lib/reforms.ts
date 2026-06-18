@@ -110,6 +110,29 @@ function applyReformOption(
       reform['gov.contrib.congress.afa.in_effect'] = true;
       return;
     }
+    case 'federal_tax_cuts_for_workers': {
+      // Tax Cuts for Workers Act EITC expansion (from the Keep Your Pay Act).
+      // Expands the childless-worker EITC — the [0] (no-children) bracket:
+      // higher max credit, 15.3% phase-in/out rates, and broader age
+      // eligibility (19+, no upper limit). 2026 enacted-proposal values.
+      reform['gov.irs.credits.eitc.eligibility.age.max'] = 200;
+      reform['gov.irs.credits.eitc.eligibility.age.min'] = 19;
+      reform['gov.irs.credits.eitc.eligibility.age.min_student'] = 24;
+      reform['gov.irs.credits.eitc.max[0].amount'] = 1502;
+      reform['gov.irs.credits.eitc.phase_in_rate[0].amount'] = 0.153;
+      reform['gov.irs.credits.eitc.phase_out.rate[0].amount'] = 0.153;
+      reform['gov.irs.credits.eitc.phase_out.start[0].amount'] = 11610;
+      return;
+    }
+    case 'federal_working_parents_tax_relief': {
+      // Working Parents Tax Relief Act (McDonald-Rivet). Activates the PE-US
+      // contrib reform — a young-child (under 4) EITC boost: higher credit
+      // percentage per young child and phase-out adjustments.
+      reform[
+        'gov.contrib.congress.mcdonald_rivet.working_parents_tax_relief_act.in_effect'
+      ] = true;
+      return;
+    }
     case 'child_allowance': {
       // Three-tier unconditional child allowance via ubi_center basic
       // income: under 1, ages 1–5, and ages 6 up to an adjustable cutoff
