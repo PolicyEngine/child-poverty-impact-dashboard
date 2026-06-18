@@ -726,15 +726,6 @@ function buildFederalOptions(): ReformOption[] {
       is_enhancement: true,
     },
     {
-      id: 'federal_eitc_expansion',
-      name: '50% EITC expansion',
-      description: 'Increase the federal EITC by 50%.',
-      category: 'federal_eitc',
-      is_new_program: false,
-      is_enhancement: true,
-      in_development: true,
-    },
-    {
       // ID must not end in `_eitc` (that routes to the state-EITC builder).
       id: 'federal_tax_cuts_for_workers',
       name: 'Tax Cuts for Workers Act',

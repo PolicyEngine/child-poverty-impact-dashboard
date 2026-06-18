@@ -4,6 +4,13 @@ import { useState } from 'react';
 import type { ReformOption, StateReformOptions, StatePrograms, AdjustableParameter } from '@/lib/household-types';
 import { eitcStructured, eitcIsWfc } from '@/lib/state-programs';
 
+// Reform categories where only one option may be active at a time. The
+// federal CTC options are competing whole-credit restructurings, so they're
+// mutually exclusive. (Federal EITC is intentionally NOT here: the two EITC
+// bills target disjoint filer groups — childless workers vs. families with
+// children — so they stack.)
+const SINGLE_SELECT_CATEGORIES = new Set<string>(['federal_ctc']);
+
 // Track parameter values for configurable options
 export interface ParameterValues {
   [optionId: string]: {
@@ -56,6 +63,15 @@ export default function ReformOptionsSelector({
     // Selecting an option drops any reform it declares itself mutually
     // exclusive with.
     const exclusive = new Set(option?.exclusive_with ?? []);
+    // Single-select categories (e.g. federal CTC, where the options are
+    // competing whole-CTC restructurings): selecting one drops any other
+    // already-selected option in the same category.
+    if (option && SINGLE_SELECT_CATEGORIES.has(option.category)) {
+      for (const id of selectedOptions) {
+        const sel = allOptions.find((o) => o.id === id);
+        if (sel && sel.category === option.category) exclusive.add(id);
+      }
+    }
     onSelectionChange([
       ...selectedOptions.filter((id) => !exclusive.has(id)),
       optionId,
@@ -92,7 +108,12 @@ export default function ReformOptionsSelector({
   const federalEitc = reformOptions.federal_options.filter(
     (o) => o.category === 'federal_eitc',
   );
-  const tabs: { id: TabId; label: string; options: ReformOption[] }[] = [
+  const tabs: {
+    id: TabId;
+    label: string;
+    options: ReformOption[];
+    note?: string;
+  }[] = [
     { id: 'ctc', label: 'State CTC', options: reformOptions.ctc_options },
     {
       id: 'eitc',
@@ -104,8 +125,18 @@ export default function ReformOptionsSelector({
     },
     { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
     { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
-    { id: 'fedctc', label: 'Federal CTC', options: federalCtc },
-    { id: 'fedeitc', label: 'Federal EITC', options: federalEitc },
+    {
+      id: 'fedctc',
+      label: 'Federal CTC',
+      options: federalCtc,
+      note: 'Choose one federal CTC reform — these are competing proposals, so only one can be active at a time.',
+    },
+    {
+      id: 'fedeitc',
+      label: 'Federal EITC',
+      options: federalEitc,
+      note: 'You can combine both EITC bills — they target different filers (the Tax Cuts for Workers Act expands the credit for childless workers, while the Working Parents Tax Relief Act boosts it for families with young children).',
+    },
   ];
 
   return (
@@ -197,6 +228,14 @@ export default function ReformOptionsSelector({
 
       {/* Options Grid */}
       <div className="space-y-3">
+        {(() => {
+          const note = tabs.find((t) => t.id === activeTab)?.note;
+          return note ? (
+            <p className="text-xs text-pe-gray-500 bg-pe-gray-50 border border-pe-gray-200 rounded-lg px-3 py-2">
+              {note}
+            </p>
+          ) : null;
+        })()}
         {tabs
           .find((t) => t.id === activeTab)
           ?.options.map((option) => (

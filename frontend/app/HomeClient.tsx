@@ -271,7 +271,7 @@ export default function HomePage() {
                 </svg>
               }
               title="Federal CTC & EITC"
-              description="Preset federal reforms — restore the 2021 expanded CTC, the American Family Act, and a 50% EITC expansion."
+              description="Preset federal reforms — restore the 2021 expanded CTC, the American Family Act, the Tax Cuts for Workers Act, and the Working Parents Tax Relief Act."
             />
           </div>
         </div>
