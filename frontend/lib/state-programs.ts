@@ -570,10 +570,14 @@ interface DependentExemptionEntry {
   repeal_flag?: string;
   current_amount?: number;
   amount_editable: boolean;
+  /** Optional label override for the main amount input (e.g. to name the
+   *  bracket the primary amount applies to, like AL's "AGI under $50k" tier). */
+  amount_label?: string;
   kind: 'exemption' | 'credit' | 'deduction';
   /** Additional per-dependent scalar params for states with more than one
-   *  dependent exemption (e.g. NJ's extra exemption for college dependents).
-   *  Each gets its own editable input; "eliminate" zeroes them all. */
+   *  dependent exemption (e.g. NJ's college dependents) or more than one tier
+   *  (e.g. AL's AGI brackets, AZ's age brackets). Each gets its own editable
+   *  input; "eliminate" zeroes them all. */
   extra_params?: DependentExtraParam[];
   note?: string;
 }
@@ -676,7 +680,7 @@ function buildDependentExemptionOptions(
   if (entry.amount_editable && entry.current_amount !== undefined) {
     params.push({
       name: 'amount',
-      label: 'Amount per dependent',
+      label: entry.amount_label ?? 'Amount per dependent',
       min_value: 0,
       max_value: Math.max(10000, Math.ceil((entry.current_amount * 2) / 100) * 100),
       default_value: entry.current_amount,

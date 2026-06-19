@@ -355,10 +355,10 @@ describe('buildReformDict', () => {
     expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(2000);
   });
 
-  it('eliminates a bundled dependent exemption via the broad repeal flag (UT)', () => {
+  it('eliminates a bundled/shared dependent exemption via the broad repeal flag (SC)', () => {
     const reform = buildReformDict(
-      ['ut_dependent_exemption'],
-      { ut_dependent_exemption: { eliminate: 1 } },
+      ['sc_dependent_exemption'],
+      { sc_dependent_exemption: { eliminate: 1 } },
       2026,
     );
     expect(
@@ -367,7 +367,56 @@ describe('buildReformDict', () => {
   });
 
   it('is a no-op for a repeal-only dependent exemption when not eliminated', () => {
-    expect(buildReformDict(['ut_dependent_exemption'], undefined, 2026)).toEqual({});
+    expect(buildReformDict(['sc_dependent_exemption'], undefined, 2026)).toEqual({});
+    // A repeal-only state ignores any amount value (it is not editable).
+    expect(
+      buildReformDict(['ar_dependent_exemption'], { ar_dependent_exemption: { amount: 500 } }, 2026),
+    ).toEqual({});
+  });
+
+  it('edits and eliminates AL across its three AGI brackets', () => {
+    const D = 'gov.states.al.tax.income.exemptions.dependent';
+    const elim = buildReformDict(
+      ['al_dependent_exemption'],
+      { al_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(elim[`${D}[0].amount`]).toBe(0);
+    expect(elim[`${D}[1].amount`]).toBe(0);
+    expect(elim[`${D}[2].amount`]).toBe(0);
+    // Editing just the top (under-$50k) tier emits only that bracket.
+    const edit = buildReformDict(
+      ['al_dependent_exemption'],
+      { al_dependent_exemption: { amount: 2000 } },
+      2026,
+    );
+    expect(edit[`${D}[0].amount`]).toBe(2000);
+    expect(edit[`${D}[1].amount`]).toBeUndefined();
+  });
+
+  it('edits the AZ dependent credit by age bracket', () => {
+    const reform = buildReformDict(
+      ['az_dependent_exemption'],
+      { az_dependent_exemption: { amount: 200, amount_older: 50 } },
+      2026,
+    );
+    expect(reform['gov.states.az.tax.income.credits.dependent_credit.amount[0].amount']).toBe(200);
+    expect(reform['gov.states.az.tax.income.credits.dependent_credit.amount[1].amount']).toBe(50);
+  });
+
+  it('edits and eliminates the scalar MN and UT dependent exemptions', () => {
+    expect(
+      buildReformDict(['mn_dependent_exemption'], { mn_dependent_exemption: { amount: 3000 } }, 2026)[
+        'gov.states.mn.tax.income.exemptions.amount'
+      ],
+    ).toBe(3000);
+    expect(
+      buildReformDict(['ut_dependent_exemption'], { ut_dependent_exemption: { eliminate: 1 } }, 2026)[
+        'gov.states.ut.tax.income.credits.taxpayer.personal_exemption'
+      ],
+    ).toBe(0);
+    // No-op at current law.
+    expect(buildReformDict(['mn_dependent_exemption'], undefined, 2026)).toEqual({});
   });
 
   it('eliminates both NJ dependent exemptions (regular + college)', () => {
