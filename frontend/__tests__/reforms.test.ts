@@ -404,19 +404,26 @@ describe('buildReformDict', () => {
     expect(reform['gov.states.az.tax.income.credits.dependent_credit.amount[1].amount']).toBe(50);
   });
 
-  it('edits and eliminates the scalar MN and UT dependent exemptions', () => {
+  it('edits the scalar MN dependent exemption (no-op at current law)', () => {
     expect(
       buildReformDict(['mn_dependent_exemption'], { mn_dependent_exemption: { amount: 3000 } }, 2026)[
         'gov.states.mn.tax.income.exemptions.amount'
       ],
     ).toBe(3000);
-    expect(
-      buildReformDict(['ut_dependent_exemption'], { ut_dependent_exemption: { eliminate: 1 } }, 2026)[
-        'gov.states.ut.tax.income.credits.taxpayer.personal_exemption'
-      ],
-    ).toBe(0);
-    // No-op at current law.
     expect(buildReformDict(['mn_dependent_exemption'], undefined, 2026)).toEqual({});
+  });
+
+  it('UT is eliminate-only via the repeal flag (shared personal-exemption amount)', () => {
+    const reform = buildReformDict(
+      ['ut_dependent_exemption'],
+      { ut_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.contrib.repeal_state_dependent_exemptions.in_effect']).toBe(true);
+    // It does NOT touch the shared personal-exemption amount param.
+    expect(
+      reform['gov.states.ut.tax.income.credits.taxpayer.personal_exemption'],
+    ).toBeUndefined();
   });
 
   it('eliminates both NJ dependent exemptions (regular + college)', () => {
