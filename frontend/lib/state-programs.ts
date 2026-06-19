@@ -555,6 +555,13 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
 //     flag and set its amount (0 eliminates).
 //   - 'repeal' (bundled/bracketed states): the broad
 //     gov.contrib.repeal_state_dependent_exemptions flag — eliminate-only.
+interface DependentExtraParam {
+  name: string;
+  label: string;
+  path: string;
+  current_amount: number;
+}
+
 interface DependentExemptionEntry {
   mechanism: 'baseline' | 'contrib' | 'repeal';
   amount_path?: string;
@@ -564,6 +571,10 @@ interface DependentExemptionEntry {
   current_amount?: number;
   amount_editable: boolean;
   kind: 'exemption' | 'credit' | 'deduction';
+  /** Additional per-dependent scalar params for states with more than one
+   *  dependent exemption (e.g. NJ's extra exemption for college dependents).
+   *  Each gets its own editable input; "eliminate" zeroes them all. */
+  extra_params?: DependentExtraParam[];
   note?: string;
 }
 
@@ -615,11 +626,23 @@ export function buildDependentExemptionReform(
     return reform;
   }
 
-  // baseline: set the scalar param directly.
+  // baseline: set the scalar param(s) directly.
   if (entry.amount_path) {
     if (eliminate) reform[entry.amount_path] = 0;
     else if (editedAmount !== undefined && editedAmount !== entry.current_amount)
       reform[entry.amount_path] = editedAmount;
+  }
+  // Additional dependent exemptions for the same state (e.g. NJ college
+  // dependents): eliminate zeroes them too; otherwise apply edited amounts.
+  for (const extra of entry.extra_params ?? []) {
+    if (eliminate) {
+      reform[extra.path] = 0;
+    } else if (
+      pv?.[extra.name] !== undefined &&
+      pv[extra.name] !== extra.current_amount
+    ) {
+      reform[extra.path] = pv[extra.name];
+    }
   }
   return reform;
 }
@@ -662,6 +685,19 @@ function buildDependentExemptionOptions(
       depends_on_off: 'eliminate',
       description: `Per-dependent ${kindLabel} amount. Current: $${entry.current_amount.toLocaleString()}. Lower it to partially repeal.`,
     });
+    for (const extra of entry.extra_params ?? []) {
+      params.push({
+        name: extra.name,
+        label: extra.label,
+        min_value: 0,
+        max_value: Math.max(10000, Math.ceil((extra.current_amount * 2) / 100) * 100),
+        default_value: extra.current_amount,
+        step: 50,
+        unit: '$',
+        depends_on_off: 'eliminate',
+        description: `Current: $${extra.current_amount.toLocaleString()}. Set to $0 to drop just this piece, or use Eliminate to remove all of ${programs.state_name}'s ${kindLabel}.`,
+      });
+    }
   }
 
   const capitalizedKind = kindLabel.charAt(0).toUpperCase() + kindLabel.slice(1);

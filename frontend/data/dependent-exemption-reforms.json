@@ -8,7 +8,7 @@
   "KS": { "mechanism": "baseline", "amount_path": "gov.states.ks.tax.income.exemptions.by_filing_status.dependent", "current_amount": 2320, "amount_editable": true, "kind": "exemption" },
   "MA": { "mechanism": "baseline", "amount_path": "gov.states.ma.tax.income.exemptions.dependent", "current_amount": 1000, "amount_editable": true, "kind": "exemption" },
   "MS": { "mechanism": "baseline", "amount_path": "gov.states.ms.tax.income.exemptions.dependents.amount", "current_amount": 1500, "amount_editable": true, "kind": "exemption" },
-  "NJ": { "mechanism": "baseline", "amount_path": "gov.states.nj.tax.income.exemptions.dependents.amount", "current_amount": 1500, "amount_editable": true, "kind": "exemption" },
+  "NJ": { "mechanism": "baseline", "amount_path": "gov.states.nj.tax.income.exemptions.dependents.amount", "current_amount": 1500, "amount_editable": true, "kind": "exemption", "extra_params": [{ "name": "college_amount", "label": "Additional per college dependent (under 22)", "path": "gov.states.nj.tax.income.exemptions.dependents_attending_college.amount", "current_amount": 1000 }] },
   "NY": { "mechanism": "baseline", "amount_path": "gov.states.ny.tax.income.exemptions.dependent", "current_amount": 1000, "amount_editable": true, "kind": "exemption" },
 
   "RI": { "mechanism": "contrib", "in_effect": "gov.contrib.states.ri.dependent_exemption.in_effect", "amount": "gov.contrib.states.ri.dependent_exemption.amount", "current_amount": 5200, "amount_editable": true, "kind": "exemption" },
@@ -20,7 +20,6 @@
   "AZ": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "credit", "note": "Dependent credit varies by dependent age; eliminate-only." },
   "AR": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "credit", "note": "Dependent personal tax credit; eliminate-only." },
   "MN": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "exemption", "note": "Dependent exemption bundled in mn_exemptions; eliminate-only." },
-  "MT": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "exemption", "note": "Person-level dependent exemption with disabled bonus; eliminate-only." },
   "NC": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "deduction", "note": "Child deduction varies by AGI and filing status; eliminate-only." },
   "NM": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "deduction", "note": "Deduction for certain dependents varies by filing status; eliminate-only." },
   "SC": { "mechanism": "repeal", "repeal_flag": "gov.contrib.repeal_state_dependent_exemptions.in_effect", "amount_editable": false, "kind": "exemption", "note": "Dependent exemption; eliminate-only." },

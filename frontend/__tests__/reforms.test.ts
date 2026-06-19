@@ -369,4 +369,31 @@ describe('buildReformDict', () => {
   it('is a no-op for a repeal-only dependent exemption when not eliminated', () => {
     expect(buildReformDict(['ut_dependent_exemption'], undefined, 2026)).toEqual({});
   });
+
+  it('eliminates both NJ dependent exemptions (regular + college)', () => {
+    const reform = buildReformDict(
+      ['nj_dependent_exemption'],
+      { nj_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.states.nj.tax.income.exemptions.dependents.amount']).toBe(0);
+    expect(
+      reform['gov.states.nj.tax.income.exemptions.dependents_attending_college.amount'],
+    ).toBe(0);
+  });
+
+  it('edits only the NJ college-dependent exemption when changed alone', () => {
+    const reform = buildReformDict(
+      ['nj_dependent_exemption'],
+      { nj_dependent_exemption: { college_amount: 2000 } },
+      2026,
+    );
+    expect(
+      reform['gov.states.nj.tax.income.exemptions.dependents_attending_college.amount'],
+    ).toBe(2000);
+    // The regular dependent exemption is left at current law (not emitted).
+    expect(
+      reform['gov.states.nj.tax.income.exemptions.dependents.amount'],
+    ).toBeUndefined();
+  });
 });
