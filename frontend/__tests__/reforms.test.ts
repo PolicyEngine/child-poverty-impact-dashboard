@@ -275,6 +275,35 @@ describe('buildReformDict', () => {
     );
   });
 
+  // ---- Maine CTC (the "Dependent Exemption Tax Credit") -----------------
+  it('emits the Maine CTC base amount, young-child multiplier, and phase-out', () => {
+    const D = 'gov.states.me.tax.income.credits.dependent_exemption';
+    const reform = buildReformDict(
+      ['me_ctc'],
+      {
+        me_ctc: {
+          amount: 500,
+          young_child_multiplier: 3,
+          phaseout_start: 50000,
+        },
+      },
+      2026,
+    );
+    expect(reform[`${D}.amount`]).toBe(500);
+    expect(reform[`${D}.multiplier[0].amount`]).toBe(3);
+    // Phase-out start applies to all five filing statuses.
+    for (const s of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'JOINT', 'SURVIVING_SPOUSE']) {
+      expect(reform[`${D}.phase_out.start.${s}`]).toBe(50000);
+    }
+  });
+
+  it('is a no-op when the Maine CTC is left at current law', () => {
+    expect(buildReformDict(['me_ctc'], undefined, 2026)).toEqual({});
+    expect(
+      buildReformDict(['me_ctc'], { me_ctc: { amount: 305, young_child_multiplier: 2 } }, 2026),
+    ).toEqual({});
+  });
+
   // ---- Dependent exemption / credit conversion --------------------------
   it('eliminates a baseline-param dependent exemption (NY → $0)', () => {
     const reform = buildReformDict(
