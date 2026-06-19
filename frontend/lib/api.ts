@@ -124,6 +124,11 @@ function mapEconomyToAnalysisResponse(
   const snapCostBillions = (economy.fiscal?.snap_change ?? 0) / 1e9;
   const stateCtcCostBillions = (economy.fiscal?.state_ctc_change ?? 0) / 1e9;
   const stateEitcCostBillions = (economy.fiscal?.state_eitc_change ?? 0) / 1e9;
+  // Dependent exemption/credit cost — the isolated state income-tax change
+  // from the dependent-exemption portion of the reform (returned only when a
+  // dependent-exemption option is selected; older deployments return 0).
+  const dependentExemptionCostBillions =
+    (economy.fiscal?.dependent_exemption_change ?? 0) / 1e9;
   // ubi_change covers the child allowance / baby bonus (ubi_center basic
   // income). Older Modal deployments don't return it — falls back to 0.
   const ubiCostBillions = (economy.fiscal?.ubi_change ?? 0) / 1e9;
@@ -160,9 +165,7 @@ function mapEconomyToAnalysisResponse(
       state_cost_billions: stateCostBillions,
       ctc_cost_billions: ctcCostBillions,
       eitc_cost_billions: eitcCostBillions,
-      // Dependent exemption isn't broken out by Modal yet. UBI now is
-      // (basic_income), surfacing the child allowance / baby bonus cost.
-      dependent_exemption_cost_billions: 0,
+      dependent_exemption_cost_billions: dependentExemptionCostBillions,
       ubi_cost_billions: ubiCostBillions,
       snap_cost_billions: snapCostBillions,
       state_ctc_cost_billions: stateCtcCostBillions,
@@ -225,10 +228,20 @@ export async function runAnalysisFromOptions(
     try {
       const { buildReformDict } = await import('./reforms');
       const reform = buildReformDict(reformOptionIds, parameterValues, year);
+      // Isolated dependent-exemption sub-reform so the backend can attribute
+      // its cost (the "Dependent exemption" breakdown row) on its own.
+      const depIds = reformOptionIds.filter((id) =>
+        id.endsWith('_dependent_exemption'),
+      );
+      const depReform = depIds.length
+        ? buildReformDict(depIds, parameterValues, year)
+        : null;
       const economy = await runEconomyOnModal(
         Object.keys(reform).length > 0 ? reform : null,
         year,
         state,
+        undefined,
+        depReform && Object.keys(depReform).length > 0 ? depReform : null,
       );
       return mapEconomyToAnalysisResponse(economy, state, year);
     } catch (err) {

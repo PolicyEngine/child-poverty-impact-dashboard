@@ -40,7 +40,7 @@ export default function ReformOptionsSelector({
   isLoading = false,
 }: ReformOptionsSelectorProps) {
   const [activeTab, setActiveTab] = useState<
-    'ctc' | 'eitc' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc'
+    'ctc' | 'eitc' | 'depexempt' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc'
   >('eitc');
 
   const toggleOption = (optionId: string) => {
@@ -101,7 +101,7 @@ export default function ReformOptionsSelector({
     );
   }
 
-  type TabId = 'ctc' | 'eitc' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc';
+  type TabId = 'ctc' | 'eitc' | 'depexempt' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc';
   const federalCtc = reformOptions.federal_options.filter(
     (o) => o.category === 'federal_ctc',
   );
@@ -122,6 +122,12 @@ export default function ReformOptionsSelector({
       // still federal-EITC matches (just multi-rate), so they stay "EITC".
       label: eitcIsWfc(reformOptions.state_code) ? 'State WFC' : 'State EITC',
       options: reformOptions.eitc_options,
+    },
+    {
+      id: 'depexempt',
+      label: 'Dependent Exemption',
+      options: reformOptions.dependent_exemption_options,
+      note: 'Adjust, partially repeal, or eliminate the state dependent exemption/credit. Combine it with a State EITC or Child Allowance option to model replacing it with a different provision.',
     },
     { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
     { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },

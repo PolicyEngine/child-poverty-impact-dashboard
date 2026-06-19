@@ -34,6 +34,7 @@ const reformOptions: StateReformOptions = {
   existing_programs: {},
   ctc_options: [],
   eitc_options: [eitcOption],
+  dependent_exemption_options: [],
   snap_options: [],
   child_allowance_options: [],
   federal_options: [],

@@ -11,6 +11,7 @@
 
 import statePrograms from '@/data/state-programs.json';
 import eitcReforms from '@/data/eitc-reforms.json';
+import dependentExemptionReforms from '@/data/dependent-exemption-reforms.json';
 
 export interface StateEITCRecord {
   name: string;
@@ -387,6 +388,7 @@ export function buildStructuredEitcReform(
 export type ReformCategory =
   | 'state_ctc'
   | 'state_eitc'
+  | 'state_dependent_exemption'
   | 'federal_ctc'
   | 'federal_eitc'
   | 'snap'
@@ -437,6 +439,7 @@ export interface StateReformOptions {
   existing_programs: Record<string, boolean>;
   ctc_options: ReformOption[];
   eitc_options: ReformOption[];
+  dependent_exemption_options: ReformOption[];
   snap_options: ReformOption[];
   child_allowance_options: ReformOption[];
   federal_options: ReformOption[];
@@ -535,6 +538,145 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
           description: `Percentage of federal EITC. Current: ${current_rate}%.`,
         },
       ],
+    },
+  ];
+}
+
+// ---- State dependent exemption / credit conversion -----------------------
+//
+// Lets users shrink, eliminate, or partially repeal a state's per-dependent
+// exemption/credit (then optionally replace it with a state EITC or child
+// allowance by also selecting those options). Three mechanisms, keyed in
+// data/dependent-exemption-reforms.json:
+//   - 'baseline': a clean scalar per-dependent parameter — set it directly
+//     (a lower value partially repeals; 0 eliminates).
+//   - 'contrib' (RI/DE/OR/VA): a contributed reform that separates the
+//     dependent portion of a bundled personal exemption — flip its in_effect
+//     flag and set its amount (0 eliminates).
+//   - 'repeal' (bundled/bracketed states): the broad
+//     gov.contrib.repeal_state_dependent_exemptions flag — eliminate-only.
+interface DependentExemptionEntry {
+  mechanism: 'baseline' | 'contrib' | 'repeal';
+  amount_path?: string;
+  in_effect?: string;
+  amount?: string;
+  repeal_flag?: string;
+  current_amount?: number;
+  amount_editable: boolean;
+  kind: 'exemption' | 'credit' | 'deduction';
+  note?: string;
+}
+
+const DEPENDENT_EXEMPTION_REFORMS = dependentExemptionReforms as unknown as Record<
+  string,
+  DependentExemptionEntry
+>;
+
+export function dependentExemptionEntry(
+  stateCode: string,
+): DependentExemptionEntry | null {
+  const entry = DEPENDENT_EXEMPTION_REFORMS[stateCode.toUpperCase()];
+  return entry && typeof entry === 'object' && 'mechanism' in entry
+    ? entry
+    : null;
+}
+
+/** PolicyEngine-US reform dict for a state's dependent exemption/credit.
+ *  `eliminate` zeroes it (or flips the broad repeal flag for bundled states);
+ *  otherwise an edited `amount` is applied. An untouched amount on a
+ *  non-eliminated baseline/contrib lever is a no-op (nothing emitted), except
+ *  contrib levers must flip their in_effect flag whenever active. */
+export function buildDependentExemptionReform(
+  stateCode: string,
+  pv?: Record<string, number>,
+): Record<string, number | boolean> {
+  const entry = dependentExemptionEntry(stateCode);
+  if (!entry) return {};
+  const reform: Record<string, number | boolean> = {};
+  const eliminate = !!pv?.eliminate;
+  const editedAmount =
+    entry.amount_editable && pv?.amount !== undefined ? pv.amount : undefined;
+
+  if (entry.mechanism === 'repeal') {
+    if (eliminate && entry.repeal_flag) reform[entry.repeal_flag] = true;
+    return reform;
+  }
+
+  if (entry.mechanism === 'contrib') {
+    // The contributed reform must be active to separate (and re-price) the
+    // dependent portion. Only emit it when the user actually changes things.
+    if (eliminate) {
+      if (entry.in_effect) reform[entry.in_effect] = true;
+      if (entry.amount) reform[entry.amount] = 0;
+    } else if (editedAmount !== undefined && editedAmount !== entry.current_amount) {
+      if (entry.in_effect) reform[entry.in_effect] = true;
+      if (entry.amount) reform[entry.amount] = editedAmount;
+    }
+    return reform;
+  }
+
+  // baseline: set the scalar param directly.
+  if (entry.amount_path) {
+    if (eliminate) reform[entry.amount_path] = 0;
+    else if (editedAmount !== undefined && editedAmount !== entry.current_amount)
+      reform[entry.amount_path] = editedAmount;
+  }
+  return reform;
+}
+
+function buildDependentExemptionOptions(
+  programs: StateProgramRecord,
+): ReformOption[] {
+  const entry = dependentExemptionEntry(programs.state_code);
+  if (!entry) return [];
+  if (!programs.has_income_tax) return [];
+
+  const kindLabel =
+    entry.kind === 'credit'
+      ? 'dependent credit'
+      : entry.kind === 'deduction'
+        ? 'dependent deduction'
+        : 'dependent exemption';
+  const params: AdjustableParameter[] = [
+    {
+      name: 'eliminate',
+      label: `Eliminate the ${kindLabel}`,
+      control: 'toggle',
+      min_value: 0,
+      max_value: 1,
+      default_value: 0,
+      step: 1,
+      unit: '',
+      description: `Repeal ${programs.state_name}'s ${kindLabel} entirely (set it to $0).`,
+    },
+  ];
+  if (entry.amount_editable && entry.current_amount !== undefined) {
+    params.push({
+      name: 'amount',
+      label: 'Amount per dependent',
+      min_value: 0,
+      max_value: Math.max(10000, Math.ceil((entry.current_amount * 2) / 100) * 100),
+      default_value: entry.current_amount,
+      step: 50,
+      unit: '$',
+      depends_on_off: 'eliminate',
+      description: `Per-dependent ${kindLabel} amount. Current: $${entry.current_amount.toLocaleString()}. Lower it to partially repeal.`,
+    });
+  }
+
+  const capitalizedKind = kindLabel.charAt(0).toUpperCase() + kindLabel.slice(1);
+  return [
+    {
+      id: `${programs.state_code.toLowerCase()}_dependent_exemption`,
+      name: `${programs.state_name} ${capitalizedKind}`,
+      description: entry.amount_editable
+        ? `Adjust, partially repeal, or eliminate ${programs.state_name}'s ${kindLabel}. Pair it with a state EITC or child allowance to model a swap.`
+        : `Eliminate ${programs.state_name}'s ${kindLabel}. (Its per-dependent value varies by income/age/filing status, so only full repeal is offered.) Pair it with a state EITC or child allowance to model a swap.`,
+      category: 'state_dependent_exemption',
+      is_new_program: false,
+      is_enhancement: false,
+      is_configurable: true,
+      adjustable_params: params,
     },
   ];
 }
@@ -1321,6 +1463,7 @@ export function getReformOptionsForState(
       existing_programs: {},
       ctc_options: [],
       eitc_options: [],
+      dependent_exemption_options: [],
       snap_options: buildSnapOptions(),
       child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(),
@@ -1338,6 +1481,7 @@ export function getReformOptionsForState(
     },
     ctc_options: buildStateCtcOptions(programs.state_code, year),
     eitc_options: buildEitcOptions(programs),
+    dependent_exemption_options: buildDependentExemptionOptions(programs),
     snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(),

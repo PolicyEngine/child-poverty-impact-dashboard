@@ -274,4 +274,70 @@ describe('buildReformDict', () => {
       /Unknown or unwired/,
     );
   });
+
+  // ---- Dependent exemption / credit conversion --------------------------
+  it('eliminates a baseline-param dependent exemption (NY → $0)', () => {
+    const reform = buildReformDict(
+      ['ny_dependent_exemption'],
+      { ny_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.states.ny.tax.income.exemptions.dependent']).toBe(0);
+  });
+
+  it('partially repeals a baseline dependent exemption by lowering the amount', () => {
+    const reform = buildReformDict(
+      ['ny_dependent_exemption'],
+      { ny_dependent_exemption: { amount: 500 } },
+      2026,
+    );
+    expect(reform['gov.states.ny.tax.income.exemptions.dependent']).toBe(500);
+  });
+
+  it('is a no-op when a baseline dependent exemption is left at current law', () => {
+    // NY current per-dependent amount is $1,000.
+    expect(
+      buildReformDict(
+        ['ny_dependent_exemption'],
+        { ny_dependent_exemption: { amount: 1000 } },
+        2026,
+      ),
+    ).toEqual({});
+    expect(buildReformDict(['ny_dependent_exemption'], undefined, 2026)).toEqual({});
+  });
+
+  it('eliminates a contrib dependent exemption (RI → flag on, amount 0)', () => {
+    const reform = buildReformDict(
+      ['ri_dependent_exemption'],
+      { ri_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.contrib.states.ri.dependent_exemption.in_effect']).toBe(true);
+    expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(0);
+  });
+
+  it('re-prices a contrib dependent exemption (RI → flag on, new amount)', () => {
+    const reform = buildReformDict(
+      ['ri_dependent_exemption'],
+      { ri_dependent_exemption: { amount: 2000 } },
+      2026,
+    );
+    expect(reform['gov.contrib.states.ri.dependent_exemption.in_effect']).toBe(true);
+    expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(2000);
+  });
+
+  it('eliminates a bundled dependent exemption via the broad repeal flag (UT)', () => {
+    const reform = buildReformDict(
+      ['ut_dependent_exemption'],
+      { ut_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(
+      reform['gov.contrib.repeal_state_dependent_exemptions.in_effect'],
+    ).toBe(true);
+  });
+
+  it('is a no-op for a repeal-only dependent exemption when not eliminated', () => {
+    expect(buildReformDict(['ut_dependent_exemption'], undefined, 2026)).toEqual({});
+  });
 });
