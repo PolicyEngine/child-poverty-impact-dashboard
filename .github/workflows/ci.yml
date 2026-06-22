@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (lint, type-check, coverage sweep)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      # Remove the Windows-generated lockfile before installing: npm has a known
+      # bug (npm/cli#4828) where it skips another OS's optional deps — e.g.
+      # @rollup/rollup-linux-x64-gnu, which vitest needs on the Linux runner.
+      # The error message itself recommends removing the lockfile then `npm i`.
+      - run: rm -f package-lock.json
+      - run: npm install
+      - run: npm run lint
+      - run: npm run type-check
+      # Includes __tests__/reform-coverage.test.ts: every (state, option)
+      # builds a valid reform dict without throwing.
+      - run: npm run test
+
+  reform-compute:
+    name: Reform compute (every option runs through pinned PE-US)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        # See note in the frontend job above (npm/cli#4828).
+        run: rm -f package-lock.json && npm install
+      # Regenerate the coverage manifest so it can never go stale relative to
+      # the registries/builders.
+      - name: Generate reform manifest
+        working-directory: frontend
+        run: npm run manifest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      # Keep policyengine-us in sync with pyproject.toml,
+      # backend/requirements.txt, and scripts/modal_cpid_endpoint.py.
+      - name: Install policyengine-us (pinned to match Modal)
+        run: pip install "policyengine-us==1.739.4" pytest
+      # Fast gate: resolve every option's parameter paths against pinned PE-US
+      # (all entries) + a representative end-to-end compute per dispatch branch.
+      # The exhaustive per-entry compute runs in reform-compute-full below.
+      - name: Validate reform paths + representative computes
+        run: pytest tests/calculations/test_reform_computes.py -q
+
+  reform-compute-full:
+    name: Reform compute (full, shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    strategy:
+      # Don't cancel sibling shards when one fails — surface every breakage.
+      fail-fast: false
+      matrix:
+        # CPID_SHARDS below MUST equal the number of entries here.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    env:
+      CPID_SHARDS: "16"
+      CPID_SHARD: ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        # See note in the frontend job above (npm/cli#4828).
+        run: rm -f package-lock.json && npm install
+      - name: Generate reform manifest
+        working-directory: frontend
+        run: npm run manifest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install policyengine-us (pinned to match Modal)
+        run: pip install "policyengine-us==1.739.4" pytest
+      # Each shard fully computes its slice of every non-empty reform.
+      - name: Full compute (shard ${{ matrix.shard }} of 16)
+        run: pytest tests/calculations/test_reform_computes.py -q -k computes_all

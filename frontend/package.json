@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "manifest": "tsx scripts/dump-reform-manifest.ts"
   },
   "dependencies": {
     "@policyengine/ui-kit": "^0.9.0",
@@ -39,6 +40,7 @@
     "jsdom": "^25.0.1",
     "postcss": "^8.5.4",
     "tailwindcss": "^4.2.4",
+    "tsx": "^4.19.2",
     "typescript": "5.3.3",
     "vitest": "^3.2.4"
   }
