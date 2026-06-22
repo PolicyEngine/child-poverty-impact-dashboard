@@ -188,15 +188,40 @@ def test_representative_reform_computes(entry: dict) -> None:
     _compute(entry)
 
 
+def _sharded(entries: list[dict]) -> list[dict]:
+    """Select this shard's slice when ``CPID_SHARDS`` is set (CI fans the full
+    compute out across that many parallel jobs, each ``CPID_SHARD`` = 0..N-1).
+    Index-modulo keeps the split stable and balanced. No sharding → all."""
+    n = os.environ.get("CPID_SHARDS")
+    if not n:
+        return entries
+    shards = int(n)
+    shard = int(os.environ.get("CPID_SHARD", "0"))
+    return [e for i, e in enumerate(entries) if i % shards == shard]
+
+
+# Run the exhaustive compute when explicitly requested (CPID_FULL_COMPUTE=1)
+# or when sharded across CI jobs (CPID_SHARDS set).
+_RUN_FULL = (
+    os.environ.get("CPID_FULL_COMPUTE") == "1" or "CPID_SHARDS" in os.environ
+)
+_FULL_ENTRIES = _sharded(_NONEMPTY)
+
+
 @pytest.mark.skipif(
-    os.environ.get("CPID_FULL_COMPUTE") != "1",
-    reason="full per-entry compute is slow (~1-2h); set CPID_FULL_COMPUTE=1",
+    not _RUN_FULL,
+    reason="full per-entry compute is slow (~30s each); set CPID_FULL_COMPUTE=1 "
+    "to run all locally, or CPID_SHARDS/CPID_SHARD to run a CI shard",
 )
 @pytest.mark.parametrize(
-    "entry", _NONEMPTY, ids=[_case_id(e) for e in _NONEMPTY]
+    "entry", _FULL_ENTRIES, ids=[_case_id(e) for e in _FULL_ENTRIES]
 )
 def test_reform_computes_all(entry: dict) -> None:
-    """Exhaustive: a full compute for every non-empty reform (opt-in)."""
+    """Exhaustive: a full compute for every non-empty reform.
+
+    Off by default (slow); on in CI via sharding, or locally via
+    ``CPID_FULL_COMPUTE=1``.
+    """
     _compute(entry)
 
 
