@@ -77,8 +77,23 @@ function applyReformOption(
       );
       return;
     }
-    const ratePct = parameterValues?.[id]?.match_rate ?? 30;
-    Object.assign(reform, buildStateEitcReform(state, ratePct / 100, year));
+    // Nonrefundable states (SC, MO, OH, UT) carry extra levers: a
+    // `make_refundable` checkbox that flips the contributed reform, and (SC)
+    // an adjustable / removable EITC cap. Refundable states just use the
+    // match-rate slider. Any param the user left untouched is absent here, so
+    // the builder falls back to the no-op current-law value.
+    const pv = parameterValues?.[id];
+    const matchRate =
+      pv?.match_rate !== undefined ? pv.match_rate / 100 : undefined;
+    Object.assign(
+      reform,
+      buildStateEitcReform(state, {
+        matchRate,
+        makeRefundable: !!pv?.make_refundable,
+        eitcCap: pv?.eitc_cap,
+        eliminateCap: !!pv?.eliminate_cap,
+      }),
+    );
     return;
   }
 

@@ -64,6 +64,14 @@ type EitcReformEntry =
       match: string;
       in_effect?: string;
       current_rate: number;
+      /** Parameter path for a per-filer EITC cap (SC's $200 max). Adjustable
+       *  and removable from the dashboard; a plain baseline lever with no
+       *  upstream-reform dependency. */
+      cap?: string;
+      /** True once the upstream PE-US "make refundable" contrib reform for
+       *  this state is fixed and released. While false, the refundability
+       *  checkbox/slider stay greyed (the reform would crash or pay $0). */
+      refundable_ready?: boolean;
       note?: string;
     };
 
@@ -86,23 +94,54 @@ export function eitcConfigurable(stateCode: string): boolean {
   return entry !== null && typeof entry !== 'string';
 }
 
-/** PolicyEngine-US reform dict for a state EITC at the given match rate.
- *  Returns scalar values — Modal's policyengine.py wrapper defaults the
- *  effective date to ``{simulation_year}-01-01``. ``year`` is no longer
- *  used by this function but kept on the signature for callers that
- *  pass it. */
+/** Cap (per-filer EITC max) value used to "eliminate" a cap — effectively
+ *  unlimited. SC's baseline cap is $200 from 2026. */
+export const EITC_CAP_ELIMINATED = 1_000_000_000;
+
+/** SC's current-law per-filer EITC cap (dollars) from 2026 — the default
+ *  shown in the adjustable cap input. */
+export const SC_EITC_CAP_DEFAULT = 200;
+
+export interface StateEitcReformOpts {
+  /** Match as a fraction of the federal EITC. Defaults to the state's
+   *  current-law rate (a no-op) when omitted. */
+  matchRate?: number;
+  /** Apply the contributed reform that converts a nonrefundable EITC to
+   *  refundable (flips the contrib ``in_effect`` flag). Only honoured for
+   *  ``type:'contrib'`` states that expose an ``in_effect`` path. */
+  makeRefundable?: boolean;
+  /** Override a state's EITC cap (per-filer max), in dollars. */
+  eitcCap?: number;
+  /** Remove the cap entirely (sets it to {@link EITC_CAP_ELIMINATED}). Takes
+   *  precedence over ``eitcCap``. */
+  eliminateCap?: boolean;
+}
+
+/** PolicyEngine-US reform dict for a state EITC. Returns scalar values —
+ *  Modal's policyengine.py wrapper defaults the effective date to
+ *  ``{simulation_year}-01-01``.
+ *
+ *  Refundability is opt-in: the contrib ``in_effect`` flag is emitted only
+ *  when ``makeRefundable`` is set, so the match slider alone leaves a
+ *  nonrefundable credit nonrefundable. The cap lever (SC) is independent of
+ *  refundability. */
 export function buildStateEitcReform(
   stateCode: string,
-  matchRate: number,
-  _year: number,
+  opts: StateEitcReformOpts,
 ): Record<string, number | boolean> {
   const entry = EITC_REFORMS[stateCode.toUpperCase()];
   if (!entry || typeof entry === 'string') return {};
   const reform: Record<string, number | boolean> = {};
-  if (entry.type === 'contrib' && entry.in_effect) {
+  if (entry.type === 'contrib' && entry.in_effect && opts.makeRefundable) {
     reform[entry.in_effect] = true;
   }
-  reform[entry.match] = matchRate;
+  // Default to the current-law rate (a no-op) so adjusting only the cap or
+  // refundability doesn't silently move the match off baseline.
+  reform[entry.match] = opts.matchRate ?? entry.current_rate;
+  if (entry.cap) {
+    if (opts.eliminateCap) reform[entry.cap] = EITC_CAP_ELIMINATED;
+    else if (opts.eitcCap !== undefined) reform[entry.cap] = opts.eitcCap;
+  }
   return reform;
 }
 
@@ -509,35 +548,127 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
   if (!programs.has_income_tax) return [];
   if (!eitcConfigurable(programs.state_code)) return [];
   const { current_rate, description } = describeEitcAction(programs);
-  // Nonrefundable state EITCs (e.g. SC, MO, OH, UT) can't be modelled as a
-  // simple match-rate reform without PE-US changes, so surface the option
-  // greyed-out (non-selectable) rather than wiring a misleading slider.
   const nonrefundable = programs.eitc?.refundable === false;
+  const entryRaw = EITC_REFORMS[programs.state_code.toUpperCase()];
+  const entry = entryRaw && typeof entryRaw !== 'string' ? entryRaw : null;
+
+  // Refundable / new EITCs keep the simple single match-rate slider.
+  if (!nonrefundable) {
+    return [
+      {
+        id: `${programs.state_code.toLowerCase()}_eitc`,
+        name: `${programs.state_name} EITC`,
+        description,
+        category: 'state_eitc',
+        is_new_program: programs.eitc === null,
+        is_enhancement: programs.eitc !== null,
+        is_configurable: true,
+        estimated_household_impact: 500,
+        adjustable_params: [
+          {
+            name: 'match_rate',
+            label: 'Match rate',
+            min_value: 0,
+            max_value: 100,
+            default_value: current_rate,
+            step: 5,
+            unit: '%',
+            description: `Percentage of federal EITC. Current: ${current_rate}%.`,
+          },
+        ],
+      },
+    ];
+  }
+
+  // Nonrefundable state EITCs (SC, MO, OH, UT). Two independent levers:
+  //   1. A "Make refundable" checkbox that applies the contributed PE-US
+  //      reform, gated behind `refundable_ready` (the upstream reform is
+  //      broken/unreleased — see the policyengine-us issue). When ready, the
+  //      match slider rides on top of the now-refundable credit.
+  //   2. A cap control (SC only) — a plain baseline lever with no upstream
+  //      dependency, so it ships live: adjust the per-filer cap or remove it.
+  const refundableReady = entry?.refundable_ready === true;
+  const isContrib = entry?.type === 'contrib' && !!entry.in_effect;
+  const hasCap = !!entry?.cap;
+  const params: AdjustableParameter[] = [];
+
+  if (isContrib && refundableReady) {
+    params.push({
+      name: 'make_refundable',
+      label: 'Make refundable',
+      control: 'toggle',
+      min_value: 0,
+      max_value: 1,
+      default_value: 0,
+      step: 1,
+      unit: '',
+      description: `Apply the contributed reform that makes ${programs.state_name}'s EITC fully refundable.`,
+    });
+    params.push({
+      name: 'match_rate',
+      label: 'Match rate',
+      min_value: 0,
+      max_value: 150,
+      default_value: current_rate,
+      step: 5,
+      unit: '%',
+      depends_on: 'make_refundable',
+      description: `Percentage of federal EITC once refundable. Current: ${current_rate}%.`,
+    });
+  }
+
+  if (hasCap) {
+    params.push({
+      name: 'eliminate_cap',
+      label: 'Eliminate the cap',
+      control: 'toggle',
+      min_value: 0,
+      max_value: 1,
+      default_value: 0,
+      step: 1,
+      unit: '',
+      description: `Remove ${programs.state_name}'s EITC cap (raise it to $1 billion).`,
+    });
+    params.push({
+      name: 'eitc_cap',
+      label: 'EITC cap',
+      min_value: 0,
+      max_value: 5000,
+      default_value: SC_EITC_CAP_DEFAULT,
+      step: 50,
+      unit: '$',
+      depends_on_off: 'eliminate_cap',
+      description: `Maximum ${programs.state_name} EITC per filer. Current: $${SC_EITC_CAP_DEFAULT} (2026).`,
+    });
+  }
+
+  // Grey the option only when it has no live lever (refundability not ready
+  // and no cap to adjust) — i.e. MO/OH/UT today. SC stays selectable for the
+  // cap controls.
+  const greyed = params.length === 0 || (!refundableReady && !hasCap);
+  const refundabilityLive = isContrib && refundableReady;
+  let optionDescription: string;
+  if (greyed) {
+    optionDescription = `${programs.state_name}'s EITC is nonrefundable; a refundability reform is pending PolicyEngine-US fixes (see the linked issue).`;
+  } else if (hasCap && !refundabilityLive) {
+    // SC today: only the cap lever is live.
+    optionDescription = `Adjust ${programs.state_name}'s EITC cap (currently $${SC_EITC_CAP_DEFAULT}/filer, 2026) or remove it. Refundability conversion is pending a PolicyEngine-US contrib reform (see the linked issue).`;
+  } else {
+    optionDescription = description;
+  }
+
   return [
     {
       id: `${programs.state_code.toLowerCase()}_eitc`,
       name: `${programs.state_name} EITC`,
-      description: nonrefundable
-        ? `${programs.state_name}'s EITC is nonrefundable; modelling a reform to it requires upcoming PolicyEngine-US changes.`
-        : description,
+      description: optionDescription,
       category: 'state_eitc',
       is_new_program: programs.eitc === null,
       is_enhancement: programs.eitc !== null,
-      is_configurable: !nonrefundable,
-      ...(nonrefundable ? { in_development: true } : {}),
+      is_configurable: !greyed,
+      ...(greyed ? { in_development: true } : {}),
       estimated_household_impact: 500,
-      adjustable_params: [
-        {
-          name: 'match_rate',
-          label: 'Match rate',
-          min_value: 0,
-          max_value: 100,
-          default_value: current_rate,
-          step: 5,
-          unit: '%',
-          description: `Percentage of federal EITC. Current: ${current_rate}%.`,
-        },
-      ],
+      adjustable_params: params,
     },
   ];
 }
