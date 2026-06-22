@@ -274,4 +274,182 @@ describe('buildReformDict', () => {
       /Unknown or unwired/,
     );
   });
+
+  // ---- Maine CTC (the "Dependent Exemption Tax Credit") -----------------
+  it('emits the Maine CTC base amount, young-child multiplier, and phase-out', () => {
+    const D = 'gov.states.me.tax.income.credits.dependent_exemption';
+    const reform = buildReformDict(
+      ['me_ctc'],
+      {
+        me_ctc: {
+          amount: 500,
+          young_child_multiplier: 3,
+          phaseout_start: 50000,
+        },
+      },
+      2026,
+    );
+    expect(reform[`${D}.amount`]).toBe(500);
+    expect(reform[`${D}.multiplier[0].amount`]).toBe(3);
+    // Phase-out start applies to all five filing statuses.
+    for (const s of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'JOINT', 'SURVIVING_SPOUSE']) {
+      expect(reform[`${D}.phase_out.start.${s}`]).toBe(50000);
+    }
+  });
+
+  it('is a no-op when the Maine CTC is left at current law', () => {
+    expect(buildReformDict(['me_ctc'], undefined, 2026)).toEqual({});
+    expect(
+      buildReformDict(['me_ctc'], { me_ctc: { amount: 305, young_child_multiplier: 2 } }, 2026),
+    ).toEqual({});
+  });
+
+  // ---- Dependent exemption / credit conversion --------------------------
+  it('eliminates a baseline-param dependent exemption (NY → $0)', () => {
+    const reform = buildReformDict(
+      ['ny_dependent_exemption'],
+      { ny_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.states.ny.tax.income.exemptions.dependent']).toBe(0);
+  });
+
+  it('partially repeals a baseline dependent exemption by lowering the amount', () => {
+    const reform = buildReformDict(
+      ['ny_dependent_exemption'],
+      { ny_dependent_exemption: { amount: 500 } },
+      2026,
+    );
+    expect(reform['gov.states.ny.tax.income.exemptions.dependent']).toBe(500);
+  });
+
+  it('is a no-op when a baseline dependent exemption is left at current law', () => {
+    // NY current per-dependent amount is $1,000.
+    expect(
+      buildReformDict(
+        ['ny_dependent_exemption'],
+        { ny_dependent_exemption: { amount: 1000 } },
+        2026,
+      ),
+    ).toEqual({});
+    expect(buildReformDict(['ny_dependent_exemption'], undefined, 2026)).toEqual({});
+  });
+
+  it('eliminates a contrib dependent exemption (RI → flag on, amount 0)', () => {
+    const reform = buildReformDict(
+      ['ri_dependent_exemption'],
+      { ri_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.contrib.states.ri.dependent_exemption.in_effect']).toBe(true);
+    expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(0);
+  });
+
+  it('re-prices a contrib dependent exemption (RI → flag on, new amount)', () => {
+    const reform = buildReformDict(
+      ['ri_dependent_exemption'],
+      { ri_dependent_exemption: { amount: 2000 } },
+      2026,
+    );
+    expect(reform['gov.contrib.states.ri.dependent_exemption.in_effect']).toBe(true);
+    expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(2000);
+  });
+
+  it('eliminates a bundled/shared dependent exemption via the broad repeal flag (SC)', () => {
+    const reform = buildReformDict(
+      ['sc_dependent_exemption'],
+      { sc_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(
+      reform['gov.contrib.repeal_state_dependent_exemptions.in_effect'],
+    ).toBe(true);
+  });
+
+  it('is a no-op for a repeal-only dependent exemption when not eliminated', () => {
+    expect(buildReformDict(['sc_dependent_exemption'], undefined, 2026)).toEqual({});
+    // A repeal-only state ignores any amount value (it is not editable).
+    expect(
+      buildReformDict(['ar_dependent_exemption'], { ar_dependent_exemption: { amount: 500 } }, 2026),
+    ).toEqual({});
+  });
+
+  it('edits and eliminates AL across its three AGI brackets', () => {
+    const D = 'gov.states.al.tax.income.exemptions.dependent';
+    const elim = buildReformDict(
+      ['al_dependent_exemption'],
+      { al_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(elim[`${D}[0].amount`]).toBe(0);
+    expect(elim[`${D}[1].amount`]).toBe(0);
+    expect(elim[`${D}[2].amount`]).toBe(0);
+    // Editing just the top (under-$50k) tier emits only that bracket.
+    const edit = buildReformDict(
+      ['al_dependent_exemption'],
+      { al_dependent_exemption: { amount: 2000 } },
+      2026,
+    );
+    expect(edit[`${D}[0].amount`]).toBe(2000);
+    expect(edit[`${D}[1].amount`]).toBeUndefined();
+  });
+
+  it('edits the AZ dependent credit by age bracket', () => {
+    const reform = buildReformDict(
+      ['az_dependent_exemption'],
+      { az_dependent_exemption: { amount: 200, amount_older: 50 } },
+      2026,
+    );
+    expect(reform['gov.states.az.tax.income.credits.dependent_credit.amount[0].amount']).toBe(200);
+    expect(reform['gov.states.az.tax.income.credits.dependent_credit.amount[1].amount']).toBe(50);
+  });
+
+  it('edits the scalar MN dependent exemption (no-op at current law)', () => {
+    expect(
+      buildReformDict(['mn_dependent_exemption'], { mn_dependent_exemption: { amount: 3000 } }, 2026)[
+        'gov.states.mn.tax.income.exemptions.amount'
+      ],
+    ).toBe(3000);
+    expect(buildReformDict(['mn_dependent_exemption'], undefined, 2026)).toEqual({});
+  });
+
+  it('UT is eliminate-only via the repeal flag (shared personal-exemption amount)', () => {
+    const reform = buildReformDict(
+      ['ut_dependent_exemption'],
+      { ut_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.contrib.repeal_state_dependent_exemptions.in_effect']).toBe(true);
+    // It does NOT touch the shared personal-exemption amount param.
+    expect(
+      reform['gov.states.ut.tax.income.credits.taxpayer.personal_exemption'],
+    ).toBeUndefined();
+  });
+
+  it('eliminates both NJ dependent exemptions (regular + college)', () => {
+    const reform = buildReformDict(
+      ['nj_dependent_exemption'],
+      { nj_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    expect(reform['gov.states.nj.tax.income.exemptions.dependents.amount']).toBe(0);
+    expect(
+      reform['gov.states.nj.tax.income.exemptions.dependents_attending_college.amount'],
+    ).toBe(0);
+  });
+
+  it('edits only the NJ college-dependent exemption when changed alone', () => {
+    const reform = buildReformDict(
+      ['nj_dependent_exemption'],
+      { nj_dependent_exemption: { college_amount: 2000 } },
+      2026,
+    );
+    expect(
+      reform['gov.states.nj.tax.income.exemptions.dependents_attending_college.amount'],
+    ).toBe(2000);
+    // The regular dependent exemption is left at current law (not emitted).
+    expect(
+      reform['gov.states.nj.tax.income.exemptions.dependents.amount'],
+    ).toBeUndefined();
+  });
 });

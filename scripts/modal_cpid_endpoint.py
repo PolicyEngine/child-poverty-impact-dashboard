@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-16-vectorized-sweep-500"})
+    .env({"CPID_BUILD_REV": "2026-06-19-dependent-exemption-isolation"})
 )
 
 
@@ -413,6 +413,26 @@ def compute_economy(payload: dict) -> dict:
     ubi_change = _delta("basic_income")
     _log("fiscal done")
 
+    # Dependent exemption/credit cost — isolated. A dependent exemption only
+    # moves state income tax, and that delta overlaps with state CTC/EITC
+    # changes in the combined reform, so attribute it via a separate
+    # baseline-vs-(dependent-only) sub-simulation. Reported as a benefit-value
+    # delta (baseline tax - reform tax) to match the sign of the credit rows:
+    # negative when the exemption is shrunk/eliminated. Skipped (0) when no
+    # dependent-exemption sub-reform is sent — only one extra microsim, and
+    # only when the option is used.
+    dependent_exemption_change = 0.0
+    dep_payload = payload.get("dependent_exemption_reform")
+    if dep_payload:
+        dep_dict = _build_core_reform_dict(dep_payload, year)
+        if dep_dict:
+            dep_reform = Reform.from_dict(dep_dict)
+            sim_dep = Microsimulation(dataset=state_dataset, reform=dep_reform)
+            dependent_exemption_change = _hh_sum(
+                sim_baseline, "state_income_tax"
+            ) - _hh_sum(sim_dep, "state_income_tax")
+        _log("dependent-exemption isolation done")
+
     # ---- Poverty: overall, children, young children (0-3), deep child poverty.
     age_arr = np.array(sim_baseline.calculate("age", period=year))
     person_weight = np.array(
@@ -658,6 +678,7 @@ def compute_economy(payload: dict) -> dict:
             "state_ctc_change": state_ctc_change,
             "state_eitc_change": state_eitc_change,
             "ubi_change": ubi_change,
+            "dependent_exemption_change": dependent_exemption_change,
         },
         "poverty": {
             "overall_baseline_rate": _rate(pov_bl_arr, all_mask),

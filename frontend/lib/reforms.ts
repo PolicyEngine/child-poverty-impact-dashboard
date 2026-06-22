@@ -19,6 +19,7 @@ import {
   buildStateCtcReform,
   eitcStructured,
   buildStructuredEitcReform,
+  buildDependentExemptionReform,
 } from './state-programs';
 
 export type ReformDictValue =
@@ -88,6 +89,19 @@ function applyReformOption(
     Object.assign(
       reform,
       buildStateCtcReform(state, parameterValues?.[id], year),
+    );
+    return;
+  }
+
+  // State dependent exemption / credit — IDs look like
+  // ``ny_dependent_exemption``. Adjust the per-dependent amount, partially
+  // repeal, or eliminate it (full repeal flips the contributed reform or the
+  // broad repeal flag depending on the state's mechanism).
+  if (id.endsWith('_dependent_exemption')) {
+    const state = id.slice(0, 2).toUpperCase();
+    Object.assign(
+      reform,
+      buildDependentExemptionReform(state, parameterValues?.[id]),
     );
     return;
   }

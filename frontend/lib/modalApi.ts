@@ -60,6 +60,10 @@ export interface EconomyImpactResult {
     /** Basic-income (child allowance / baby bonus) outlay. Optional:
      *  older Modal deployments don't return it. */
     ubi_change?: number;
+    /** Isolated state income-tax change from the dependent-exemption portion
+     *  of the reform. Optional: returned only when a dependent-exemption
+     *  sub-reform is sent and the deployment supports it. */
+    dependent_exemption_change?: number;
   };
   poverty: {
     overall_baseline_rate: number;
@@ -185,13 +189,20 @@ export async function runEconomyOnModal(
   year: number,
   state: string | null,
   signal?: AbortSignal,
+  dependentExemptionReform: ReformDict | null = null,
 ): Promise<EconomyImpactResult> {
   const base = modalCpidUrl();
   if (!base) throw new Error('NEXT_PUBLIC_MODAL_CPID_URL is not set.');
   return spawnAndPoll<EconomyImpactResult>(
     base,
     'economy',
-    { reform, year, state, region: 'us' },
+    {
+      reform,
+      year,
+      state,
+      region: 'us',
+      dependent_exemption_reform: dependentExemptionReform,
+    },
     signal,
   );
 }

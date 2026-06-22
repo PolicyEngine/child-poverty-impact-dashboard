@@ -114,6 +114,7 @@ export interface StateReformOptions {
   existing_programs: Record<string, boolean>;
   ctc_options: ReformOption[];
   eitc_options: ReformOption[];
+  dependent_exemption_options: ReformOption[];
   snap_options: ReformOption[];
   child_allowance_options: ReformOption[];
   federal_options: ReformOption[];

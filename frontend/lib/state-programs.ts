@@ -11,6 +11,7 @@
 
 import statePrograms from '@/data/state-programs.json';
 import eitcReforms from '@/data/eitc-reforms.json';
+import dependentExemptionReforms from '@/data/dependent-exemption-reforms.json';
 
 export interface StateEITCRecord {
   name: string;
@@ -387,6 +388,7 @@ export function buildStructuredEitcReform(
 export type ReformCategory =
   | 'state_ctc'
   | 'state_eitc'
+  | 'state_dependent_exemption'
   | 'federal_ctc'
   | 'federal_eitc'
   | 'snap'
@@ -437,6 +439,7 @@ export interface StateReformOptions {
   existing_programs: Record<string, boolean>;
   ctc_options: ReformOption[];
   eitc_options: ReformOption[];
+  dependent_exemption_options: ReformOption[];
   snap_options: ReformOption[];
   child_allowance_options: ReformOption[];
   federal_options: ReformOption[];
@@ -535,6 +538,185 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
           description: `Percentage of federal EITC. Current: ${current_rate}%.`,
         },
       ],
+    },
+  ];
+}
+
+// ---- State dependent exemption / credit conversion -----------------------
+//
+// Lets users shrink, eliminate, or partially repeal a state's per-dependent
+// exemption/credit (then optionally replace it with a state EITC or child
+// allowance by also selecting those options). Three mechanisms, keyed in
+// data/dependent-exemption-reforms.json:
+//   - 'baseline': a clean scalar per-dependent parameter — set it directly
+//     (a lower value partially repeals; 0 eliminates).
+//   - 'contrib' (RI/DE/OR/VA): a contributed reform that separates the
+//     dependent portion of a bundled personal exemption — flip its in_effect
+//     flag and set its amount (0 eliminates).
+//   - 'repeal' (bundled/bracketed states): the broad
+//     gov.contrib.repeal_state_dependent_exemptions flag — eliminate-only.
+interface DependentExtraParam {
+  name: string;
+  label: string;
+  path: string;
+  current_amount: number;
+}
+
+interface DependentExemptionEntry {
+  mechanism: 'baseline' | 'contrib' | 'repeal';
+  amount_path?: string;
+  in_effect?: string;
+  amount?: string;
+  repeal_flag?: string;
+  current_amount?: number;
+  amount_editable: boolean;
+  /** Optional label override for the main amount input (e.g. to name the
+   *  bracket the primary amount applies to, like AL's "AGI under $50k" tier). */
+  amount_label?: string;
+  kind: 'exemption' | 'credit' | 'deduction';
+  /** Additional per-dependent scalar params for states with more than one
+   *  dependent exemption (e.g. NJ's college dependents) or more than one tier
+   *  (e.g. AL's AGI brackets, AZ's age brackets). Each gets its own editable
+   *  input; "eliminate" zeroes them all. */
+  extra_params?: DependentExtraParam[];
+  note?: string;
+}
+
+const DEPENDENT_EXEMPTION_REFORMS = dependentExemptionReforms as unknown as Record<
+  string,
+  DependentExemptionEntry
+>;
+
+export function dependentExemptionEntry(
+  stateCode: string,
+): DependentExemptionEntry | null {
+  const entry = DEPENDENT_EXEMPTION_REFORMS[stateCode.toUpperCase()];
+  return entry && typeof entry === 'object' && 'mechanism' in entry
+    ? entry
+    : null;
+}
+
+/** PolicyEngine-US reform dict for a state's dependent exemption/credit.
+ *  `eliminate` zeroes it (or flips the broad repeal flag for bundled states);
+ *  otherwise an edited `amount` is applied. An untouched amount on a
+ *  non-eliminated baseline/contrib lever is a no-op (nothing emitted), except
+ *  contrib levers must flip their in_effect flag whenever active. */
+export function buildDependentExemptionReform(
+  stateCode: string,
+  pv?: Record<string, number>,
+): Record<string, number | boolean> {
+  const entry = dependentExemptionEntry(stateCode);
+  if (!entry) return {};
+  const reform: Record<string, number | boolean> = {};
+  const eliminate = !!pv?.eliminate;
+  const editedAmount =
+    entry.amount_editable && pv?.amount !== undefined ? pv.amount : undefined;
+
+  if (entry.mechanism === 'repeal') {
+    if (eliminate && entry.repeal_flag) reform[entry.repeal_flag] = true;
+    return reform;
+  }
+
+  if (entry.mechanism === 'contrib') {
+    // The contributed reform must be active to separate (and re-price) the
+    // dependent portion. Only emit it when the user actually changes things.
+    if (eliminate) {
+      if (entry.in_effect) reform[entry.in_effect] = true;
+      if (entry.amount) reform[entry.amount] = 0;
+    } else if (editedAmount !== undefined && editedAmount !== entry.current_amount) {
+      if (entry.in_effect) reform[entry.in_effect] = true;
+      if (entry.amount) reform[entry.amount] = editedAmount;
+    }
+    return reform;
+  }
+
+  // baseline: set the scalar param(s) directly.
+  if (entry.amount_path) {
+    if (eliminate) reform[entry.amount_path] = 0;
+    else if (editedAmount !== undefined && editedAmount !== entry.current_amount)
+      reform[entry.amount_path] = editedAmount;
+  }
+  // Additional dependent exemptions for the same state (e.g. NJ college
+  // dependents): eliminate zeroes them too; otherwise apply edited amounts.
+  for (const extra of entry.extra_params ?? []) {
+    if (eliminate) {
+      reform[extra.path] = 0;
+    } else if (
+      pv?.[extra.name] !== undefined &&
+      pv[extra.name] !== extra.current_amount
+    ) {
+      reform[extra.path] = pv[extra.name];
+    }
+  }
+  return reform;
+}
+
+function buildDependentExemptionOptions(
+  programs: StateProgramRecord,
+): ReformOption[] {
+  const entry = dependentExemptionEntry(programs.state_code);
+  if (!entry) return [];
+  if (!programs.has_income_tax) return [];
+
+  const kindLabel =
+    entry.kind === 'credit'
+      ? 'dependent credit'
+      : entry.kind === 'deduction'
+        ? 'dependent deduction'
+        : 'dependent exemption';
+  const params: AdjustableParameter[] = [
+    {
+      name: 'eliminate',
+      label: `Eliminate the ${kindLabel}`,
+      control: 'toggle',
+      min_value: 0,
+      max_value: 1,
+      default_value: 0,
+      step: 1,
+      unit: '',
+      description: `Repeal ${programs.state_name}'s ${kindLabel} entirely (set it to $0).`,
+    },
+  ];
+  if (entry.amount_editable && entry.current_amount !== undefined) {
+    params.push({
+      name: 'amount',
+      label: entry.amount_label ?? 'Amount per dependent',
+      min_value: 0,
+      max_value: Math.max(10000, Math.ceil((entry.current_amount * 2) / 100) * 100),
+      default_value: entry.current_amount,
+      step: 50,
+      unit: '$',
+      depends_on_off: 'eliminate',
+      description: `Per-dependent ${kindLabel} amount. Current: $${entry.current_amount.toLocaleString()}. Lower it to partially repeal.`,
+    });
+    for (const extra of entry.extra_params ?? []) {
+      params.push({
+        name: extra.name,
+        label: extra.label,
+        min_value: 0,
+        max_value: Math.max(10000, Math.ceil((extra.current_amount * 2) / 100) * 100),
+        default_value: extra.current_amount,
+        step: 50,
+        unit: '$',
+        depends_on_off: 'eliminate',
+        description: `Current: $${extra.current_amount.toLocaleString()}. Set to $0 to drop just this piece, or use Eliminate to remove all of ${programs.state_name}'s ${kindLabel}.`,
+      });
+    }
+  }
+
+  const capitalizedKind = kindLabel.charAt(0).toUpperCase() + kindLabel.slice(1);
+  return [
+    {
+      id: `${programs.state_code.toLowerCase()}_dependent_exemption`,
+      name: `${programs.state_name} ${capitalizedKind}`,
+      description: entry.amount_editable
+        ? `Adjust, partially repeal, or eliminate ${programs.state_name}'s ${kindLabel}. Pair it with a state EITC or child allowance to model a swap.`
+        : `Eliminate ${programs.state_name}'s ${kindLabel}. (Its per-dependent value varies by income/age/filing status, so only full repeal is offered.) Pair it with a state EITC or child allowance to model a swap.`,
+      category: 'state_dependent_exemption',
+      is_new_program: false,
+      is_enhancement: false,
+      is_configurable: true,
+      adjustable_params: params,
     },
   ];
 }
@@ -943,6 +1125,63 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       },
     ],
   },
+  ME: {
+    name: 'Maine Dependent Exemption Tax Credit',
+    description:
+      "Maine's child tax credit (officially the Dependent Exemption Tax Credit): $305 per dependent, doubled to $610 for children under 6 (new in 2025), phasing out above income thresholds that vary by filing status.",
+    params: [
+      {
+        name: 'amount',
+        label: 'Credit amount per dependent',
+        path: 'gov.states.me.tax.income.credits.dependent_exemption.amount',
+        default_value: 305,
+        min_value: 0,
+        max_value: 3000,
+        step: 5,
+        unit: '$',
+        description: 'Base credit per dependent (before the young-child multiplier). Current: $305.',
+      },
+      {
+        name: 'young_child_multiplier',
+        label: 'Young child multiplier (under 6)',
+        path: 'gov.states.me.tax.income.credits.dependent_exemption.multiplier[0].amount',
+        default_value: 2,
+        min_value: 1,
+        max_value: 4,
+        step: 1,
+        unit: 'x',
+        description: 'Multiplier on the credit for children under 6. Current: 2× (i.e. $610), new in 2025; set to 1 to remove the young-child boost.',
+      },
+      {
+        name: 'phaseout_start',
+        label: 'Phase-out start (AGI)',
+        paths: [
+          'gov.states.me.tax.income.credits.dependent_exemption.phase_out.start.SINGLE',
+          'gov.states.me.tax.income.credits.dependent_exemption.phase_out.start.SEPARATE',
+          'gov.states.me.tax.income.credits.dependent_exemption.phase_out.start.HEAD_OF_HOUSEHOLD',
+          'gov.states.me.tax.income.credits.dependent_exemption.phase_out.start.JOINT',
+          'gov.states.me.tax.income.credits.dependent_exemption.phase_out.start.SURVIVING_SPOUSE',
+        ],
+        default_value: 102266,
+        min_value: 0,
+        max_value: 400000,
+        step: 5000,
+        unit: '$',
+        description: 'AGI where the credit starts phasing out. Current law varies by filing status (~$102k single to ~$153k joint, 2026); changing this sets the same threshold for all statuses.',
+      },
+      {
+        name: 'phaseout_step',
+        label: 'Reduction per $500 AGI',
+        path: 'gov.states.me.tax.income.credits.dependent_exemption.phase_out.step',
+        default_value: 20,
+        min_value: 0,
+        max_value: 200,
+        step: 5,
+        unit: '$',
+        description: 'Dollars of credit lost per $500 of AGI above the threshold. Current: $20.',
+      },
+    ],
+  },
   MN: {
     name: 'Minnesota Child Tax Credit',
     description:
@@ -1321,6 +1560,7 @@ export function getReformOptionsForState(
       existing_programs: {},
       ctc_options: [],
       eitc_options: [],
+      dependent_exemption_options: [],
       snap_options: buildSnapOptions(),
       child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(),
@@ -1338,6 +1578,7 @@ export function getReformOptionsForState(
     },
     ctc_options: buildStateCtcOptions(programs.state_code, year),
     eitc_options: buildEitcOptions(programs),
+    dependent_exemption_options: buildDependentExemptionOptions(programs),
     snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(),
