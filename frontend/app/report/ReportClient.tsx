@@ -39,8 +39,11 @@ interface ReportConfig {
   year: number | null;
 }
 
-// Available years for analysis
-const AVAILABLE_YEARS = [2026, 2027, 2028, 2029, 2030];
+// Available years for analysis. Limited to 2026–2028 for now: the per-state
+// datasets are calibrated for these years, and the modelled reforms (e.g. the
+// 2027 RI CTC, the NY credit reversion at 2028) are all covered. Extend to
+// 2029–2030 once those years are calibrated.
+const AVAILABLE_YEARS = [2026, 2027, 2028];
 
 const STEPS: { key: Step; label: string; icon: React.ReactNode }[] = [
   {
