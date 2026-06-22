@@ -4,7 +4,7 @@ pydantic>=2.5.0
 pydantic-settings>=2.0.0
 python-multipart>=0.0.6
 httpx>=0.26.0
-policyengine-us==1.715.2
+policyengine-us==1.739.4
 numpy>=1.24.0
 pandas>=2.0.0
 microdf-python>=0.3.0
