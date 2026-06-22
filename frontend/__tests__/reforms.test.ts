@@ -129,6 +129,17 @@ describe('buildReformDict', () => {
     ).toEqual({}); // 1000 == current-law default -> no-op
   });
 
+  it('emits the Rhode Island CTC amount/age (no-op at current law)', () => {
+    const reform = buildReformDict(['ri_ctc'], { ri_ctc: { amount: 500 } }, 2026);
+    expect(reform['gov.states.ri.tax.income.credits.ctc.amount']).toBe(500);
+    const aged = buildReformDict(['ri_ctc'], { ri_ctc: { age: 17 } }, 2026);
+    expect(aged['gov.states.ri.tax.income.credits.ctc.age_limit']).toBe(17);
+    // $330 / age 18 are the enacted (2027) defaults -> unchanged is a no-op.
+    expect(
+      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 330, age: 18 } }, 2026),
+    ).toEqual({});
+  });
+
   it('sets all five filing-status paths for a Colorado bracket tier', () => {
     const reform = buildReformDict(['co_ctc'], { co_ctc: { tier1: 2000 } }, 2026);
     for (const s of ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse']) {

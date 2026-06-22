@@ -1207,6 +1207,15 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       AGE('gov.states.ga.tax.income.credits.ctc.age_threshold', 6),
     ],
   },
+  RI: {
+    name: 'Rhode Island Child Tax Credit',
+    description:
+      'Refundable credit of $330 per child age 18 or under, enacted for 2027 (R.I. H 7127). No effect before 2027 — set the analysis year to 2027 or later to model it. Phases out above AGI thresholds that vary by filing status.',
+    params: [
+      AMT('gov.states.ri.tax.income.credits.ctc.amount', 330, 3000),
+      AGE('gov.states.ri.tax.income.credits.ctc.age_limit', 18, 'Eligible if age or under'),
+    ],
+  },
   IL: {
     name: 'Illinois Child Tax Credit',
     description:
