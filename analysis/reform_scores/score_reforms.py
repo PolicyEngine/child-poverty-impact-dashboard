@@ -1,35 +1,38 @@
-"""Reform-option scorecard — validate dashboard option impacts via the PolicyEngine API.
+"""Reform-option scorecard — validate the DASHBOARD's computed impacts against priors.
 
-Applies the methodology of Pavel's `/analyze-policy` command (its `microsim-runner`
-agent) to the dashboard's own reform options: for each scenario in
-``score-scenarios.json`` (emitted by ``npm run score-scenarios``), POST the
-reform to ``api.policyengine.org``, run an economy-wide simulation over the
-current-law baseline for the scenario's region, and collect budgetary, poverty,
-inequality, and distributional impacts. Each result is then validated against a
-curated prior anchor (``anchors.yaml``) or, lacking one, direction-aware sanity
-rules, yielding a PASS / PASS-WITH-NOTES / INVESTIGATE verdict — mirroring
-`reform-comparator`.
+This scores each reform option through the **dashboard's own backend** (the Modal
+per-state ECPS microsim — the exact numbers users see) and validates the result
+against external prior estimates gathered the way `/analyze-policy`'s
+`prior-scores-finder` does (`priors.yaml`). It answers: *do the scores our
+dashboard produces line up with PolicyEngine's published / think-tank estimates?*
 
-Output: ``REPORT.md`` (scannable table) + ``results.json`` (machine-readable) +
-``results/<id>.json`` (full raw API result per scenario, cached).
+Optionally, a PolicyEngine-API run (`--with-api`) is shown as a same-engine
+reference column (api.policyengine.org) for a dashboard-vs-PolicyEngine
+consistency check.
 
-This is an offline validation artifact, NOT a per-PR gate: each economy run is
-~7 min (federal) to ~20 min (state). Run on demand / on a schedule.
+Pipeline:
+1. `npm run score-scenarios` (frontend) -> score-scenarios.json (reform-dicts +
+   the state each is evaluated in + scope federal/state).
+2. This script -> POST each reform to the dashboard's Modal `/economy` endpoint,
+   poll, extract child/overall poverty, cost, Gini.
+3. Compare the dashboard's relative child-poverty reduction to the prior band
+   (priors.yaml) + direction-aware sanity -> PASS / PASS-WITH-NOTES / INVESTIGATE.
+4. Emit REPORT.md + results.json; cache raw results under results_dashboard/.
 
-Caveat: the API scores on the national Enhanced CPS filtered by ``region``,
-whereas the dashboard ships per-state ECPS via Modal — absolute numbers can
-differ. This is a standardized external check of sign/magnitude and agreement
-with PolicyEngine priors, not a reproduction of the dashboard's exact figures.
+The dashboard is per-state, so a federal reform is evaluated in a representative
+state and compared to the (national) prior's RELATIVE reduction directionally —
+dollar costs are state-scoped and not band-checked against national priors.
 
 Usage:
-    python score_reforms.py [--only id1,id2] [--year 2026] [--concurrency 4]
-                            [--refresh] [--offline] [--base-url URL] [--baseline 2]
+    python score_reforms.py [--only id1,id2] [--with-api] [--refresh]
+                            [--offline] [--modal-url URL] [--concurrency 4]
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -38,169 +41,206 @@ import requests
 
 try:
     import yaml
-except ImportError:  # pragma: no cover - anchors are optional
+except ImportError:  # pragma: no cover
     yaml = None
 
 HERE = Path(__file__).resolve().parent
 SCENARIOS_PATH = HERE / "score-scenarios.json"
-ANCHORS_PATH = HERE / "anchors.yaml"
-RESULTS_DIR = HERE / "results"
+PRIORS_PATH = HERE / "priors.yaml"
+DASH_DIR = HERE / "results_dashboard"
+API_DIR = HERE / "results_api"
 
-DEFAULT_BASE_URL = "https://api.policyengine.org/us"
-DEFAULT_BASELINE = 2  # US current-law policy id
+DEFAULT_MODAL_URL = os.environ.get(
+    "NEXT_PUBLIC_MODAL_CPID_URL", "https://policyengine--cpid-backend-web.modal.run"
+)
+API_BASE = "https://api.policyengine.org/us"
+API_BASELINE = 2
 DATASET = "enhanced_cps_2024"
 
-# Sanity thresholds.
-TRIVIAL_DOLLARS = 1_000_000  # annual budgetary impact below this magnitude ≈ no effect
-TRIVIAL_POV = 1e-4  # 0.01pp poverty change below this ≈ no effect
-WRONG_DIR_POV_SLACK = 5e-4  # allow tiny wrong-direction wiggle from microsim noise
+TRIVIAL_DOLLARS = 1_000_000
+TRIVIAL_POV = 1e-4
+WRONG_DIR_POV_SLACK = 5e-4
 
 POLL_INTERVAL_S = 30
-MAX_POLLS = 80  # 80 * 30s = 40 min ceiling per scenario (state runs ~20 min)
+MAX_POLLS = 80  # 40 min ceiling
 
 
-def to_policy(reform: dict, year: int) -> dict:
-    """Flat dashboard reform-dict -> PolicyEngine API policy data (date-ranged)."""
-    span = f"{year}-01-01.2100-12-31"
-    out = {}
-    for path, value in reform.items():
-        out[path] = {span: value}
-    return out
-
-
-def _delta(node: dict | None):
-    if not node:
-        return None, None, None
-    b, r = node.get("baseline"), node.get("reform")
-    d = (r - b) if (b is not None and r is not None) else None
-    return b, r, d
-
-
-def summarize(result: dict) -> dict:
-    """Pull the headline metrics out of the raw API economy result."""
-    budget = result.get("budget", {}) or {}
-    pov = (result.get("poverty", {}) or {}).get("poverty", {}) or {}
-    deep = (result.get("poverty", {}) or {}).get("deep_poverty", {}) or {}
-    ineq = result.get("inequality", {}) or {}
-
-    budgetary_impact = budget.get("budgetary_impact")
-    s = {
-        # budgetary_impact is NEGATIVE for a cost (revenue loss); flip to a cost.
-        "annual_cost": (-budgetary_impact) if budgetary_impact is not None else None,
-        "budgetary_impact": budgetary_impact,
-        "tax_revenue_impact": budget.get("tax_revenue_impact"),
-        "state_tax_revenue_impact": budget.get("state_tax_revenue_impact"),
-        "benefit_spending_impact": budget.get("benefit_spending_impact"),
+# ---------------------------------------------------------------- dashboard (Modal)
+def run_dashboard(modal_url: str, scenario: dict) -> dict:
+    """Run the reform through the dashboard's Modal economy endpoint."""
+    body = {
+        "reform": scenario["reform"],
+        "year": scenario["year"],
+        "state": scenario["state"],
+        "region": "us",
+        "dependent_exemption_reform": (
+            scenario["reform"] if scenario.get("is_dependent_exemption") else None
+        ),
     }
-    for grp in ("all", "child", "adult", "senior"):
-        b, r, d = _delta(pov.get(grp))
-        s[f"poverty_{grp}_baseline"], s[f"poverty_{grp}_reform"], s[f"poverty_{grp}_delta"] = b, r, d
-    _, _, s["deep_poverty_child_delta"] = _delta(deep.get("child"))
-    gb, gr, gd = _delta(ineq.get("gini"))
-    s["gini_baseline"], s["gini_reform"], s["gini_delta"] = gb, gr, gd
-    _, _, s["top_1_pct_share_delta"] = _delta(ineq.get("top_1_pct_share"))
-    # Relative child-poverty reduction (positive = poverty fell).
-    cb, cd = s.get("poverty_child_baseline"), s.get("poverty_child_delta")
+    start = requests.post(f"{modal_url}/economy/start", json=body, timeout=60)
+    start.raise_for_status()
+    job_id = start.json()["job_id"]
+    for _ in range(MAX_POLLS):
+        st = requests.get(f"{modal_url}/economy/status/{job_id}", timeout=120).json()
+        status = st.get("status")
+        if status == "ok":
+            return st["result"]
+        if status == "error":
+            raise RuntimeError(st.get("message", "dashboard economy job failed"))
+        time.sleep(POLL_INTERVAL_S)
+    raise TimeoutError(f"dashboard job did not finish within {MAX_POLLS * POLL_INTERVAL_S}s")
+
+
+def summarize_dashboard(raw: dict) -> dict:
+    pov = raw.get("poverty", {}) or {}
+    fis = raw.get("fiscal", {}) or {}
+    dist = raw.get("distributional", {}) or {}
+    # The Modal endpoint returns poverty rates as PERCENTAGES (0-100); convert to
+    # fractions so display and thresholds match the PolicyEngine-API convention.
+    def _frac(x):
+        return (x / 100.0) if x is not None else None
+    cb, cr = _frac(pov.get("child_baseline_rate")), _frac(pov.get("child_reform_rate"))
+    ob, orr = _frac(pov.get("overall_baseline_rate")), _frac(pov.get("overall_reform_rate"))
+    bud = fis.get("total_budgetary_impact")
+    s = {
+        "annual_cost": (-bud) if bud is not None else None,  # negative impact = cost
+        "poverty_child_baseline": cb,
+        "poverty_child_reform": cr,
+        "poverty_child_delta": (cr - cb) if (cb is not None and cr is not None) else None,
+        "poverty_all_baseline": ob,
+        "poverty_all_reform": orr,
+        "poverty_all_delta": (orr - ob) if (ob is not None and orr is not None) else None,
+        "children_lifted": pov.get("children_lifted"),
+        "gini_delta": dist.get("gini_change"),
+    }
+    cd = s["poverty_child_delta"]
     s["child_poverty_rel_reduction"] = (-cd / cb) if (cb and cd is not None and cb > 0) else None
     return s
 
 
-def run_economy(base_url: str, baseline: int, scenario: dict, year: int) -> dict:
-    """Create the policy and run the economy simulation; return the raw result."""
-    policy_resp = requests.post(
-        f"{base_url}/policy", json={"data": to_policy(scenario["reform"], year)}, timeout=60
-    )
-    policy_resp.raise_for_status()
-    policy_id = policy_resp.json()["result"]["policy_id"]
-    url = f"{base_url}/economy/{policy_id}/over/{baseline}"
-    params = {"region": scenario["region"], "time_period": str(year), "dataset": DATASET}
+# ---------------------------------------------------------------- PolicyEngine API (optional reference)
+def to_policy(reform: dict, year: int) -> dict:
+    span = f"{year}-01-01.2100-12-31"
+    return {p: {span: v} for p, v in reform.items()}
+
+
+def run_api(scenario: dict) -> dict:
+    pr = requests.post(f"{API_BASE}/policy", json={"data": to_policy(scenario["reform"], scenario["year"])}, timeout=60)
+    pr.raise_for_status()
+    pid = pr.json()["result"]["policy_id"]
+    url = f"{API_BASE}/economy/{pid}/over/{API_BASELINE}"
+    params = {"region": scenario["region"], "time_period": str(scenario["year"]), "dataset": DATASET}
     for _ in range(MAX_POLLS):
-        g = requests.get(url, params=params, timeout=120)
-        body = g.json()
-        status = body.get("status")
-        if status == "ok":
-            res = body["result"]
-            res["_policy_id"] = policy_id
-            return res
-        if status == "error":
-            raise RuntimeError(body.get("message", "economy job failed"))
+        body = requests.get(url, params=params, timeout=120).json()
+        if body.get("status") == "ok":
+            return body["result"]
+        if body.get("status") == "error":
+            raise RuntimeError(body.get("message", "api economy job failed"))
         time.sleep(POLL_INTERVAL_S)
-    raise TimeoutError(f"economy job did not finish within {MAX_POLLS * POLL_INTERVAL_S}s")
+    raise TimeoutError("api job timed out")
 
 
-def score_one(scenario: dict, args) -> dict:
+def summarize_api(raw: dict) -> dict:
+    pov = (raw.get("poverty", {}) or {}).get("poverty", {}) or {}
+    child = pov.get("child") or {}
+    cb, cr = child.get("baseline"), child.get("reform")
+    cd = (cr - cb) if (cb is not None and cr is not None) else None
+    return {"child_poverty_rel_reduction": (-cd / cb) if (cb and cd is not None and cb > 0) else None,
+            "poverty_child_baseline": cb, "poverty_child_reform": cr}
+
+
+# ---------------------------------------------------------------- scoring + verdict
+def _cached(path: Path, runner, scenario, refresh, offline):
+    if path.exists() and not refresh:
+        return json.loads(path.read_text(encoding="utf-8")), None
+    if offline:
+        return None, "no cached result and --offline set"
+    try:
+        raw = runner(scenario)
+    except Exception as e:  # noqa: BLE001
+        return None, f"{type(e).__name__}: {e}"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps(raw, indent=2), encoding="utf-8")
+    return raw, None
+
+
+def score_one(scenario, args) -> dict:
     sid = scenario["id"]
-    cache = RESULTS_DIR / f"{sid}.json"
     t0 = time.time()
-    if cache.exists() and not args.refresh:
-        raw = json.loads(cache.read_text(encoding="utf-8"))
-    elif args.offline:
-        return {"id": sid, "error": "no cached result and --offline set"}
-    else:
-        try:
-            raw = run_economy(args.base_url, args.baseline, scenario, scenario.get("year", args.year))
-        except Exception as e:  # noqa: BLE001 - record and continue
-            return {"id": sid, "error": f"{type(e).__name__}: {e}", "seconds": round(time.time() - t0)}
-        RESULTS_DIR.mkdir(exist_ok=True)
-        cache.write_text(json.dumps(raw, indent=2), encoding="utf-8")
-    s = summarize(raw)
-    s.update({"id": sid, "seconds": round(time.time() - t0)})
-    return s
+    raw, err = _cached(DASH_DIR / f"{sid}.json", lambda s: run_dashboard(args.modal_url, s), scenario, args.refresh, args.offline)
+    out = {"id": sid, "seconds": round(time.time() - t0)}
+    if err:
+        out["error"] = err
+        return out
+    out["dashboard"] = summarize_dashboard(raw)
+    if args.with_api:
+        api_raw, api_err = _cached(API_DIR / f"{sid}.json", run_api, scenario, args.refresh, args.offline)
+        out["api"] = summarize_api(api_raw) if api_raw else {"error": api_err}
+    return out
 
 
-def verdict(scenario: dict, s: dict, anchors: dict) -> tuple[str, str]:
-    """direction-aware sanity + optional anchor comparison -> (verdict, note)."""
-    if "error" in s:
-        return "ERROR", s["error"]
-    cost = s.get("annual_cost")
-    # Judge sign on OVERALL poverty so childless-targeted reforms (e.g. a
-    # childless EITC) aren't false-flagged for a ~0 child-poverty effect.
-    pov = s.get("poverty_all_delta")
+def verdict(scenario, res, priors) -> tuple[str, str]:
+    if "error" in res:
+        return "ERROR", res["error"]
+    d = res["dashboard"]
+    cost, pov, cpd = d.get("annual_cost"), d.get("poverty_all_delta"), d.get("poverty_child_delta")
     if cost is None or pov is None:
-        return "INVESTIGATE", "missing budget/poverty fields in API result"
+        return "INVESTIGATE", "dashboard result missing budget/poverty fields"
     direction = scenario.get("direction", "expansion")
 
-    trivial = abs(s.get("budgetary_impact") or 0) < TRIVIAL_DOLLARS and abs(pov) < TRIVIAL_POV
-    if trivial:
-        return "INVESTIGATE", "no measurable budget or poverty effect (possible dead option)"
-
+    if abs(cost) < TRIVIAL_DOLLARS and abs(pov) < TRIVIAL_POV:
+        return "INVESTIGATE", "dashboard shows no measurable budget or poverty effect (possible dead option)"
     if direction == "expansion":
         if cost <= 0:
-            return "INVESTIGATE", f"expansion but does not cost money (annual_cost={cost:,.0f})"
+            return "INVESTIGATE", f"expansion but dashboard cost is not positive ({cost:,.0f})"
         if pov > WRONG_DIR_POV_SLACK:
-            return "INVESTIGATE", f"expansion but poverty rises (Δ all={pov:+.4f})"
-    else:  # repeal
+            return "INVESTIGATE", f"expansion but dashboard poverty rises (Δ all={pov:+.4f})"
+    else:
         if cost >= 0:
-            return "INVESTIGATE", f"repeal but does not raise revenue (annual_cost={cost:,.0f})"
+            return "INVESTIGATE", f"repeal but dashboard does not raise revenue ({cost:,.0f})"
         if pov < -WRONG_DIR_POV_SLACK:
-            return "INVESTIGATE", f"repeal but poverty falls (Δ all={pov:+.4f})"
+            return "INVESTIGATE", f"repeal but dashboard poverty falls (Δ all={pov:+.4f})"
 
-    anchor = (anchors or {}).get(scenario["id"])
-    if anchor:
-        notes = []
-        v = "PASS"
-        rr = s.get("child_poverty_rel_reduction")
-        band = anchor.get("child_poverty_rel_reduction")
-        if band and rr is not None:
-            lo, hi = float(band[0]), float(band[1])
-            if not (lo <= rr <= hi):
-                v = "PASS-WITH-NOTES"
-                notes.append(f"child-poverty reduction {rr:.0%} outside prior band {lo:.0%}–{hi:.0%}")
-        cband = anchor.get("annual_cost")
-        if cband and cost is not None:
-            lo, hi = float(cband[0]), float(cband[1])
-            if not (lo <= cost <= hi):
-                v = "PASS-WITH-NOTES"
-                notes.append(f"annual cost ${cost/1e9:.1f}B outside prior band ${lo/1e9:.0f}–${hi/1e9:.0f}B")
-        return v, "; ".join(notes) or f"matches prior anchor ({anchor.get('source','')})".strip()
+    dash_rr = d.get("child_poverty_rel_reduction")
+    prior = (priors or {}).get(scenario["id"])
+    pband = prior.get("child_poverty_rel_reduction") if prior else None
 
-    # Sign correct, non-trivial, no anchor.
+    def prior_note():
+        if not pband or dash_rr is None:
+            return ""
+        lo, hi = (float(x) for x in pband)
+        if lo <= dash_rr <= hi:
+            return f"; within national prior {lo:.0%}–{hi:.0%}"
+        geo = " (geography: single state vs national prior)" if scenario.get("scope") == "federal" else ""
+        return f"; national prior {lo:.0%}–{hi:.0%}{geo}"
+
+    # Primary signal when available: does the dashboard agree with PolicyEngine's
+    # API at the SAME geography? That isolates "is our calc right?" from the
+    # geography gap to a national prior.
+    api = res.get("api") or {}
+    api_rr = api.get("child_poverty_rel_reduction") if "error" not in api else None
+    if api_rr is not None and dash_rr is not None:
+        tol = max(0.03, 0.25 * abs(api_rr))
+        if abs(dash_rr - api_rr) <= tol:
+            return "PASS", f"dashboard {dash_rr:.0%} matches PolicyEngine API {api_rr:.0%} at {scenario['state']}" + prior_note()
+        return "INVESTIGATE", f"dashboard {dash_rr:.0%} diverges from PolicyEngine API {api_rr:.0%} at same geography (Δ {abs(dash_rr-api_rr)*100:.1f}pp)"
+
+    # No API reference — fall back to prior band (directional for federal) or sanity.
+    if pband and dash_rr is not None:
+        lo, hi = (float(x) for x in pband)
+        geo = " (directional — national prior vs single-state dashboard)" if scenario.get("scope") == "federal" else ""
+        if lo <= dash_rr <= hi:
+            return "PASS", f"dashboard child-poverty reduction {dash_rr:.0%} within prior {lo:.0%}–{hi:.0%}{geo}"
+        return "PASS-WITH-NOTES", f"dashboard child-poverty reduction {dash_rr:.0%} outside prior {lo:.0%}–{hi:.0%}{geo}"
+
     small = abs(pov) < WRONG_DIR_POV_SLACK
     return ("PASS-WITH-NOTES" if small else "PASS"), (
-        "sign correct; small overall-poverty effect (no prior anchor)" if small else "sign correct (sanity only; no prior anchor)"
+        "dashboard sign correct; small overall-poverty effect (no published prior)"
+        if small else "dashboard sign correct (sanity only; no published prior)"
     )
 
 
+# ---------------------------------------------------------------- report
 def fmt_pct(x):
     return "—" if x is None else f"{x*100:.2f}%"
 
@@ -209,102 +249,124 @@ def fmt_money(x):
     if x is None:
         return "—"
     a = abs(x)
+    sign = "−" if x < 0 else ""
     if a >= 1e9:
-        return f"${x/1e9:.1f}B"
+        return f"{sign}${a/1e9:.1f}B"
     if a >= 1e6:
-        return f"${x/1e6:.1f}M"
-    return f"${x:,.0f}"
+        return f"{sign}${a/1e6:.1f}M"
+    return f"{sign}${a:,.0f}"
 
 
-def write_report(rows: list[dict], year: int) -> None:
-    lines = [
+def rel_txt(rr):
+    return "—" if rr is None else f"{-rr:+.0%}"  # signed change (negative = poverty fell)
+
+
+def write_report(rows, priors, with_api):
+    out = [
         "# Reform-option scorecard",
         "",
-        "Standardized validation of the dashboard's reform options via the PolicyEngine API",
-        "(the `/analyze-policy` `microsim-runner` methodology). Regenerate with:",
+        "Validates the **dashboard's own computed scores** (Modal per-state ECPS microsim —",
+        "the numbers users see) against external prior estimates gathered the way",
+        "`/analyze-policy`'s `prior-scores-finder` does (`priors.yaml`). Regenerate with:",
         "",
         "```bash",
         "cd frontend && npm run score-scenarios && cd ..",
-        "python analysis/reform_scores/score_reforms.py",
+        "python analysis/reform_scores/score_reforms.py            # dashboard vs priors",
+        "python analysis/reform_scores/score_reforms.py --with-api  # + PolicyEngine-API reference",
         "```",
         "",
-        f"Year: **{year}**. Cost = annual budgetary impact (positive = costs money).",
-        "Baselines are the national Enhanced CPS filtered by region — see Caveats.",
+        "Cost = annual budgetary impact (positive = costs money), state-scoped.",
+        "Federal reforms are evaluated in one state, so their prior check is directional",
+        "(relative child-poverty reduction vs the national estimate). See Caveats.",
         "",
-        "| Scenario | Region | Dir | Annual cost | Child pov | Δ child | Δ all pov | Δ Gini | Verdict | Note |",
-        "|---|---|---|---|---|---|---|---|---|---|",
     ]
+    header = "| Scenario | State | Scope | Dashboard cost | Dashboard child pov | Δ rel |"
+    sep = "|---|---|---|---|---|---|"
+    if with_api:
+        header += " API child pov Δ rel |"
+        sep += "---|"
+    header += " Prior (rel reduction) | Verdict | Note |"
+    sep += "---|---|---|"
+    out += [header, sep]
     for r in rows:
-        s = r["summary"]
-        if "error" in s:
-            lines.append(f"| {r['label']} | {r['region']} | {r['direction']} | — | — | — | — | — | **ERROR** | {s['error']} |")
+        res = r["res"]
+        prior = (priors or {}).get(r["id"]) or {}
+        pband = prior.get("child_poverty_rel_reduction")
+        pband_txt = f"{pband[0]*100:.0f}–{pband[1]*100:.0f}%↓" if pband else "—"
+        if "error" in res:
+            cells = [r["label"], r["state"], r["scope"], "—", "—", "—"]
+            if with_api:
+                cells.append("—")
+            cells += [pband_txt, "**ERROR**", res["error"]]
+            out.append("| " + " | ".join(cells) + " |")
             continue
-        cpr = s.get("child_poverty_rel_reduction")
-        # Show signed relative CHANGE (negative = poverty fell), not the reduction.
-        cpr_txt = f" ({-cpr:+.0%})" if cpr is not None else ""
-        lines.append(
-            f"| {r['label']} | {r['region']} | {r['direction']} | {fmt_money(s.get('annual_cost'))} | "
-            f"{fmt_pct(s.get('poverty_child_baseline'))}→{fmt_pct(s.get('poverty_child_reform'))}{cpr_txt} | "
-            f"{(s.get('poverty_child_delta') or 0)*100:+.2f}pp | {(s.get('poverty_all_delta') or 0)*100:+.2f}pp | "
-            f"{(s.get('gini_delta') or 0):+.4f} | **{r['verdict']}** | {r['note']} |"
-        )
-    counts: dict[str, int] = {}
+        d = res["dashboard"]
+        cells = [
+            r["label"], r["state"], r["scope"], fmt_money(d.get("annual_cost")),
+            f"{fmt_pct(d.get('poverty_child_baseline'))}→{fmt_pct(d.get('poverty_child_reform'))}",
+            rel_txt(d.get("child_poverty_rel_reduction")),
+        ]
+        if with_api:
+            api = res.get("api") or {}
+            cells.append(rel_txt(api.get("child_poverty_rel_reduction")) if "error" not in api else "err")
+        cells += [pband_txt, f"**{r['verdict']}**", r["note"]]
+        out.append("| " + " | ".join(cells) + " |")
+
+    counts = {}
     for r in rows:
         counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
-    lines += [
+    out += [
         "",
         "## Summary",
         ", ".join(f"{k}: {v}" for k, v in sorted(counts.items())) or "(none)",
         "",
         "## Caveats",
-        "- API uses the national Enhanced CPS filtered by `region`; the dashboard ships per-state",
-        "  ECPS via Modal, so absolute figures can differ. This validates sign/magnitude and",
-        "  agreement with PolicyEngine priors, not the dashboard's exact numbers.",
-        "- Single-year (static) analysis; cost is annual, not 10-year.",
-        "- INVESTIGATE means the score looks implausible (wrong sign, no effect, or far from a",
-        "  prior) and warrants a `/analyze-policy` deep-dive — not necessarily a bug.",
+        "- The dashboard is **per-state**: a federal reform is evaluated in one state, so its",
+        "  prior comparison is a *directional* check of the relative child-poverty reduction,",
+        "  not the national dollar cost.",
+        "- State EITC/CTC tweaks have no published prior — validated by direction-aware sanity",
+        "  rules (and, with `--with-api`, dashboard-vs-PolicyEngine-API consistency).",
+        "- INVESTIGATE = the dashboard's score looks implausible (wrong sign, no effect, or far",
+        "  from a prior); deep-dive with `/analyze-policy \"<reform>\"`.",
         "",
     ]
-    (HERE / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
+    (HERE / "REPORT.md").write_text("\n".join(out), encoding="utf-8")
 
 
-def main() -> None:
+def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", help="comma-separated scenario ids to run")
-    ap.add_argument("--year", type=int, default=2026)
+    ap.add_argument("--only")
+    ap.add_argument("--with-api", action="store_true", help="also run a PolicyEngine-API reference column")
+    ap.add_argument("--refresh", action="store_true")
+    ap.add_argument("--offline", action="store_true")
+    ap.add_argument("--modal-url", default=DEFAULT_MODAL_URL)
     ap.add_argument("--concurrency", type=int, default=4)
-    ap.add_argument("--refresh", action="store_true", help="ignore cached results")
-    ap.add_argument("--offline", action="store_true", help="use only cached results")
-    ap.add_argument("--base-url", default=DEFAULT_BASE_URL)
-    ap.add_argument("--baseline", type=int, default=DEFAULT_BASELINE)
     args = ap.parse_args()
 
-    data = json.loads(SCENARIOS_PATH.read_text(encoding="utf-8"))
-    scenarios = data["scenarios"]
+    scenarios = json.loads(SCENARIOS_PATH.read_text(encoding="utf-8"))["scenarios"]
     if args.only:
         wanted = set(args.only.split(","))
         scenarios = [s for s in scenarios if s["id"] in wanted]
-    anchors = {}
-    if ANCHORS_PATH.exists() and yaml is not None:
-        anchors = yaml.safe_load(ANCHORS_PATH.read_text(encoding="utf-8")) or {}
+    priors = {}
+    if PRIORS_PATH.exists() and yaml is not None:
+        priors = yaml.safe_load(PRIORS_PATH.read_text(encoding="utf-8")) or {}
 
-    print(f"Scoring {len(scenarios)} scenario(s) at {args.concurrency}x concurrency…", flush=True)
+    print(f"Scoring {len(scenarios)} scenario(s) on the dashboard backend "
+          f"({'+API ' if args.with_api else ''}{args.concurrency}x)…", flush=True)
     with ThreadPoolExecutor(max_workers=args.concurrency) as ex:
-        summaries = list(ex.map(lambda sc: score_one(sc, args), scenarios))
-    by_id = {s["id"]: s for s in summaries}
+        results = list(ex.map(lambda s: score_one(s, args), scenarios))
+    by_id = {r["id"]: r for r in results}
 
     rows = []
-    for sc in scenarios:
-        s = by_id[sc["id"]]
-        v, note = verdict(sc, s, anchors)
-        rows.append({"id": sc["id"], "label": sc["label"], "region": sc["region"],
-                     "direction": sc["direction"], "summary": s, "verdict": v, "note": note})
-        print(f"  [{v:16s}] {sc['id']} — {note} ({s.get('seconds','?')}s)", flush=True)
+    for s in scenarios:
+        res = by_id[s["id"]]
+        v, note = verdict(s, res, priors)
+        rows.append({"id": s["id"], "label": s["label"], "state": s["state"],
+                     "scope": s["scope"], "res": res, "verdict": v, "note": note})
+        print(f"  [{v:16s}] {s['id']} — {note} ({res.get('seconds','?')}s)", flush=True)
 
-    (HERE / "results.json").write_text(
-        json.dumps({"year": args.year, "rows": rows}, indent=2), encoding="utf-8"
-    )
-    write_report(rows, args.year)
+    (HERE / "results.json").write_text(json.dumps({"rows": rows}, indent=2), encoding="utf-8")
+    write_report(rows, priors, args.with_api)
     print(f"\nWrote {HERE / 'REPORT.md'}", flush=True)
 
 

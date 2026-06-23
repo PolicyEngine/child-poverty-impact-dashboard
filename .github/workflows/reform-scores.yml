@@ -1,9 +1,9 @@
 name: Reform scores
 
-# Standardized validation of reform-option impacts via the PolicyEngine API
-# (the /analyze-policy microsim-runner methodology). Off the PR path — economy
-# runs are ~7-20 min each — so this is manual / scheduled and uploads the
-# regenerated scorecard as an artifact.
+# Validates the dashboard's computed reform-option impacts against external priors
+# (the /analyze-policy prior-scores-finder methodology). Off the PR path — each
+# dashboard economy run is ~8-15 min — so this is manual / scheduled and uploads
+# the regenerated scorecard as an artifact.
 
 on:
   workflow_dispatch:
@@ -12,12 +12,17 @@ on:
         description: "Comma-separated scenario ids (blank = all)"
         required: false
         default: ""
+      with_api:
+        description: "Also run the PolicyEngine-API reference column"
+        type: boolean
+        required: false
+        default: false
   schedule:
     - cron: "0 7 * * 1" # Mondays 07:00 UTC
 
 jobs:
   score:
-    name: Score reform options
+    name: Score reform options (dashboard vs priors)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -38,10 +43,13 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install requests pyyaml
-      - name: Score reforms
+      - name: Score reforms (dashboard backend)
+        env:
+          NEXT_PUBLIC_MODAL_CPID_URL: ${{ vars.NEXT_PUBLIC_MODAL_CPID_URL || 'https://policyengine--cpid-backend-web.modal.run' }}
         run: |
           python analysis/reform_scores/score_reforms.py \
-            ${{ github.event.inputs.only && format('--only {0}', github.event.inputs.only) || '' }}
+            ${{ github.event.inputs.only && format('--only {0}', github.event.inputs.only) || '' }} \
+            ${{ github.event.inputs.with_api == 'true' && '--with-api' || '' }}
       - name: Upload scorecard
         if: always()
         uses: actions/upload-artifact@v4

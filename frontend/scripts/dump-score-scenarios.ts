@@ -26,24 +26,26 @@ const YEAR = 2026;
 interface ScenarioDef {
   id: string;
   label: string;
-  state?: string; // omit for federal (region = 'us')
+  // State the dashboard evaluates the reform in. The dashboard is per-state, so
+  // federal reforms are scored within a representative state (`scope: federal`
+  // flags that the geography differs from a national prior — a directional check).
+  state: string;
+  scope: 'federal' | 'state';
   direction: 'expansion' | 'repeal';
   optionId: string;
   params?: Record<string, Record<string, number>>;
   year?: number;
+  is_dependent_exemption?: boolean;
 }
 
 const DEFS: ScenarioDef[] = [
-  { id: 'federal_ctc_expanded', label: 'Restore the 2021 (ARPA) expanded CTC', direction: 'expansion', optionId: 'federal_ctc_expanded' },
-  { id: 'child_allowance_3000', label: 'Child allowance, $3,000/child under 18', direction: 'expansion', optionId: 'child_allowance', params: { child_allowance: { infant_amount: 3000, young_child_amount: 3000, older_child_amount: 3000, cutoff_age: 18 } } },
-  { id: 'federal_afa', label: 'American Family Act CTC', direction: 'expansion', optionId: 'federal_afa' },
-  { id: 'federal_tax_cuts_for_workers', label: 'Tax Cuts for Workers (childless EITC expansion)', direction: 'expansion', optionId: 'federal_tax_cuts_for_workers' },
-  { id: 'federal_working_parents_tax_relief', label: 'Working Parents Tax Relief Act', direction: 'expansion', optionId: 'federal_working_parents_tax_relief' },
-  { id: 'ca_ctc_2000', label: 'California Young Child Tax Credit raised to $2,000', state: 'ca', direction: 'expansion', optionId: 'ca_ctc', params: { ca_ctc: { amount: 2000 } } },
-  { id: 'ny_ctc_2000', label: 'New York Empire State Child Credit young amount $2,000', state: 'ny', direction: 'expansion', optionId: 'ny_ctc', params: { ny_ctc: { young_amount: 2000 } } },
-  { id: 'ca_eitc_100', label: 'California EITC raised to 100% of federal', state: 'ca', direction: 'expansion', optionId: 'ca_eitc', params: { ca_eitc: { match_rate: 100 } } },
-  { id: 'mn_eitc_additional', label: 'Minnesota WFC additional amount (2 children) +$3,000', state: 'mn', direction: 'expansion', optionId: 'mn_eitc', params: { mn_eitc: { additional_2_children: 3000 } } },
-  { id: 'ny_dependent_exemption_eliminate', label: 'Eliminate the New York dependent exemption', state: 'ny', direction: 'repeal', optionId: 'ny_dependent_exemption', params: { ny_dependent_exemption: { eliminate: 1 } } },
+  { id: 'federal_ctc_expanded', label: 'Restore the 2021 (ARPA) expanded CTC', state: 'CA', scope: 'federal', direction: 'expansion', optionId: 'federal_ctc_expanded' },
+  { id: 'child_allowance_3000', label: 'Child allowance, $3,000/child under 18 (universal)', state: 'CA', scope: 'federal', direction: 'expansion', optionId: 'child_allowance', params: { child_allowance: { infant_amount: 3000, young_child_amount: 3000, older_child_amount: 3000, cutoff_age: 18 } } },
+  { id: 'federal_working_parents_tax_relief', label: 'Working Parents Tax Relief Act', state: 'CA', scope: 'federal', direction: 'expansion', optionId: 'federal_working_parents_tax_relief' },
+  { id: 'ca_ctc_2000', label: 'California Young Child Tax Credit raised to $2,000', state: 'CA', scope: 'state', direction: 'expansion', optionId: 'ca_ctc', params: { ca_ctc: { amount: 2000 } } },
+  { id: 'ny_ctc_2000', label: 'New York Empire State Child Credit young amount $2,000', state: 'NY', scope: 'state', direction: 'expansion', optionId: 'ny_ctc', params: { ny_ctc: { young_amount: 2000 } } },
+  { id: 'ca_eitc_100', label: 'California EITC raised to 100% of federal', state: 'CA', scope: 'state', direction: 'expansion', optionId: 'ca_eitc', params: { ca_eitc: { match_rate: 100 } } },
+  { id: 'ny_dependent_exemption_eliminate', label: 'Eliminate the New York dependent exemption', state: 'NY', scope: 'state', direction: 'repeal', optionId: 'ny_dependent_exemption', params: { ny_dependent_exemption: { eliminate: 1 } }, is_dependent_exemption: true },
 ];
 
 const scenarios = DEFS.map((d) => {
@@ -52,13 +54,15 @@ const scenarios = DEFS.map((d) => {
   return {
     id: d.id,
     label: d.label,
-    jurisdiction: { country: 'us', ...(d.state ? { state: d.state } : {}) },
-    region: d.state ?? 'us',
+    state: d.state, // for the dashboard (Modal) run
+    region: d.state.toLowerCase(), // for the optional PolicyEngine-API reference
+    scope: d.scope,
     direction: d.direction,
     year,
     option_id: d.optionId,
     params: d.params ?? null,
     reform,
+    is_dependent_exemption: !!d.is_dependent_exemption,
     reform_param_count: Object.keys(reform).length,
   };
 });

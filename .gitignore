@@ -52,9 +52,11 @@ out/
 # the reform-compute CI job; consumed by the Python compute test).
 frontend/__generated__/
 
-# Raw PolicyEngine API result cache for the reform scorecard (REPORT.md and
-# results.json are kept; the per-scenario raw dumps are not).
+# Raw microsim result cache for the reform scorecard (REPORT.md and results.json
+# are kept; the per-scenario raw dumps are not).
 analysis/reform_scores/results/
+analysis/reform_scores/results_dashboard/
+analysis/reform_scores/results_api/
 
 # Logs
 *.log

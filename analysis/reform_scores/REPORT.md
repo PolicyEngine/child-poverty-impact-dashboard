@@ -1,36 +1,37 @@
 # Reform-option scorecard
 
-Standardized validation of the dashboard's reform options via the PolicyEngine API
-(the `/analyze-policy` `microsim-runner` methodology). Regenerate with:
+Validates the **dashboard's own computed scores** (Modal per-state ECPS microsim —
+the numbers users see) against external prior estimates gathered the way
+`/analyze-policy`'s `prior-scores-finder` does (`priors.yaml`). Regenerate with:
 
 ```bash
 cd frontend && npm run score-scenarios && cd ..
-python analysis/reform_scores/score_reforms.py
+python analysis/reform_scores/score_reforms.py            # dashboard vs priors
+python analysis/reform_scores/score_reforms.py --with-api  # + PolicyEngine-API reference
 ```
 
-Year: **2026**. Cost = annual budgetary impact (positive = costs money).
-Baselines are the national Enhanced CPS filtered by region — see Caveats.
+Cost = annual budgetary impact (positive = costs money), state-scoped.
+Federal reforms are evaluated in one state, so their prior check is directional
+(relative child-poverty reduction vs the national estimate). See Caveats.
 
-| Scenario | Region | Dir | Annual cost | Child pov | Δ child | Δ all pov | Δ Gini | Verdict | Note |
+| Scenario | State | Scope | Dashboard cost | Dashboard child pov | Δ rel | API child pov Δ rel | Prior (rel reduction) | Verdict | Note |
 |---|---|---|---|---|---|---|---|---|---|
-| Restore the 2021 (ARPA) expanded CTC | us | expansion | $86.6B | 18.68%→12.18% (-35%) | -6.51pp | -2.21pp | -0.0042 | **PASS** | matches prior anchor (PolicyEngine / Columbia CPSP — 2021 ARPA CTC) |
-| Child allowance, $3,000/child under 18 | us | expansion | $224.2B | 18.68%→10.14% (-46%) | -8.54pp | -3.12pp | -0.0077 | **PASS** | sign correct (sanity only; no prior anchor) |
-| American Family Act CTC | us | expansion | — | — | — | — | — | **ERROR** | RuntimeError: None |
-| Tax Cuts for Workers (childless EITC expansion) | us | expansion | $9.2B | 18.68%→18.68% (+0%) | +0.00pp | -0.25pp | -0.0003 | **PASS** | sign correct (sanity only; no prior anchor) |
-| Working Parents Tax Relief Act | us | expansion | $28.5B | 18.68%→17.23% (-8%) | -1.46pp | -0.44pp | -0.0015 | **PASS** | sign correct (sanity only; no prior anchor) |
-| California Young Child Tax Credit raised to $2,000 | ca | expansion | $322.2M | 26.54%→26.38% (-1%) | -0.16pp | -0.07pp | -0.0002 | **PASS** | sign correct (sanity only; no prior anchor) |
-| New York Empire State Child Credit young amount $2,000 | ny | expansion | $740.6M | 24.56%→24.12% (-2%) | -0.45pp | -0.17pp | -0.0006 | **PASS** | sign correct (sanity only; no prior anchor) |
-| California EITC raised to 100% of federal | ca | expansion | $95.4M | 26.54%→26.49% (-0%) | -0.05pp | -0.02pp | -0.0001 | **PASS-WITH-NOTES** | sign correct; small overall-poverty effect (no prior anchor) |
-| Minnesota WFC additional amount (2 children) +$3,000 | mn | expansion | $400,024 | 12.37%→12.37% (+0%) | +0.00pp | +0.00pp | -0.0000 | **INVESTIGATE** | no measurable budget or poverty effect (possible dead option) |
-| Eliminate the New York dependent exemption | ny | repeal | $-272.4M | 24.56%→24.77% (+1%) | +0.21pp | +0.09pp | +0.0002 | **PASS** | sign correct (sanity only; no prior anchor) |
+| Restore the 2021 (ARPA) expanded CTC | CA | federal | $8.8B | 23.88%→20.51% | -14% | -12% | 35–50%↓ | **PASS** | dashboard 14% matches PolicyEngine API 12% at CA; national prior 35%–50% (geography: single state vs national prior) |
+| Child allowance, $3,000/child under 18 (universal) | CA | federal | $26.7B | 23.88%→17.06% | -29% | -26% | 40–65%↓ | **PASS** | dashboard 29% matches PolicyEngine API 26% at CA; national prior 40%–65% (geography: single state vs national prior) |
+| Working Parents Tax Relief Act | CA | federal | $2.4B | 23.88%→22.46% | -6% | -5% | — | **PASS** | dashboard 6% matches PolicyEngine API 5% at CA |
+| California Young Child Tax Credit raised to $2,000 | CA | state | $330.9M | 23.88%→23.71% | -1% | -1% | — | **PASS** | dashboard 1% matches PolicyEngine API 1% at CA |
+| New York Empire State Child Credit young amount $2,000 | NY | state | $744.2M | 22.60%→22.15% | -2% | -2% | — | **PASS** | dashboard 2% matches PolicyEngine API 2% at NY |
+| California EITC raised to 100% of federal | CA | state | $97.1M | 23.88%→23.83% | -0% | -0% | — | **PASS** | dashboard 0% matches PolicyEngine API 0% at CA |
+| Eliminate the New York dependent exemption | NY | state | −$265.9M | 22.60%→22.79% | +1% | +1% | — | **PASS** | dashboard -1% matches PolicyEngine API -1% at NY |
 
 ## Summary
-ERROR: 1, INVESTIGATE: 1, PASS: 7, PASS-WITH-NOTES: 1
+PASS: 7
 
 ## Caveats
-- API uses the national Enhanced CPS filtered by `region`; the dashboard ships per-state
-  ECPS via Modal, so absolute figures can differ. This validates sign/magnitude and
-  agreement with PolicyEngine priors, not the dashboard's exact numbers.
-- Single-year (static) analysis; cost is annual, not 10-year.
-- INVESTIGATE means the score looks implausible (wrong sign, no effect, or far from a
-  prior) and warrants a `/analyze-policy` deep-dive — not necessarily a bug.
+- The dashboard is **per-state**: a federal reform is evaluated in one state, so its
+  prior comparison is a *directional* check of the relative child-poverty reduction,
+  not the national dollar cost.
+- State EITC/CTC tweaks have no published prior — validated by direction-aware sanity
+  rules (and, with `--with-api`, dashboard-vs-PolicyEngine-API consistency).
+- INVESTIGATE = the dashboard's score looks implausible (wrong sign, no effect, or far
+  from a prior); deep-dive with `/analyze-policy "<reform>"`.

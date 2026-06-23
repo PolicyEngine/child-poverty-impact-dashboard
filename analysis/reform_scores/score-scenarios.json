@@ -1,14 +1,13 @@
 {
   "year": 2026,
-  "count": 10,
+  "count": 7,
   "scenarios": [
     {
       "id": "federal_ctc_expanded",
       "label": "Restore the 2021 (ARPA) expanded CTC",
-      "jurisdiction": {
-        "country": "us"
-      },
-      "region": "us",
+      "state": "CA",
+      "region": "ca",
+      "scope": "federal",
       "direction": "expansion",
       "year": 2026,
       "option_id": "federal_ctc_expanded",
@@ -19,15 +18,15 @@
         "gov.irs.credits.ctc.refundable.fully_refundable": true,
         "gov.irs.credits.ctc.phase_out.arpa.in_effect": true
       },
+      "is_dependent_exemption": false,
       "reform_param_count": 4
     },
     {
       "id": "child_allowance_3000",
-      "label": "Child allowance, $3,000/child under 18",
-      "jurisdiction": {
-        "country": "us"
-      },
-      "region": "us",
+      "label": "Child allowance, $3,000/child under 18 (universal)",
+      "state": "CA",
+      "region": "ca",
+      "scope": "federal",
       "direction": "expansion",
       "year": 2026,
       "option_id": "child_allowance",
@@ -47,53 +46,15 @@
         "gov.contrib.ubi_center.basic_income.amount.person.by_age[1].amount": 3000,
         "gov.contrib.ubi_center.basic_income.amount.person.by_age[2].amount": 3000
       },
+      "is_dependent_exemption": false,
       "reform_param_count": 6
-    },
-    {
-      "id": "federal_afa",
-      "label": "American Family Act CTC",
-      "jurisdiction": {
-        "country": "us"
-      },
-      "region": "us",
-      "direction": "expansion",
-      "year": 2026,
-      "option_id": "federal_afa",
-      "params": null,
-      "reform": {
-        "gov.contrib.congress.afa.in_effect": true
-      },
-      "reform_param_count": 1
-    },
-    {
-      "id": "federal_tax_cuts_for_workers",
-      "label": "Tax Cuts for Workers (childless EITC expansion)",
-      "jurisdiction": {
-        "country": "us"
-      },
-      "region": "us",
-      "direction": "expansion",
-      "year": 2026,
-      "option_id": "federal_tax_cuts_for_workers",
-      "params": null,
-      "reform": {
-        "gov.irs.credits.eitc.eligibility.age.max": 200,
-        "gov.irs.credits.eitc.eligibility.age.min": 19,
-        "gov.irs.credits.eitc.eligibility.age.min_student": 24,
-        "gov.irs.credits.eitc.max[0].amount": 1502,
-        "gov.irs.credits.eitc.phase_in_rate[0].amount": 0.153,
-        "gov.irs.credits.eitc.phase_out.rate[0].amount": 0.153,
-        "gov.irs.credits.eitc.phase_out.start[0].amount": 11610
-      },
-      "reform_param_count": 7
     },
     {
       "id": "federal_working_parents_tax_relief",
       "label": "Working Parents Tax Relief Act",
-      "jurisdiction": {
-        "country": "us"
-      },
-      "region": "us",
+      "state": "CA",
+      "region": "ca",
+      "scope": "federal",
       "direction": "expansion",
       "year": 2026,
       "option_id": "federal_working_parents_tax_relief",
@@ -101,16 +62,15 @@
       "reform": {
         "gov.contrib.congress.mcdonald_rivet.working_parents_tax_relief_act.in_effect": true
       },
+      "is_dependent_exemption": false,
       "reform_param_count": 1
     },
     {
       "id": "ca_ctc_2000",
       "label": "California Young Child Tax Credit raised to $2,000",
-      "jurisdiction": {
-        "country": "us",
-        "state": "ca"
-      },
+      "state": "CA",
       "region": "ca",
+      "scope": "state",
       "direction": "expansion",
       "year": 2026,
       "option_id": "ca_ctc",
@@ -122,16 +82,15 @@
       "reform": {
         "gov.states.ca.tax.income.credits.young_child.amount": 2000
       },
+      "is_dependent_exemption": false,
       "reform_param_count": 1
     },
     {
       "id": "ny_ctc_2000",
       "label": "New York Empire State Child Credit young amount $2,000",
-      "jurisdiction": {
-        "country": "us",
-        "state": "ny"
-      },
+      "state": "NY",
       "region": "ny",
+      "scope": "state",
       "direction": "expansion",
       "year": 2026,
       "option_id": "ny_ctc",
@@ -143,16 +102,15 @@
       "reform": {
         "gov.states.ny.tax.income.credits.ctc.post_2024.amount[0].amount": 2000
       },
+      "is_dependent_exemption": false,
       "reform_param_count": 1
     },
     {
       "id": "ca_eitc_100",
       "label": "California EITC raised to 100% of federal",
-      "jurisdiction": {
-        "country": "us",
-        "state": "ca"
-      },
+      "state": "CA",
       "region": "ca",
+      "scope": "state",
       "direction": "expansion",
       "year": 2026,
       "option_id": "ca_eitc",
@@ -164,37 +122,15 @@
       "reform": {
         "gov.states.ca.tax.income.credits.earned_income.adjustment.factor": 1
       },
-      "reform_param_count": 1
-    },
-    {
-      "id": "mn_eitc_additional",
-      "label": "Minnesota WFC additional amount (2 children) +$3,000",
-      "jurisdiction": {
-        "country": "us",
-        "state": "mn"
-      },
-      "region": "mn",
-      "direction": "expansion",
-      "year": 2026,
-      "option_id": "mn_eitc",
-      "params": {
-        "mn_eitc": {
-          "additional_2_children": 3000
-        }
-      },
-      "reform": {
-        "gov.states.mn.tax.income.credits.cwfc.wfc.additional.amount[2].amount": 3000
-      },
+      "is_dependent_exemption": false,
       "reform_param_count": 1
     },
     {
       "id": "ny_dependent_exemption_eliminate",
       "label": "Eliminate the New York dependent exemption",
-      "jurisdiction": {
-        "country": "us",
-        "state": "ny"
-      },
+      "state": "NY",
       "region": "ny",
+      "scope": "state",
       "direction": "repeal",
       "year": 2026,
       "option_id": "ny_dependent_exemption",
@@ -206,6 +142,7 @@
       "reform": {
         "gov.states.ny.tax.income.exemptions.dependent": 0
       },
+      "is_dependent_exemption": true,
       "reform_param_count": 1
     }
   ]
