@@ -55,6 +55,34 @@ Needs `NEXT_PUBLIC_MODAL_CPID_URL` (defaults to the deployed endpoint).
 - Prior: add the external estimate to `priors.yaml` (run `prior-scores-finder` /
   `/analyze-policy "<reform>"` to source it).
 
+## Cost sweep on a version bump (`sweep_reforms.py`)
+
+The scorecard above validates a representative slice against priors. For a
+**policyengine-us version bump** — which will happen a few more times — use the
+**cost sweep**, which re-scores **every** configurable option's budgetary cost on
+the dashboard backend and diffs against the previous version's snapshot, so a
+bump that silently changes a reform's cost is caught.
+
+Flow on a version bump:
+
+```bash
+# 1. bump the policyengine-us pin (pyproject.toml / backend/requirements.txt /
+#    scripts/modal_cpid_endpoint.py / ci.yml) and redeploy the Modal endpoint:
+PYTHONUTF8=1 modal deploy scripts/modal_cpid_endpoint.py
+# 2. sweep all reforms at the new version (auto-reads the pin if --label omitted):
+cd frontend && npm run manifest && cd ..
+python analysis/reform_scores/sweep_reforms.py --label 1.741.0
+# 3. review SWEEP.md → "Cost changes vs <prev>" lists any reform whose cost moved.
+```
+
+Snapshots are committed at `sweep/<version>.json` (so the next bump has a
+baseline to diff against); raw economy dumps under `sweep/cache/` are not.
+The full sweep is ~80 economy runs (~1–2h) — run it in the background or via the
+`reform-sweep` GitHub Actions workflow (`workflow_dispatch`, takes a version
+label). Smoke-test with `--only CA:ca_ctc` or `--limit 3`.
+
+A move beyond ±10% **and** ±$5M vs the baseline snapshot is flagged.
+
 ## Caveats
 
 - The dashboard is **per-state**, so a federal reform is evaluated in one state

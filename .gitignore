@@ -57,6 +57,9 @@ frontend/__generated__/
 analysis/reform_scores/results/
 analysis/reform_scores/results_dashboard/
 analysis/reform_scores/results_api/
+# Sweep keeps the per-version cost snapshots (sweep/<version>.json) + SWEEP.md;
+# the raw economy dumps under sweep/cache/ are not committed.
+analysis/reform_scores/sweep/cache/
 
 # Logs
 *.log

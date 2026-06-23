@@ -1,0 +1,61 @@
+name: Reform cost sweep
+
+# Re-scores EVERY configurable reform option's budgetary cost on the dashboard
+# backend and diffs against the previous version's snapshot. Run this on each
+# policyengine-us version bump (after redeploying the Modal endpoint) to catch
+# costs that moved. Long batch (~1-2h) — manual only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        description: "Version label for this snapshot (blank = pinned policyengine-us)"
+        required: false
+        default: ""
+      baseline:
+        description: "Snapshot label to diff against (blank = latest other)"
+        required: false
+        default: ""
+      concurrency:
+        description: "Parallel dashboard jobs"
+        required: false
+        default: "6"
+
+jobs:
+  sweep:
+    name: Cost sweep (all reforms)
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: rm -f package-lock.json && npm install
+      - name: Generate coverage manifest
+        working-directory: frontend
+        run: npm run manifest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pyyaml
+      - name: Cost sweep
+        env:
+          NEXT_PUBLIC_MODAL_CPID_URL: ${{ vars.NEXT_PUBLIC_MODAL_CPID_URL || 'https://policyengine--cpid-backend-web.modal.run' }}
+        run: |
+          python analysis/reform_scores/sweep_reforms.py \
+            ${{ github.event.inputs.label && format('--label {0}', github.event.inputs.label) || '' }} \
+            ${{ github.event.inputs.baseline && format('--baseline {0}', github.event.inputs.baseline) || '' }} \
+            --concurrency ${{ github.event.inputs.concurrency }}
+      - name: Upload sweep
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reform-cost-sweep
+          path: |
+            analysis/reform_scores/SWEEP.md
+            analysis/reform_scores/sweep/*.json
