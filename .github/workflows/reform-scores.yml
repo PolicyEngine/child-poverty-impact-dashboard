@@ -1,0 +1,53 @@
+name: Reform scores
+
+# Standardized validation of reform-option impacts via the PolicyEngine API
+# (the /analyze-policy microsim-runner methodology). Off the PR path — economy
+# runs are ~7-20 min each — so this is manual / scheduled and uploads the
+# regenerated scorecard as an artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated scenario ids (blank = all)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+
+jobs:
+  score:
+    name: Score reform options
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        # See note in ci.yml (npm/cli#4828).
+        run: rm -f package-lock.json && npm install
+      - name: Generate scoring scenarios
+        working-directory: frontend
+        run: npm run score-scenarios
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pyyaml
+      - name: Score reforms
+        run: |
+          python analysis/reform_scores/score_reforms.py \
+            ${{ github.event.inputs.only && format('--only {0}', github.event.inputs.only) || '' }}
+      - name: Upload scorecard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reform-scorecard
+          path: |
+            analysis/reform_scores/REPORT.md
+            analysis/reform_scores/results.json
+            analysis/reform_scores/score-scenarios.json
