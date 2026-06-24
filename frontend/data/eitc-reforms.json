@@ -205,12 +205,13 @@
     "current_rate": 0.16
   },
   "SC": {
-    "type": "existing",
+    "type": "contrib",
     "match": "gov.states.sc.tax.income.credits.eitc.rate",
+    "in_effect": "gov.contrib.states.sc.child_poverty_impact_dashboard.eitc.in_effect",
     "current_rate": 1.25,
     "cap": "gov.states.sc.tax.income.credits.eitc.max",
-    "refundable_ready": false,
-    "note": "SC has a 125% nonrefundable match capped at $200 (2026). The cap param is a baseline lever (adjustable / removable) with no upstream dependency. Full refundability needs a new PE-US contrib reform (gov.contrib.states.sc.child_poverty_impact_dashboard.eitc) — refundable_ready stays false until that lands."
+    "refundable_ready": true,
+    "note": "SC has a 125% nonrefundable match capped at $200 (2026). The cap is a baseline lever (live). Full refundability applies the CPID contrib reform gov.contrib.states.sc.child_poverty_impact_dashboard.eitc (shipped in policyengine-us 1.741.0); the match slider rides on top once refundable."
   },
   "SD": null,
   "TN": null,

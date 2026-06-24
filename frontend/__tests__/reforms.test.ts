@@ -408,10 +408,23 @@ describe('buildReformDict', () => {
     expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(2000);
   });
 
-  it('eliminates a bundled/shared dependent exemption via the broad repeal flag (SC)', () => {
+  it('eliminates the South Carolina dependent exemption by zeroing its own amount (baseline)', () => {
     const reform = buildReformDict(
       ['sc_dependent_exemption'],
       { sc_dependent_exemption: { eliminate: 1 } },
+      2026,
+    );
+    // SC now has its own dependent-exemption param (PE-US 1.740.0), so it is
+    // amount-editable; eliminate zeroes it without touching the young-child deduction.
+    expect(
+      reform['gov.states.sc.tax.income.deductions.dependent_exemption.amount'],
+    ).toBe(0);
+  });
+
+  it('eliminates a bundled/shared dependent exemption via the broad repeal flag (UT)', () => {
+    const reform = buildReformDict(
+      ['ut_dependent_exemption'],
+      { ut_dependent_exemption: { eliminate: 1 } },
       2026,
     );
     expect(
