@@ -765,6 +765,17 @@ def web():
 
     @api.get("/healthz")
     def healthz():
-        return {"ok": True}
+        # Surface the deployed policyengine-us version so the reform-score sweep
+        # can label snapshots by what the dashboard ACTUALLY runs and warn when
+        # the deploy is behind the repo's pin.
+        import os
+
+        try:
+            from importlib.metadata import version
+
+            pe_us = version("policyengine-us")
+        except Exception:  # pragma: no cover
+            pe_us = None
+        return {"ok": True, "policyengine_us": pe_us, "build_rev": os.environ.get("CPID_BUILD_REV")}
 
     return api

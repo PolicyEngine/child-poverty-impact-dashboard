@@ -75,6 +75,12 @@ python analysis/reform_scores/sweep_reforms.py --label 1.741.0
 # 3. review SWEEP.md → "Cost changes vs <prev>" lists any reform whose cost moved.
 ```
 
+The sweep labels the snapshot by the version the **deployed endpoint actually
+runs** (read from `/healthz`), not the repo pin — and **warns if the deploy is
+behind the pin**, so you can't accidentally baseline a stale endpoint. (Redeploy
+the endpoint first; older deploys whose `/healthz` lacks the version field fall
+back to the pin with a warning.)
+
 Snapshots are committed at `sweep/<version>.json` (so the next bump has a
 baseline to diff against); raw economy dumps under `sweep/cache/` are not.
 The full sweep is ~80 economy runs (~1–2h) — run it in the background or via the

@@ -59,6 +59,17 @@ def pinned_version() -> str:
     return m.group(1) if m else "unknown"
 
 
+def deployed_version(modal_url: str) -> str | None:
+    """The policyengine-us version the live Modal endpoint actually runs — what
+    the dashboard computes with. None if the deploy predates the /healthz field."""
+    try:
+        import requests
+
+        return requests.get(f"{modal_url}/healthz", timeout=20).json().get("policyengine_us")
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def manifest_scenarios() -> list[dict]:
     """Every configurable option with a meaningful (non-empty) reform, from the
     coverage manifest — one scenario per option, scored in its state."""
@@ -105,7 +116,7 @@ def fmt_money(x):
     if x is None:
         return "—"
     a = abs(x)
-    sign = "−" if x < 0 else ""
+    sign = "-" if x < 0 else ""
     if a >= 1e9:
         return f"{sign}${a/1e9:.2f}B"
     if a >= 1e6:
@@ -118,11 +129,15 @@ def latest_other_snapshot(label: str) -> str | None:
     return snaps[-1] if snaps else None
 
 
-def write_report(label: str, rows: list[dict], baseline_label: str | None, baseline: dict):
+def write_report(label: str, rows: list[dict], baseline_label: str | None, baseline: dict, banner: str | None = None):
     rows = sorted(rows, key=lambda r: -(abs(r.get("annual_cost") or 0)))
     out = [
         f"# Reform cost sweep — policyengine-us {label}",
         "",
+    ]
+    if banner:
+        out += [f"> {banner}", ""]
+    out += [
         f"Annual budgetary cost of every configurable reform option, scored on the "
         f"dashboard's own backend at version **{label}**. {len(rows)} options.",
         "",
@@ -178,7 +193,20 @@ def main():
     ap.add_argument("--modal-url", default=DEFAULT_MODAL_URL)
     args = ap.parse_args()
 
-    label = args.label or pinned_version()
+    pin = pinned_version()
+    deployed = deployed_version(args.modal_url)
+    # Label by what the endpoint ACTUALLY runs (that's what was scored), not the
+    # repo pin — they differ until the endpoint is redeployed.
+    label = args.label or deployed or pin
+    banner = None
+    if deployed and deployed != pin:
+        banner = (f"⚠️ Deployed Modal runs policyengine-us **{deployed}**, but the repo pins "
+                  f"**{pin}** — redeploy the endpoint to score the pinned version.")
+        print(f"WARNING: deployed Modal {deployed} != pinned {pin}; labeling snapshot '{label}'.", flush=True)
+    elif not deployed:
+        banner = (f"⚠️ Deployed Modal version unknown (its /healthz predates the version field) — "
+                  f"labeled '{label}'; redeploy so future sweeps self-label.")
+        print(f"NOTE: deployed Modal version unknown; labeling '{label}'.", flush=True)
     scenarios = manifest_scenarios()
     if args.only:
         wanted = set(args.only.split(","))
@@ -189,18 +217,20 @@ def main():
     print(f"Cost sweep: {len(scenarios)} options at version {label} ({args.concurrency}x)…", flush=True)
     with ThreadPoolExecutor(max_workers=args.concurrency) as ex:
         rows = list(ex.map(lambda s: score_cost(s, args.modal_url, label, args.refresh), scenarios))
-    for r in rows:
-        print(f"  {r['id']:34s} {fmt_money(r.get('annual_cost')) if 'error' not in r else 'ERROR':>12s} "
-              f"({r.get('seconds','?')}s)", flush=True)
 
+    # Persist artifacts BEFORE any console printing, so an stdout-encoding issue
+    # can never discard the (expensive) results.
     SWEEP_DIR.mkdir(exist_ok=True)
     snapshot = {r["id"]: {k: r.get(k) for k in ("state", "annual_cost", "poverty_child_delta", "gini_delta")}
                 for r in rows if "error" not in r}
     (SWEEP_DIR / f"{label}.json").write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
-
     baseline_label = args.baseline or latest_other_snapshot(label)
     baseline = json.loads((SWEEP_DIR / f"{baseline_label}.json").read_text(encoding="utf-8")) if baseline_label and (SWEEP_DIR / f"{baseline_label}.json").exists() else {}
-    write_report(label, rows, baseline_label, baseline)
+    write_report(label, rows, baseline_label, baseline, banner)
+
+    for r in rows:
+        print(f"  {r['id']:34s} {fmt_money(r.get('annual_cost')) if 'error' not in r else 'ERROR':>12s} "
+              f"({r.get('seconds','?')}s)", flush=True)
     print(f"\nWrote {HERE / 'SWEEP.md'} and sweep/{label}.json"
           + (f" (diffed vs {baseline_label})" if baseline else " (no baseline to diff)"), flush=True)
 
