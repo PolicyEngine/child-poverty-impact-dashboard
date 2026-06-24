@@ -169,8 +169,8 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           <StatGroup
             title="Poverty reduction"
             rows={[
-              { label: 'Child poverty change', value: formatPercentWithSign(poverty_impact.child_poverty_percent_change) },
-              { label: 'Young child poverty change', value: formatPercentWithSign(poverty_impact.young_child_poverty_percent_change) },
+              { label: 'Child poverty change (ages 0–17)', value: formatPercentWithSign(poverty_impact.child_poverty_percent_change) },
+              { label: 'Young child poverty change (ages 0–3)', value: formatPercentWithSign(poverty_impact.young_child_poverty_percent_change) },
               { label: 'Deep poverty change', value: formatPercentWithSign(deepPovertyPercentChange) },
             ]}
           />
@@ -208,17 +208,17 @@ export function StatewidePoverty({ results }: TabProps) {
 
   const metrics = [
     {
-      label: 'Child poverty',
+      label: 'Child poverty (ages 0–17)',
       baseline: poverty_impact.baseline_child_poverty_rate,
       reform: poverty_impact.reform_child_poverty_rate,
     },
     {
-      label: 'Young child poverty',
+      label: 'Young child poverty (ages 0–3)',
       baseline: poverty_impact.baseline_young_child_poverty_rate,
       reform: poverty_impact.reform_young_child_poverty_rate,
     },
     {
-      label: 'Deep child poverty',
+      label: 'Deep child poverty (ages 0–17)',
       baseline: poverty_impact.baseline_deep_child_poverty_rate,
       reform: poverty_impact.reform_deep_child_poverty_rate,
     },
@@ -248,7 +248,7 @@ export function StatewidePoverty({ results }: TabProps) {
           <p className="text-4xl font-bold" style={{ color: COLORS.primaryDark }}>
             {Math.round(poverty_impact.young_children_lifted_out_of_poverty).toLocaleString()}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Ages 0–5</p>
+          <p className="text-xs text-gray-500 mt-1">Ages 0–3</p>
         </div>
       </div>
 
