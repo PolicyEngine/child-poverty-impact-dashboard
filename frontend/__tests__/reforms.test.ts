@@ -104,6 +104,30 @@ describe('buildReformDict', () => {
     expect(reform[`${BI}[2].amount`]).toBe(1000);
   });
 
+  it('wires SNAP eligibility + generosity levers (no-op at current law)', () => {
+    expect(buildReformDict(['snap_reform'], undefined, 2026)).toEqual({});
+    const reform = buildReformDict(
+      ['snap_reform'],
+      {
+        snap_reform: {
+          gross_income_limit: 200,
+          abolish_net_income_test: 1,
+          min_benefit: 20,
+          earned_income_deduction: 30,
+        },
+      },
+      2026,
+    );
+    expect(reform['gov.usda.snap.income.limit.gross']).toBeCloseTo(2.0);
+    expect(reform['gov.contrib.snap.abolish_net_income_test.in_effect']).toBe(true);
+    expect(reform['gov.usda.snap.min_allotment.rate']).toBeCloseTo(0.2);
+    expect(reform['gov.usda.snap.income.deductions.earned_income']).toBeCloseTo(0.3);
+    // Unchanged levers (and an unset toggle) are not emitted.
+    expect(
+      buildReformDict(['snap_reform'], { snap_reform: { gross_income_limit: 130 } }, 2026),
+    ).toEqual({});
+  });
+
   it('emits a changed state-CTC amount and nothing else', () => {
     const reform = buildReformDict(
       ['dc_ctc'],

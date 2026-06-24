@@ -212,6 +212,24 @@ function applyReformOption(
       }
       return;
     }
+    case 'snap_reform': {
+      // SNAP eligibility + generosity levers, mapped to real PolicyEngine-US
+      // parameters. Emit only values the user changed from current law so an
+      // untouched selection is a no-op. Percent sliders → /1 fractions.
+      const pv = parameterValues?.['snap_reform'];
+      const gross = pv?.gross_income_limit ?? 130;
+      if (gross !== 130) reform['gov.usda.snap.income.limit.gross'] = gross / 100;
+      if (pv?.abolish_net_income_test) {
+        reform['gov.contrib.snap.abolish_net_income_test.in_effect'] = true;
+      }
+      const minBenefit = pv?.min_benefit ?? 8;
+      if (minBenefit !== 8) reform['gov.usda.snap.min_allotment.rate'] = minBenefit / 100;
+      const earnedDeduction = pv?.earned_income_deduction ?? 20;
+      if (earnedDeduction !== 20) {
+        reform['gov.usda.snap.income.deductions.earned_income'] = earnedDeduction / 100;
+      }
+      return;
+    }
     default:
       throw new Error(`Unknown or unwired reform option: ${id}`);
   }

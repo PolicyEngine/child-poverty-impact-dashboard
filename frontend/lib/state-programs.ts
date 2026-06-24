@@ -993,27 +993,71 @@ function buildChildAllowanceOptions(): ReformOption[] {
   ];
 }
 
-/** SNAP benefit increases. Not yet wired — PolicyEngine-US has no single
- *  "scale all SNAP benefits by X%" lever — so these are shown greyed-out. */
+/** SNAP reform. PolicyEngine-US has no single "scale all SNAP benefits by X%"
+ *  lever, so instead of a fake percentage we expose the real SNAP parameters:
+ *  eligibility / income basis (gross income limit, net income test) and
+ *  generosity / amount (minimum benefit floor, earned-income deduction). Each
+ *  defaults to current law, so an untouched selection is a no-op. Federal —
+ *  applies in every state. A literal "% benefit increase" would need a new
+ *  PE-US max-allotment multiplier (tracked as a follow-up). */
 function buildSnapOptions(): ReformOption[] {
   return [
     {
-      id: 'snap_increase_15',
-      name: '15% SNAP benefit increase',
-      description: 'Increase SNAP benefits by 15% for all recipients.',
+      id: 'snap_reform',
+      name: 'SNAP expansion',
+      description:
+        'Expand SNAP eligibility and generosity: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction.',
       category: 'snap',
       is_new_program: false,
       is_enhancement: true,
-      in_development: true,
-    },
-    {
-      id: 'snap_increase_25',
-      name: '25% SNAP benefit increase',
-      description: 'Increase SNAP benefits by 25% for all recipients.',
-      category: 'snap',
-      is_new_program: false,
-      is_enhancement: true,
-      in_development: true,
+      is_configurable: true,
+      adjustable_params: [
+        {
+          name: 'gross_income_limit',
+          label: 'Gross income limit (% of poverty line)',
+          min_value: 130,
+          max_value: 300,
+          default_value: 130,
+          step: 5,
+          unit: '%',
+          description:
+            'Households with gross monthly income up to this percent of the federal poverty guideline qualify. Current: 130%.',
+        },
+        {
+          name: 'abolish_net_income_test',
+          label: 'Remove the net income test',
+          control: 'toggle',
+          min_value: 0,
+          max_value: 1,
+          default_value: 0,
+          step: 1,
+          unit: '',
+          description:
+            'Drop the separate net-income eligibility test, so only the gross-income limit applies.',
+        },
+        {
+          name: 'min_benefit',
+          label: 'Minimum benefit (% of max allotment)',
+          min_value: 0,
+          max_value: 100,
+          default_value: 8,
+          step: 1,
+          unit: '%',
+          description:
+            'Benefit floor for the smallest eligible households, as a share of the maximum allotment. Current: 8%.',
+        },
+        {
+          name: 'earned_income_deduction',
+          label: 'Earned-income deduction',
+          min_value: 0,
+          max_value: 50,
+          default_value: 20,
+          step: 1,
+          unit: '%',
+          description:
+            'Share of earned income disregarded when computing the benefit (higher = more for working families). Current: 20%.',
+        },
+      ],
     },
   ];
 }
