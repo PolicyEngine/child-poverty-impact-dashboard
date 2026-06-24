@@ -997,16 +997,28 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  lever, so instead of a fake percentage we expose the real SNAP parameters:
  *  eligibility / income basis (gross income limit, net income test) and
  *  generosity / amount (minimum benefit floor, earned-income deduction). Each
- *  defaults to current law, so an untouched selection is a no-op. Federal —
- *  applies in every state. A literal "% benefit increase" would need a new
- *  PE-US max-allotment multiplier (tracked as a follow-up). */
+ *  defaults to current law, so an untouched selection is a no-op.
+ *
+ *  These are FEDERAL SNAP rules applied uniformly across states. The dashboard
+ *  runs per state, so PE-US still applies each state's own benefit BASELINE —
+ *  max allotment (AK/HI higher), the regional standard deduction, and the
+ *  DC/MD/NJ minimum-allotment overrides — and these levers overlay on top of it.
+ *
+ *  Caveats: (1) PE-US does NOT model state broad-based categorical eligibility
+ *  (BBCE), so the modeled baseline gross-income limit is the federal 130% in
+ *  every state — the gross-limit lever therefore models a uniform federal change
+ *  (a superset of state BBCE). Per-state BBCE would need upstream PE-US work.
+ *  (2) "Remove the net income test" sets gov.contrib.snap.abolish_net_income_test
+ *  .in_effect, a structural reform PE-US auto-derives from the parameter (same
+ *  mechanism as the AFA / SC refundable-EITC reforms). (3) A literal "% benefit
+ *  increase" would need a new PE-US max-allotment multiplier (follow-up). */
 function buildSnapOptions(): ReformOption[] {
   return [
     {
       id: 'snap_reform',
       name: 'SNAP expansion',
       description:
-        'Expand SNAP eligibility and generosity: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction.',
+        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction.",
       category: 'snap',
       is_new_program: false,
       is_enhancement: true,
