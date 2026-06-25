@@ -31,12 +31,13 @@ export type ReformDict = Record<string, ReformDictValue>;
 type ParameterValues = Record<string, Record<string, number>>;
 
 // Child-allowance defaults (annual $ per child). The ubi_center
-// basic-income amounts are annual (period: year). Three age tiers plus an
-// adjustable top cutoff; set all three equal for a flat allowance.
-export const CHILD_ALLOWANCE_DEFAULT_INFANT = 1000; // under 1
-export const CHILD_ALLOWANCE_DEFAULT_YOUNG = 1000; //  ages 1–5
-export const CHILD_ALLOWANCE_DEFAULT_OLDER = 1000; //  ages 6 to cutoff
-export const CHILD_ALLOWANCE_DEFAULT_CUTOFF = 18; //   under 18 vs under 19
+// basic-income amounts are annual (period: year). Four age tiers plus an
+// adjustable top cutoff; set all four equal for a flat allowance.
+export const CHILD_ALLOWANCE_DEFAULT_INFANT = 1000; //   under 1
+export const CHILD_ALLOWANCE_DEFAULT_TODDLER = 1000; //  ages 1–3
+export const CHILD_ALLOWANCE_DEFAULT_PRESCHOOL = 1000; // ages 4–5
+export const CHILD_ALLOWANCE_DEFAULT_OLDER = 1000; //    ages 6 to cutoff
+export const CHILD_ALLOWANCE_DEFAULT_CUTOFF = 18; //     under 18 vs under 19
 
 // Optional AGI-based phase-out (turns the allowance into an income-tested
 // CTC). Rate is a percent in the UI; thresholds are AGI dollars by filing
@@ -48,8 +49,8 @@ export const CHILD_ALLOWANCE_DEFAULT_THRESHOLD_JOINT = 200000;
 
 // ubi_center basic income paths. BI is the age-bracketed amount schedule
 // (baseline brackets [0]≥0, [1]≥6, [2]≥18, [3]≥25, [4]≥65, all $0); the
-// child allowance re-cuts the lower brackets to 0 / 1 / 6 / cutoff for
-// three child tiers. PO is the (sibling) phase-out node.
+// child allowance re-cuts the lower brackets to 0 / 1 / 4 / 6 / cutoff for
+// four child tiers. PO is the (sibling) phase-out node.
 const BI = 'gov.contrib.ubi_center.basic_income.amount.person.by_age';
 const PO = 'gov.contrib.ubi_center.basic_income.phase_out';
 
@@ -163,22 +164,26 @@ function applyReformOption(
       return;
     }
     case 'child_allowance': {
-      // Three-tier unconditional child allowance via ubi_center basic
-      // income: under 1, ages 1–5, and ages 6 up to an adjustable cutoff
-      // (under 18 or under 19). Re-cut the bracket boundaries to 0/1/6/
-      // cutoff, then set each tier's amount. All three tiers compose, so a
-      // flat allowance is just three equal amounts.
+      // Four-tier unconditional child allowance via ubi_center basic income:
+      // under 1, ages 1–3, ages 4–5, and ages 6 up to an adjustable cutoff
+      // (under 18 or under 19). Re-cut the bracket boundaries to 0/1/4/6/
+      // cutoff, then set each tier's amount. All tiers compose, so a flat
+      // allowance is just four equal amounts. (Under 1 + ages 1–3 = the
+      // prenatal-to-3 band.)
       const pv = parameterValues?.['child_allowance'];
       const infant = pv?.infant_amount ?? CHILD_ALLOWANCE_DEFAULT_INFANT;
-      const young = pv?.young_child_amount ?? CHILD_ALLOWANCE_DEFAULT_YOUNG;
+      const toddler = pv?.toddler_amount ?? CHILD_ALLOWANCE_DEFAULT_TODDLER;
+      const preschool = pv?.preschool_amount ?? CHILD_ALLOWANCE_DEFAULT_PRESCHOOL;
       const older = pv?.older_child_amount ?? CHILD_ALLOWANCE_DEFAULT_OLDER;
       const cutoff = pv?.cutoff_age ?? CHILD_ALLOWANCE_DEFAULT_CUTOFF;
-      reform[`${BI}[1].threshold`] = 1; // ages 1–5 band starts at 1
-      reform[`${BI}[2].threshold`] = 6; // ages 6+ band starts at 6
-      reform[`${BI}[3].threshold`] = cutoff; // adults (=$0) start at cutoff
+      reform[`${BI}[1].threshold`] = 1; // ages 1–3 band starts at 1
+      reform[`${BI}[2].threshold`] = 4; // ages 4–5 band starts at 4
+      reform[`${BI}[3].threshold`] = 6; // ages 6 to cutoff band starts at 6
+      reform[`${BI}[4].threshold`] = cutoff; // adults (=$0) start at cutoff
       reform[`${BI}[0].amount`] = infant; // under 1
-      reform[`${BI}[1].amount`] = young; // ages 1–5
-      reform[`${BI}[2].amount`] = older; // ages 6 to cutoff
+      reform[`${BI}[1].amount`] = toddler; // ages 1–3
+      reform[`${BI}[2].amount`] = preschool; // ages 4–5
+      reform[`${BI}[3].amount`] = older; // ages 6 to cutoff
 
       // Optional AGI phase-out — turns the flat allowance into an
       // income-tested credit. Off by default (rate stays 0). When on, the

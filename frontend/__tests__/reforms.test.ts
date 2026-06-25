@@ -17,16 +17,33 @@ describe('buildReformDict', () => {
     expect(reform['gov.irs.credits.ctc.phase_out.arpa.in_effect']).toBe(true);
   });
 
-  it('wires a three-tier child allowance with defaults (cutoff 18)', () => {
+  it('wires a four-tier child allowance with defaults (cutoff 18)', () => {
     const reform = buildReformDict(['child_allowance'], undefined, 2026);
-    // Brackets re-cut to 0 / 1 / 6 / cutoff.
+    // Brackets re-cut to 0 / 1 / 4 / 6 / cutoff.
     expect(reform[`${BI}[1].threshold`]).toBe(1);
-    expect(reform[`${BI}[2].threshold`]).toBe(6);
-    expect(reform[`${BI}[3].threshold`]).toBe(18);
+    expect(reform[`${BI}[2].threshold`]).toBe(4);
+    expect(reform[`${BI}[3].threshold`]).toBe(6);
+    expect(reform[`${BI}[4].threshold`]).toBe(18);
     // Tier amounts default to $1,000 each.
     expect(reform[`${BI}[0].amount`]).toBe(1000); // under 1
-    expect(reform[`${BI}[1].amount`]).toBe(1000); // ages 1–5
-    expect(reform[`${BI}[2].amount`]).toBe(1000); // ages 6 to cutoff
+    expect(reform[`${BI}[1].amount`]).toBe(1000); // ages 1–3
+    expect(reform[`${BI}[2].amount`]).toBe(1000); // ages 4–5
+    expect(reform[`${BI}[3].amount`]).toBe(1000); // ages 6 to cutoff
+  });
+
+  it('splits ages 1–5 into 1–3 and 4–5 tiers (the prenatal-to-3 band)', () => {
+    // A prenatal-to-3 allowance: pay under-1 and ages 1–3, nothing for 4+.
+    const reform = buildReformDict(
+      ['child_allowance'],
+      { child_allowance: { infant_amount: 3600, toddler_amount: 3600, preschool_amount: 0, older_child_amount: 0 } },
+      2026,
+    );
+    expect(reform[`${BI}[0].amount`]).toBe(3600); // under 1
+    expect(reform[`${BI}[1].threshold`]).toBe(1);
+    expect(reform[`${BI}[1].amount`]).toBe(3600); // ages 1–3
+    expect(reform[`${BI}[2].threshold`]).toBe(4);
+    expect(reform[`${BI}[2].amount`]).toBe(0); // ages 4–5 excluded
+    expect(reform[`${BI}[3].amount`]).toBe(0); // ages 6+ excluded
   });
 
   it('respects custom per-tier amounts and the under-19 cutoff', () => {
@@ -35,17 +52,19 @@ describe('buildReformDict', () => {
       {
         child_allowance: {
           infant_amount: 5000,
-          young_child_amount: 4000,
+          toddler_amount: 4000,
+          preschool_amount: 3000,
           older_child_amount: 1000,
           cutoff_age: 19,
         },
       },
       2026,
     );
-    expect(reform[`${BI}[0].amount`]).toBe(5000);
-    expect(reform[`${BI}[1].amount`]).toBe(4000);
-    expect(reform[`${BI}[2].amount`]).toBe(1000);
-    expect(reform[`${BI}[3].threshold`]).toBe(19); // children under 19
+    expect(reform[`${BI}[0].amount`]).toBe(5000); // under 1
+    expect(reform[`${BI}[1].amount`]).toBe(4000); // ages 1–3
+    expect(reform[`${BI}[2].amount`]).toBe(3000); // ages 4–5
+    expect(reform[`${BI}[3].amount`]).toBe(1000); // ages 6 to cutoff
+    expect(reform[`${BI}[4].threshold`]).toBe(19); // children under 19
   });
 
   it('omits the phase-out unless explicitly enabled', () => {
@@ -87,13 +106,14 @@ describe('buildReformDict', () => {
     expect(reform[`${PO}.threshold.JOINT`]).toBe(150000);
   });
 
-  it('supports a flat allowance via three equal amounts', () => {
+  it('supports a flat allowance via four equal amounts', () => {
     const reform = buildReformDict(
       ['child_allowance'],
       {
         child_allowance: {
           infant_amount: 1000,
-          young_child_amount: 1000,
+          toddler_amount: 1000,
+          preschool_amount: 1000,
           older_child_amount: 1000,
         },
       },
@@ -102,6 +122,7 @@ describe('buildReformDict', () => {
     expect(reform[`${BI}[0].amount`]).toBe(1000);
     expect(reform[`${BI}[1].amount`]).toBe(1000);
     expect(reform[`${BI}[2].amount`]).toBe(1000);
+    expect(reform[`${BI}[3].amount`]).toBe(1000);
   });
 
   it('wires SNAP eligibility + generosity levers (no-op at current law)', () => {
