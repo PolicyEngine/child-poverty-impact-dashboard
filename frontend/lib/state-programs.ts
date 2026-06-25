@@ -853,16 +853,17 @@ function buildDependentExemptionOptions(
 }
 
 /** Federal, age-tiered unconditional child allowance, implemented through
- *  the ubi_center basic-income schedule (see lib/reforms.ts). Three tiers
- *  (under 1, 1–5, 6 to an adjustable cutoff) that all compose — set them
- *  equal for a flat allowance, or zero out a tier to exclude it. */
+ *  the ubi_center basic-income schedule (see lib/reforms.ts). Four tiers
+ *  (under 1, ages 1–3, ages 4–5, ages 6 to an adjustable cutoff) that all
+ *  compose — set them equal for a flat allowance, or zero out a tier to
+ *  exclude it. Under 1 + ages 1–3 together cover the prenatal-to-3 band. */
 function buildChildAllowanceOptions(): ReformOption[] {
   return [
     {
       id: 'child_allowance',
       name: 'Child allowance',
       description:
-        'Annual cash payment per child, by age tier. Set all three amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a child tax credit — works in every state, including those with no state CTC.',
+        'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a child tax credit — works in every state, including those with no state CTC.',
       category: 'child_allowance',
       is_new_program: true,
       is_enhancement: false,
@@ -879,14 +880,24 @@ function buildChildAllowanceOptions(): ReformOption[] {
           description: 'Annual amount per child under age 1.',
         },
         {
-          name: 'young_child_amount',
-          label: 'Ages 1–5 (under 6)',
+          name: 'toddler_amount',
+          label: 'Ages 1–3',
           min_value: 0,
           max_value: 12000,
           default_value: 1000,
           step: 100,
           unit: '$',
-          description: 'Annual amount per child age 1 through 5.',
+          description: 'Annual amount per child age 1 through 3 (with under 1, the prenatal-to-3 band).',
+        },
+        {
+          name: 'preschool_amount',
+          label: 'Ages 4–5',
+          min_value: 0,
+          max_value: 12000,
+          default_value: 1000,
+          step: 100,
+          unit: '$',
+          description: 'Annual amount per child age 4 through 5.',
         },
         {
           name: 'older_child_amount',
