@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "manifest": "tsx scripts/dump-reform-manifest.ts"
+    "manifest": "tsx scripts/dump-reform-manifest.ts",
+    "score-scenarios": "tsx scripts/dump-score-scenarios.ts"
   },
   "dependencies": {
     "@policyengine/ui-kit": "^0.9.0",

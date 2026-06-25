@@ -1,0 +1,25 @@
+# External prior estimates gathered the way `/analyze-policy`'s prior-scores-finder
+# does (PolicyEngine published scores, Census, Columbia CPSP, Niskanen/NBER,
+# think-tank fiscal notes). The scorecard compares the DASHBOARD's computed score
+# to these.
+#
+# Keyed by scenario id (see score-scenarios.json). Only relative child-poverty
+# reduction is compared (geography-portable); national dollar costs are recorded
+# as context but NOT band-checked against a single-state dashboard run.
+#   child_poverty_rel_reduction: [lo, hi]   fractional reduction (0.40 = -40%)
+
+federal_ctc_expanded:
+  source: "Census 2022 (46% decline 2020->2021); Columbia CPSP 2021 (~43%); Niskanen/NBER w29854 (~$97B/yr)"
+  scope_note: "National prior; the dashboard evaluates this in a single state, so compare the RELATIVE child-poverty reduction directionally, not the dollar cost."
+  child_poverty_rel_reduction: [0.35, 0.50]
+  national_annual_cost_context: "~$97-100B/yr (income-tested ARPA structure)"
+
+child_allowance_3000:
+  source: "Niskanen / Columbia CPSP — income-tested $3,600/$3,000 child allowance: ~50% child-poverty reduction, ~$97B/yr"
+  scope_note: "DESIGN MISMATCH: this scenario is a UNIVERSAL (no phase-out) $3,000/child allowance — broader and costlier than the income-tested prior. Treat the prior as a loose lower bound on poverty reduction only."
+  child_poverty_rel_reduction: [0.40, 0.65]
+  national_annual_cost_context: "income-tested ~$97B; universal is materially higher"
+
+# State EITC/CTC tweaks (ca_ctc, ny_ctc, ca_eitc) and the NY dependent-exemption
+# repeal have no published prior estimates — validated by direction-aware sanity
+# rules + dashboard-vs-API consistency only.

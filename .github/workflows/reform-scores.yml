@@ -1,0 +1,61 @@
+name: Reform scores
+
+# Validates the dashboard's computed reform-option impacts against external priors
+# (the /analyze-policy prior-scores-finder methodology). Off the PR path — each
+# dashboard economy run is ~8-15 min — so this is manual / scheduled and uploads
+# the regenerated scorecard as an artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated scenario ids (blank = all)"
+        required: false
+        default: ""
+      with_api:
+        description: "Also run the PolicyEngine-API reference column"
+        type: boolean
+        required: false
+        default: false
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+
+jobs:
+  score:
+    name: Score reform options (dashboard vs priors)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        # See note in ci.yml (npm/cli#4828).
+        run: rm -f package-lock.json && npm install
+      - name: Generate scoring scenarios
+        working-directory: frontend
+        run: npm run score-scenarios
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pyyaml
+      - name: Score reforms (dashboard backend)
+        env:
+          NEXT_PUBLIC_MODAL_CPID_URL: ${{ vars.NEXT_PUBLIC_MODAL_CPID_URL || 'https://policyengine--cpid-backend-web.modal.run' }}
+        run: |
+          python analysis/reform_scores/score_reforms.py \
+            ${{ github.event.inputs.only && format('--only {0}', github.event.inputs.only) || '' }} \
+            ${{ github.event.inputs.with_api == 'true' && '--with-api' || '' }}
+      - name: Upload scorecard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reform-scorecard
+          path: |
+            analysis/reform_scores/REPORT.md
+            analysis/reform_scores/results.json
+            analysis/reform_scores/score-scenarios.json

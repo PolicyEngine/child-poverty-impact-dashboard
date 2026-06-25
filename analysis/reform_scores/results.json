@@ -1,0 +1,207 @@
+{
+  "rows": [
+    {
+      "id": "federal_ctc_expanded",
+      "label": "Restore the 2021 (ARPA) expanded CTC",
+      "state": "CA",
+      "scope": "federal",
+      "res": {
+        "id": "federal_ctc_expanded",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": 8809704043.35559,
+          "poverty_child_baseline": 0.23880912780761718,
+          "poverty_child_reform": 0.2050514793395996,
+          "poverty_child_delta": -0.03375764846801757,
+          "poverty_all_baseline": 0.23800975799560548,
+          "poverty_all_reform": 0.2245580291748047,
+          "poverty_all_delta": -0.013451728820800785,
+          "children_lifted": 300940.0,
+          "gini_delta": -0.004498191079473579,
+          "child_poverty_rel_reduction": 0.14135828382243612
+        },
+        "api": {
+          "child_poverty_rel_reduction": 0.12368561749517766,
+          "poverty_child_baseline": 0.2654482247009844,
+          "poverty_child_reform": 0.23261609711584447
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard 14% matches PolicyEngine API 12% at CA; national prior 35%\u201350% (geography: single state vs national prior)"
+    },
+    {
+      "id": "child_allowance_3000",
+      "label": "Child allowance, $3,000/child under 18 (universal)",
+      "state": "CA",
+      "scope": "federal",
+      "res": {
+        "id": "child_allowance_3000",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": 26744160256.0,
+          "poverty_child_baseline": 0.23880912780761718,
+          "poverty_child_reform": 0.17063682556152343,
+          "poverty_child_delta": -0.06817230224609375,
+          "poverty_all_baseline": 0.23800975799560548,
+          "poverty_all_reform": 0.21024368286132813,
+          "poverty_all_delta": -0.02776607513427734,
+          "children_lifted": 607736.75,
+          "gini_delta": -0.009125669833994876,
+          "child_poverty_rel_reduction": 0.2854677410028181
+        },
+        "api": {
+          "child_poverty_rel_reduction": 0.2612474411879784,
+          "poverty_child_baseline": 0.2654482247009844,
+          "poverty_child_reform": 0.1961005552299607
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard 29% matches PolicyEngine API 26% at CA; national prior 40%\u201365% (geography: single state vs national prior)"
+    },
+    {
+      "id": "federal_working_parents_tax_relief",
+      "label": "Working Parents Tax Relief Act",
+      "state": "CA",
+      "scope": "federal",
+      "res": {
+        "id": "federal_working_parents_tax_relief",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": 2400731391.718506,
+          "poverty_child_baseline": 0.23880912780761718,
+          "poverty_child_reform": 0.22462364196777343,
+          "poverty_child_delta": -0.014185485839843748,
+          "poverty_all_baseline": 0.23800975799560548,
+          "poverty_all_reform": 0.23184555053710937,
+          "poverty_all_delta": -0.006164207458496107,
+          "children_lifted": 126459.640625,
+          "gini_delta": -0.0013109617913651395,
+          "child_poverty_rel_reduction": 0.05940093651391528
+        },
+        "api": {
+          "child_poverty_rel_reduction": 0.05313326905660617,
+          "poverty_child_baseline": 0.2654482247009844,
+          "poverty_child_reform": 0.25134409275734854
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard 6% matches PolicyEngine API 5% at CA"
+    },
+    {
+      "id": "ca_ctc_2000",
+      "label": "California Young Child Tax Credit raised to $2,000",
+      "state": "CA",
+      "scope": "state",
+      "res": {
+        "id": "ca_ctc_2000",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": 330901077.3715668,
+          "poverty_child_baseline": 0.23880912780761718,
+          "poverty_child_reform": 0.2371183776855469,
+          "poverty_child_delta": -0.0016907501220702892,
+          "poverty_all_baseline": 0.23800975799560548,
+          "poverty_all_reform": 0.2373345947265625,
+          "poverty_all_delta": -0.0006751632690429887,
+          "children_lifted": 15072.73046875,
+          "gini_delta": -0.0001887195921472795,
+          "child_poverty_rel_reduction": 0.0070799225205174935
+        },
+        "api": {
+          "child_poverty_rel_reduction": 0.00619814976704512,
+          "poverty_child_baseline": 0.2654482247009844,
+          "poverty_child_reform": 0.26380293684889145
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard 1% matches PolicyEngine API 1% at CA"
+    },
+    {
+      "id": "ny_ctc_2000",
+      "label": "New York Empire State Child Credit young amount $2,000",
+      "state": "NY",
+      "scope": "state",
+      "res": {
+        "id": "ny_ctc_2000",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": 744249834.746376,
+          "poverty_child_baseline": 0.22602735519409178,
+          "poverty_child_reform": 0.2214859390258789,
+          "poverty_child_delta": -0.004541416168212881,
+          "poverty_all_baseline": 0.21849016189575196,
+          "poverty_all_reform": 0.21676759719848632,
+          "poverty_all_delta": -0.0017225646972656439,
+          "children_lifted": 19224.458984375,
+          "gini_delta": -0.0006108131871260802,
+          "child_poverty_rel_reduction": 0.020092329816951245
+        },
+        "api": {
+          "child_poverty_rel_reduction": 0.018120565277934052,
+          "poverty_child_baseline": 0.24563451869850267,
+          "poverty_child_reform": 0.24118348236791254
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard 2% matches PolicyEngine API 2% at NY"
+    },
+    {
+      "id": "ca_eitc_100",
+      "label": "California EITC raised to 100% of federal",
+      "state": "CA",
+      "scope": "state",
+      "res": {
+        "id": "ca_eitc_100",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": 97134188.40045166,
+          "poverty_child_baseline": 0.23880912780761718,
+          "poverty_child_reform": 0.23826406478881837,
+          "poverty_child_delta": -0.0005450630187988081,
+          "poverty_all_baseline": 0.23800975799560548,
+          "poverty_all_reform": 0.23779685974121093,
+          "poverty_all_delta": -0.00021289825439455012,
+          "children_lifted": 4859.244140625,
+          "gini_delta": -5.584655953838613e-05,
+          "child_poverty_rel_reduction": 0.0022824212114618448
+        },
+        "api": {
+          "child_poverty_rel_reduction": 0.0020534366450049354,
+          "poverty_child_baseline": 0.2654482247009844,
+          "poverty_child_reform": 0.2649031435890319
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard 0% matches PolicyEngine API 0% at CA"
+    },
+    {
+      "id": "ny_dependent_exemption_eliminate",
+      "label": "Eliminate the New York dependent exemption",
+      "state": "NY",
+      "scope": "state",
+      "res": {
+        "id": "ny_dependent_exemption_eliminate",
+        "seconds": 0,
+        "dashboard": {
+          "annual_cost": -265890931.5627365,
+          "poverty_child_baseline": 0.22602735519409178,
+          "poverty_child_reform": 0.227884464263916,
+          "poverty_child_delta": 0.0018571090698242254,
+          "poverty_all_baseline": 0.21849016189575196,
+          "poverty_all_reform": 0.2192792510986328,
+          "poverty_all_delta": 0.0007890892028808438,
+          "children_lifted": 0.0,
+          "gini_delta": 0.0001676189394286265,
+          "child_poverty_rel_reduction": -0.008216302262305856
+        },
+        "api": {
+          "child_poverty_rel_reduction": -0.008403609336944673,
+          "poverty_child_baseline": 0.24563451869850267,
+          "poverty_child_reform": 0.24769873523331332
+        }
+      },
+      "verdict": "PASS",
+      "note": "dashboard -1% matches PolicyEngine API -1% at NY"
+    }
+  ]
+}

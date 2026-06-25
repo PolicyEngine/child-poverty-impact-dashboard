@@ -1,0 +1,149 @@
+{
+  "year": 2026,
+  "count": 7,
+  "scenarios": [
+    {
+      "id": "federal_ctc_expanded",
+      "label": "Restore the 2021 (ARPA) expanded CTC",
+      "state": "CA",
+      "region": "ca",
+      "scope": "federal",
+      "direction": "expansion",
+      "year": 2026,
+      "option_id": "federal_ctc_expanded",
+      "params": null,
+      "reform": {
+        "gov.irs.credits.ctc.amount.arpa[0].amount": 3600,
+        "gov.irs.credits.ctc.amount.arpa[1].amount": 3000,
+        "gov.irs.credits.ctc.refundable.fully_refundable": true,
+        "gov.irs.credits.ctc.phase_out.arpa.in_effect": true
+      },
+      "is_dependent_exemption": false,
+      "reform_param_count": 4
+    },
+    {
+      "id": "child_allowance_3000",
+      "label": "Child allowance, $3,000/child under 18 (universal)",
+      "state": "CA",
+      "region": "ca",
+      "scope": "federal",
+      "direction": "expansion",
+      "year": 2026,
+      "option_id": "child_allowance",
+      "params": {
+        "child_allowance": {
+          "infant_amount": 3000,
+          "young_child_amount": 3000,
+          "older_child_amount": 3000,
+          "cutoff_age": 18
+        }
+      },
+      "reform": {
+        "gov.contrib.ubi_center.basic_income.amount.person.by_age[1].threshold": 1,
+        "gov.contrib.ubi_center.basic_income.amount.person.by_age[2].threshold": 6,
+        "gov.contrib.ubi_center.basic_income.amount.person.by_age[3].threshold": 18,
+        "gov.contrib.ubi_center.basic_income.amount.person.by_age[0].amount": 3000,
+        "gov.contrib.ubi_center.basic_income.amount.person.by_age[1].amount": 3000,
+        "gov.contrib.ubi_center.basic_income.amount.person.by_age[2].amount": 3000
+      },
+      "is_dependent_exemption": false,
+      "reform_param_count": 6
+    },
+    {
+      "id": "federal_working_parents_tax_relief",
+      "label": "Working Parents Tax Relief Act",
+      "state": "CA",
+      "region": "ca",
+      "scope": "federal",
+      "direction": "expansion",
+      "year": 2026,
+      "option_id": "federal_working_parents_tax_relief",
+      "params": null,
+      "reform": {
+        "gov.contrib.congress.mcdonald_rivet.working_parents_tax_relief_act.in_effect": true
+      },
+      "is_dependent_exemption": false,
+      "reform_param_count": 1
+    },
+    {
+      "id": "ca_ctc_2000",
+      "label": "California Young Child Tax Credit raised to $2,000",
+      "state": "CA",
+      "region": "ca",
+      "scope": "state",
+      "direction": "expansion",
+      "year": 2026,
+      "option_id": "ca_ctc",
+      "params": {
+        "ca_ctc": {
+          "amount": 2000
+        }
+      },
+      "reform": {
+        "gov.states.ca.tax.income.credits.young_child.amount": 2000
+      },
+      "is_dependent_exemption": false,
+      "reform_param_count": 1
+    },
+    {
+      "id": "ny_ctc_2000",
+      "label": "New York Empire State Child Credit young amount $2,000",
+      "state": "NY",
+      "region": "ny",
+      "scope": "state",
+      "direction": "expansion",
+      "year": 2026,
+      "option_id": "ny_ctc",
+      "params": {
+        "ny_ctc": {
+          "young_amount": 2000
+        }
+      },
+      "reform": {
+        "gov.states.ny.tax.income.credits.ctc.post_2024.amount[0].amount": 2000
+      },
+      "is_dependent_exemption": false,
+      "reform_param_count": 1
+    },
+    {
+      "id": "ca_eitc_100",
+      "label": "California EITC raised to 100% of federal",
+      "state": "CA",
+      "region": "ca",
+      "scope": "state",
+      "direction": "expansion",
+      "year": 2026,
+      "option_id": "ca_eitc",
+      "params": {
+        "ca_eitc": {
+          "match_rate": 100
+        }
+      },
+      "reform": {
+        "gov.states.ca.tax.income.credits.earned_income.adjustment.factor": 1
+      },
+      "is_dependent_exemption": false,
+      "reform_param_count": 1
+    },
+    {
+      "id": "ny_dependent_exemption_eliminate",
+      "label": "Eliminate the New York dependent exemption",
+      "state": "NY",
+      "region": "ny",
+      "scope": "state",
+      "direction": "repeal",
+      "year": 2026,
+      "option_id": "ny_dependent_exemption",
+      "params": {
+        "ny_dependent_exemption": {
+          "eliminate": 1
+        }
+      },
+      "reform": {
+        "gov.states.ny.tax.income.exemptions.dependent": 0
+      },
+      "is_dependent_exemption": true,
+      "reform_param_count": 1
+    }
+  ]
+}

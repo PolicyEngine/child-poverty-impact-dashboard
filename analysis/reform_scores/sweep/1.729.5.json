@@ -1,0 +1,464 @@
+{
+  "CA:ca_ctc": {
+    "state": "CA",
+    "annual_cost": 89042592.73397827,
+    "poverty_child_delta": -0.00012670516967772105,
+    "gini_delta": -5.9065608648545265e-05
+  },
+  "CA:ca_eitc": {
+    "state": "CA",
+    "annual_cost": 32334284.24458313,
+    "poverty_child_delta": -0.00014419555664060835,
+    "gini_delta": -1.8611487737740795e-05
+  },
+  "CA:ca_dependent_exemption": {
+    "state": "CA",
+    "annual_cost": -2569588691.695236,
+    "poverty_child_delta": 0.0017378997802734442,
+    "gini_delta": 0.0004220043706841814
+  },
+  "CA:child_allowance": {
+    "state": "CA",
+    "annual_cost": 8571518976.0,
+    "poverty_child_delta": -0.02629568099975585,
+    "gini_delta": -0.003860569781239165
+  },
+  "CO:co_ctc": {
+    "state": "CO",
+    "annual_cost": 35342896.4448843,
+    "poverty_child_delta": -0.0006345939636230313,
+    "gini_delta": -0.0001500266292258079
+  },
+  "CO:co_eitc": {
+    "state": "CO",
+    "annual_cost": 266168786.4814186,
+    "poverty_child_delta": -0.008140115737915038,
+    "gini_delta": -0.0010356112590907962
+  },
+  "CT:ct_eitc": {
+    "state": "CT",
+    "annual_cost": -20595411.009881973,
+    "poverty_child_delta": 0.0008526611328124878,
+    "gini_delta": 0.00012548090015762625
+  },
+  "DC:dc_ctc": {
+    "state": "DC",
+    "annual_cost": 6087062.554784775,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -0.00017419533557316846
+  },
+  "DC:dc_eitc": {
+    "state": "DC",
+    "annual_cost": -6624924.140001774,
+    "poverty_child_delta": 2.822875976582484e-06,
+    "gini_delta": 0.00017940427863272213
+  },
+  "GA:ga_ctc": {
+    "state": "GA",
+    "annual_cost": 36553771.96634674,
+    "poverty_child_delta": -2.002716064453125e-05,
+    "gini_delta": -2.6062063159471016e-05
+  },
+  "GA:ga_eitc": {
+    "state": "GA",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "GA:ga_dependent_exemption": {
+    "state": "GA",
+    "annual_cost": -457013272.48254776,
+    "poverty_child_delta": 0.0019820404052733887,
+    "gini_delta": 0.0004555752522359402
+  },
+  "ID:id_eitc": {
+    "state": "ID",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "IL:il_ctc": {
+    "state": "IL",
+    "annual_cost": 14124630.612926483,
+    "poverty_child_delta": -0.00019063949584960382,
+    "gini_delta": -2.967375712215059e-05
+  },
+  "IL:il_eitc": {
+    "state": "IL",
+    "annual_cost": 165644206.7748947,
+    "poverty_child_delta": -0.002552518844604501,
+    "gini_delta": -0.00032250616726958725
+  },
+  "IL:il_dependent_exemption": {
+    "state": "IL",
+    "annual_cost": -423729515.94072723,
+    "poverty_child_delta": 0.0011490154266357577,
+    "gini_delta": 0.00048666973377109457
+  },
+  "MA:ma_ctc": {
+    "state": "MA",
+    "annual_cost": 10131879.583255768,
+    "poverty_child_delta": -5.7220458982154554e-08,
+    "gini_delta": -1.681203514980467e-05
+  },
+  "MA:ma_eitc": {
+    "state": "MA",
+    "annual_cost": 41675482.92992401,
+    "poverty_child_delta": -0.003110771179199223,
+    "gini_delta": -0.00012677747333178502
+  },
+  "MA:ma_dependent_exemption": {
+    "state": "MA",
+    "annual_cost": -78496790.00444794,
+    "poverty_child_delta": 0.0014270019531250067,
+    "gini_delta": 0.00011322715141837136
+  },
+  "MD:md_ctc": {
+    "state": "MD",
+    "annual_cost": 13474579.767534256,
+    "poverty_child_delta": -4.3869018553910344e-07,
+    "gini_delta": -5.555726998940358e-05
+  },
+  "MD:md_eitc": {
+    "state": "MD",
+    "annual_cost": 102406124.21265984,
+    "poverty_child_delta": -0.003570499420166018,
+    "gini_delta": -0.00036641934380488017
+  },
+  "MN:mn_ctc": {
+    "state": "MN",
+    "annual_cost": 205404.50747680664,
+    "poverty_child_delta": 0.00012309074401854747,
+    "gini_delta": -1.837560072814881e-05
+  },
+  "MN:mn_eitc": {
+    "state": "MN",
+    "annual_cost": 41425295.151412964,
+    "poverty_child_delta": -0.0002914333343505965,
+    "gini_delta": -9.620448408742543e-05
+  },
+  "MN:mn_dependent_exemption": {
+    "state": "MN",
+    "annual_cost": -365427929.1154213,
+    "poverty_child_delta": 0.0005753898620605435,
+    "gini_delta": 0.0007287973207115162
+  },
+  "NJ:nj_ctc": {
+    "state": "NJ",
+    "annual_cost": 63909191.735946655,
+    "poverty_child_delta": -0.0013466072082519431,
+    "gini_delta": -0.00015999709849501276
+  },
+  "NJ:nj_eitc": {
+    "state": "NJ",
+    "annual_cost": 87645373.27687454,
+    "poverty_child_delta": -0.001122837066650395,
+    "gini_delta": -0.00019436647831216902
+  },
+  "NJ:nj_dependent_exemption": {
+    "state": "NJ",
+    "annual_cost": -168950390.48383713,
+    "poverty_child_delta": 0.0013785552978515525,
+    "gini_delta": 0.00013454246820554516
+  },
+  "NM:nm_ctc": {
+    "state": "NM",
+    "annual_cost": 21364541.31545639,
+    "poverty_child_delta": -3.814697266402156e-08,
+    "gini_delta": -0.00017058011964010689
+  },
+  "NM:nm_eitc": {
+    "state": "NM",
+    "annual_cost": 31127819.48004675,
+    "poverty_child_delta": -0.002986145019531261,
+    "gini_delta": -0.0003789774451066208
+  },
+  "NY:ny_ctc": {
+    "state": "NY",
+    "annual_cost": 184586396.33768463,
+    "poverty_child_delta": -0.0011780929565429477,
+    "gini_delta": -0.00016265955442462676
+  },
+  "NY:ny_eitc": {
+    "state": "NY",
+    "annual_cost": 194287555.96845245,
+    "poverty_child_delta": -0.0024767303466796675,
+    "gini_delta": -0.00022900270502335118
+  },
+  "NY:ny_dependent_exemption": {
+    "state": "NY",
+    "annual_cost": -265890931.5627365,
+    "poverty_child_delta": 0.0018571090698242254,
+    "gini_delta": 0.0001676189394286265
+  },
+  "OK:ok_eitc": {
+    "state": "OK",
+    "annual_cost": 31794239.39920807,
+    "poverty_child_delta": -0.0016363525390624967,
+    "gini_delta": -0.00021930273809611656
+  },
+  "OR:or_ctc": {
+    "state": "OR",
+    "annual_cost": 15165000.808216095,
+    "poverty_child_delta": -0.0005220794677734397,
+    "gini_delta": -0.00011196735009622039
+  },
+  "OR:or_eitc": {
+    "state": "OR",
+    "annual_cost": 5432854.555557251,
+    "poverty_child_delta": -0.0005371475219726751,
+    "gini_delta": -3.278587796085031e-05
+  },
+  "OR:or_dependent_exemption": {
+    "state": "OR",
+    "annual_cost": -177123762.65127945,
+    "poverty_child_delta": 0.006312751770019526,
+    "gini_delta": 0.0007204859940748154
+  },
+  "RI:ri_eitc": {
+    "state": "RI",
+    "annual_cost": 7359355.947793007,
+    "poverty_child_delta": -0.001367740631103509,
+    "gini_delta": -0.0001594013719645737
+  },
+  "RI:ri_dependent_exemption": {
+    "state": "RI",
+    "annual_cost": -36494317.99533558,
+    "poverty_child_delta": 0.002099781036376952,
+    "gini_delta": 0.0003813821153419994
+  },
+  "VT:vt_ctc": {
+    "state": "VT",
+    "annual_cost": 5332113.679312229,
+    "poverty_child_delta": -2.8610229491077277e-08,
+    "gini_delta": -0.00019218862559733374
+  },
+  "VT:vt_eitc": {
+    "state": "VT",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "DE:de_eitc": {
+    "state": "DE",
+    "annual_cost": 6344129.200229883,
+    "poverty_child_delta": -0.001684360504150384,
+    "gini_delta": -0.00015191040083528673
+  },
+  "DE:de_dependent_exemption": {
+    "state": "DE",
+    "annual_cost": -22099322.831650972,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.00027776021569836384
+  },
+  "HI:hi_eitc": {
+    "state": "HI",
+    "annual_cost": 10407375.48437643,
+    "poverty_child_delta": -0.001634731292724595,
+    "gini_delta": -0.00017399860916689214
+  },
+  "IN:in_eitc": {
+    "state": "IN",
+    "annual_cost": 63305815.950782776,
+    "poverty_child_delta": -0.0019174957275390758,
+    "gini_delta": -0.0002471500947104355
+  },
+  "IN:in_dependent_exemption": {
+    "state": "IN",
+    "annual_cost": -75753312.5539217,
+    "poverty_child_delta": 0.0007102584838867276,
+    "gini_delta": 0.00016952686745153045
+  },
+  "IA:ia_eitc": {
+    "state": "IA",
+    "annual_cost": 23305253.01672077,
+    "poverty_child_delta": -0.0012264347076416104,
+    "gini_delta": -0.00019053662699353158
+  },
+  "IA:ia_dependent_exemption": {
+    "state": "IA",
+    "annual_cost": -28525816.456520557,
+    "poverty_child_delta": 2.2792816162103824e-05,
+    "gini_delta": 0.00010457914887396225
+  },
+  "KS:ks_eitc": {
+    "state": "KS",
+    "annual_cost": 23671625.290830612,
+    "poverty_child_delta": -0.001594982147216789,
+    "gini_delta": -0.00021380851411700874
+  },
+  "KS:ks_dependent_exemption": {
+    "state": "KS",
+    "annual_cost": -85774998.37421131,
+    "poverty_child_delta": 0.0028795242309570257,
+    "gini_delta": 0.0003669642643141513
+  },
+  "LA:la_eitc": {
+    "state": "LA",
+    "annual_cost": 74842077.41274452,
+    "poverty_child_delta": -0.005358180999755879,
+    "gini_delta": -0.0004211387215187212
+  },
+  "ME:me_ctc": {
+    "state": "ME",
+    "annual_cost": 1209590.2691249847,
+    "poverty_child_delta": -5.311965942389474e-06,
+    "gini_delta": -0.00015860176475157584
+  },
+  "ME:me_eitc": {
+    "state": "ME",
+    "annual_cost": 8734258.000716448,
+    "poverty_child_delta": -5.311965942389474e-06,
+    "gini_delta": -0.00015858191260909038
+  },
+  "MI:mi_eitc": {
+    "state": "MI",
+    "annual_cost": 98286023.12429047,
+    "poverty_child_delta": -0.0019378471374511819,
+    "gini_delta": -0.0002449183840138591
+  },
+  "MT:mt_eitc": {
+    "state": "MT",
+    "annual_cost": 8236637.354897499,
+    "poverty_child_delta": -0.002443590164184578,
+    "gini_delta": -0.00017926849784011267
+  },
+  "NE:ne_eitc": {
+    "state": "NE",
+    "annual_cost": 15024765.468605042,
+    "poverty_child_delta": -0.0009449863433837885,
+    "gini_delta": -0.0002017768862944136
+  },
+  "PA:pa_eitc": {
+    "state": "PA",
+    "annual_cost": 108628170.53910828,
+    "poverty_child_delta": -0.0010913181304931519,
+    "gini_delta": -0.00020911610129170644
+  },
+  "SC:sc_eitc": {
+    "state": "SC",
+    "annual_cost": 3568442.4409103394,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -1.223874130684699e-05
+  },
+  "SC:sc_dependent_exemption": {
+    "state": "SC",
+    "annual_cost": -187305152.3386383,
+    "poverty_child_delta": 0.0006761932373046675,
+    "gini_delta": 0.00027470851669175733
+  },
+  "UT:ut_ctc": {
+    "state": "UT",
+    "annual_cost": -6145442.6024189,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 4.037917384269729e-05
+  },
+  "UT:ut_dependent_exemption": {
+    "state": "UT",
+    "annual_cost": -92007501.25089264,
+    "poverty_child_delta": 0.00039937973022460826,
+    "gini_delta": 0.0003380699141195542
+  },
+  "VA:va_eitc": {
+    "state": "VA",
+    "annual_cost": 72276711.88246155,
+    "poverty_child_delta": -0.00430027008056641,
+    "gini_delta": -0.00019321705024000213
+  },
+  "VA:va_dependent_exemption": {
+    "state": "VA",
+    "annual_cost": -99616115.2316513,
+    "poverty_child_delta": 0.0001060485839843861,
+    "gini_delta": 0.0001294747080877734
+  },
+  "WA:wa_eitc": {
+    "state": "WA",
+    "annual_cost": -3087694.3442050815,
+    "poverty_child_delta": 4.043579101581374e-06,
+    "gini_delta": 9.439989251180947e-06
+  },
+  "WI:wi_eitc": {
+    "state": "WI",
+    "annual_cost": 7674401.359249115,
+    "poverty_child_delta": -0.0001893806457519548,
+    "gini_delta": -3.371405880270295e-05
+  },
+  "AL:al_eitc": {
+    "state": "AL",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "AL:al_dependent_exemption": {
+    "state": "AL",
+    "annual_cost": -36478967.791360855,
+    "poverty_child_delta": 0.0006731796264648482,
+    "gini_delta": 0.00015655658877178347
+  },
+  "AZ:az_eitc": {
+    "state": "AZ",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "AZ:az_dependent_exemption": {
+    "state": "AZ",
+    "annual_cost": -114811478.56434345,
+    "poverty_child_delta": 0.0008876037597656261,
+    "gini_delta": 0.00020455208988146012
+  },
+  "AR:ar_eitc": {
+    "state": "AR",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "AR:ar_dependent_exemption": {
+    "state": "AR",
+    "annual_cost": -17931771.43543005,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 8.494159730076944e-05
+  },
+  "KY:ky_eitc": {
+    "state": "KY",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "MS:ms_eitc": {
+    "state": "MS",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "MS:ms_dependent_exemption": {
+    "state": "MS",
+    "annual_cost": -28591006.88241434,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.00012753401778975437
+  },
+  "NC:nc_eitc": {
+    "state": "NC",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "NC:nc_dependent_exemption": {
+    "state": "NC",
+    "annual_cost": -93148808.52074051,
+    "poverty_child_delta": 0.0008644676208496016,
+    "gini_delta": 0.00019674252639134693
+  },
+  "ND:nd_eitc": {
+    "state": "ND",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "WV:wv_eitc": {
+    "state": "WV",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  }
+}
