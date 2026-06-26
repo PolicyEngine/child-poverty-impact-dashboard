@@ -205,7 +205,31 @@ def _sharded(entries: list[dict]) -> list[dict]:
 _RUN_FULL = (
     os.environ.get("CPID_FULL_COMPUTE") == "1" or "CPID_SHARDS" in os.environ
 )
-_FULL_ENTRIES = _sharded(_NONEMPTY)
+
+
+def _dedupe_by_reform(entries: list[dict]) -> list[dict]:
+    """Collapse entries that emit the same reform dict to one.
+
+    The manifest keeps one entry per ``(state, option)`` so the cost sweep can
+    score national reforms (SNAP, child allowance, federal switches) in every
+    state. But a household compute is fully determined by the reform dict — an
+    identical dict computes identically whatever the state tag — so the
+    exhaustive per-entry compute would otherwise redo the same national reform
+    ~50× and balloon per-PR CI. Dedupe by dict to keep this matrix flat;
+    per-state cost variation is the cost sweep's job, not this test's.
+    """
+    seen: set[str] = set()
+    out: list[dict] = []
+    for e in entries:
+        key = json.dumps(e["reform"], sort_keys=True)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(e)
+    return out
+
+
+_FULL_ENTRIES = _sharded(_dedupe_by_reform(_NONEMPTY))
 
 
 @pytest.mark.skipif(
@@ -246,3 +270,92 @@ def test_manifest_paths_are_wellformed() -> None:
     for entry in _ENTRIES:
         for path in entry["reform"]:
             assert _PATH_RE.match(path), f"malformed path in {_case_id(entry)}: {path}"
+
+
+# ---- Inert-option regression guard ---------------------------------------
+# The 1.745.0 sweep surfaced state EITC options that resolved valid parameter
+# paths yet moved nothing (paid $0): "create a new EITC" contrib states whose
+# match slider never emitted the contrib ``in_effect`` on-switch, and VT, whose
+# flat ``match`` param is overridden by an enhanced bracketed structure. A path
+# check can't catch "the path exists but is inert" -- these tests do.
+
+_EITC_REFORMS = json.loads(
+    (REPO_ROOT / "frontend" / "data" / "eitc-reforms.json").read_text()
+)
+_CREATE_CREDIT_STATES = sorted(
+    st
+    for st, v in _EITC_REFORMS.items()
+    if isinstance(v, dict) and v.get("creates_credit")
+)
+
+
+def _single_edited_eitc(state: str) -> dict | None:
+    oid = f"{state.lower()}_eitc"
+    cands = [
+        e
+        for e in _ENTRIES
+        if e["state"] == state
+        and e["ids"] == [oid]
+        and e["kind"] == "single-edited"
+    ]
+    return cands[0] if cands else None
+
+
+@pytest.mark.parametrize("state", _CREATE_CREDIT_STATES)
+def test_create_credit_eitc_emits_in_effect(state: str) -> None:
+    """Every ``creates_credit`` state must switch the contrib credit on.
+
+    These states have no baseline EITC, so the contrib ``in_effect`` flag is the
+    on-switch -- without it the match slider sets a rate on a credit that stays
+    off and the reform pays $0. Cheap dict check (no PE-US), so it covers every
+    such state and catches a forgotten ``creates_credit`` tag instantly.
+    """
+    entry = _single_edited_eitc(state)
+    assert entry is not None, f"no single-edited {state.lower()}_eitc entry"
+    in_effect = _EITC_REFORMS[state]["in_effect"]
+    assert entry["reform"].get(in_effect) is True, (
+        f"{state} create-state EITC does not emit {in_effect}=true, so the "
+        f"credit is never switched on (inert option, pays $0)."
+    )
+
+
+def _low_income_eitc_household(state: str, year: int) -> dict:
+    """A single parent, two young children, earnings squarely in the EITC range
+    -- a refundable state EITC pays out here once it's actually switched on."""
+    y = str(year)
+    members = ["head", "child_a", "child_b"]
+    return {
+        "people": {
+            "head": {"age": {y: 30}, "employment_income": {y: 18_000}},
+            "child_a": {"age": {y: 3}},
+            "child_b": {"age": {y: 6}},
+        },
+        "tax_units": {"tax_unit": {"members": members}},
+        "families": {"family": {"members": members}},
+        "spm_units": {"spm_unit": {"members": members}},
+        "households": {
+            "household": {"members": members, "state_name": {y: state}},
+        },
+    }
+
+
+# One per distinct mechanism: child_poverty_impact_dashboard contrib (GA),
+# the gov.contrib.states.nc.eitc contrib (NC), and VT's enhanced structure.
+@pytest.mark.parametrize("state", ["GA", "NC", "VT"])
+def test_state_eitc_slider_actually_moves_credit(state: str) -> None:
+    """A touched state-EITC match slider must raise a low-income family's net
+    income -- not silently pay $0 (the inert-option bug class)."""
+    entry = _single_edited_eitc(state)
+    assert entry is not None, f"no single-edited {state.lower()}_eitc entry"
+    year = int(entry["year"])
+    situation = _low_income_eitc_household(state, year)
+    base = Simulation(situation=situation).calculate("household_net_income", year)[0]
+    core = _build_core_reform_dict(entry["reform"], year)
+    reform = Reform.from_dict(core, country_id="us")
+    reformed = Simulation(situation=situation, reform=reform).calculate(
+        "household_net_income", year
+    )[0]
+    assert reformed > base + 1.0, (
+        f"{state} EITC slider produced no change (base={base:.2f}, "
+        f"reform={reformed:.2f}) -- the option is inert."
+    )

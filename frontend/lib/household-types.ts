@@ -95,8 +95,6 @@ export interface ReformOption {
   name: string;
   description: string;
   category: string;
-  is_new_program: boolean;
-  is_enhancement: boolean;
   estimated_household_impact?: number;
   customizable_params: string[];
   is_configurable?: boolean;

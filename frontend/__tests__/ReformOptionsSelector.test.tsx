@@ -8,8 +8,6 @@ const eitcOption: ReformOption = {
   name: 'New York EITC',
   description: 'Adjust state EITC as a percentage of the federal EITC.',
   category: 'state_eitc',
-  is_new_program: false,
-  is_enhancement: true,
   customizable_params: [],
   is_configurable: true,
   estimated_household_impact: 500,
@@ -105,8 +103,6 @@ describe('ReformOptionsSelector', () => {
       name: 'Child allowance',
       description: 'Two-tier child allowance.',
       category: 'child_allowance',
-      is_new_program: true,
-      is_enhancement: false,
       customizable_params: [],
       exclusive_with: ['baby_bonus'],
     };
@@ -115,8 +111,6 @@ describe('ReformOptionsSelector', () => {
       name: 'Baby bonus',
       description: 'Under-1 payment.',
       category: 'child_allowance',
-      is_new_program: true,
-      is_enhancement: false,
       customizable_params: [],
       exclusive_with: ['child_allowance'],
     };
@@ -146,8 +140,6 @@ describe('ReformOptionsSelector', () => {
       name: '15% SNAP benefit increase',
       description: 'Increase SNAP benefits by 15%.',
       category: 'snap',
-      is_new_program: false,
-      is_enhancement: true,
       customizable_params: [],
       in_development: true,
     };
@@ -173,8 +165,6 @@ describe('ReformOptionsSelector', () => {
       name: 'Child allowance',
       description: 'allowance',
       category: 'child_allowance',
-      is_new_program: true,
-      is_enhancement: false,
       customizable_params: [],
       is_configurable: true,
       adjustable_params: [

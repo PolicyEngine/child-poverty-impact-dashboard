@@ -319,16 +319,6 @@ function ReformOptionCard({
                 In development
               </span>
             )}
-            {!inDevelopment && option.is_new_program && (
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                New Program
-              </span>
-            )}
-            {!inDevelopment && option.is_enhancement && (
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                Enhancement
-              </span>
-            )}
           </div>
           <p className="text-sm text-gray-600 mt-1">{option.description}</p>
           {inDevelopment && (

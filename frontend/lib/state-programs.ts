@@ -72,6 +72,13 @@ type EitcReformEntry =
        *  this state is fixed and released. While false, the refundability
        *  checkbox/slider stay greyed (the reform would crash or pay $0). */
       refundable_ready?: boolean;
+      /** True for contrib states with no baseline EITC: the contrib
+       *  ``in_effect`` flag is the on-switch that creates the (already
+       *  refundable) credit, so it must be emitted whenever the option is
+       *  applied — not gated behind a make-refundable toggle, which these
+       *  from-scratch options never expose. Without it the match slider sets a
+       *  rate on a credit that's still switched off, so the reform pays $0. */
+      creates_credit?: boolean;
       note?: string;
     };
 
@@ -121,10 +128,12 @@ export interface StateEitcReformOpts {
  *  Modal's policyengine.py wrapper defaults the effective date to
  *  ``{simulation_year}-01-01``.
  *
- *  Refundability is opt-in: the contrib ``in_effect`` flag is emitted only
- *  when ``makeRefundable`` is set, so the match slider alone leaves a
- *  nonrefundable credit nonrefundable. The cap lever (SC) is independent of
- *  refundability. */
+ *  Refundability is opt-in: for an existing nonrefundable credit the contrib
+ *  ``in_effect`` flag is emitted only when ``makeRefundable`` is set, so the
+ *  match slider alone leaves it nonrefundable. For a ``creates_credit`` state
+ *  (no baseline EITC) ``in_effect`` is the on-switch and is always emitted, so
+ *  the match slider actually produces a credit. The cap lever (SC) is
+ *  independent of refundability. */
 export function buildStateEitcReform(
   stateCode: string,
   opts: StateEitcReformOpts,
@@ -132,7 +141,11 @@ export function buildStateEitcReform(
   const entry = EITC_REFORMS[stateCode.toUpperCase()];
   if (!entry || typeof entry === 'string') return {};
   const reform: Record<string, number | boolean> = {};
-  if (entry.type === 'contrib' && entry.in_effect && opts.makeRefundable) {
+  if (
+    entry.type === 'contrib' &&
+    entry.in_effect &&
+    (opts.makeRefundable || entry.creates_credit)
+  ) {
     reform[entry.in_effect] = true;
   }
   // Default to the current-law rate (a no-op) so adjusting only the cap or
@@ -457,8 +470,6 @@ export interface ReformOption {
   name: string;
   description: string;
   category: ReformCategory;
-  is_new_program: boolean;
-  is_enhancement: boolean;
   is_configurable?: boolean;
   estimated_household_impact?: number;
   adjustable_params?: AdjustableParameter[];
@@ -528,8 +539,6 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
         name: struct.name,
         description: struct.description,
         category: 'state_eitc',
-        is_new_program: false,
-        is_enhancement: true,
         is_configurable: true,
         adjustable_params: struct.params.map((p) => ({
           name: p.name,
@@ -560,8 +569,6 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
         name: `${programs.state_name} EITC`,
         description,
         category: 'state_eitc',
-        is_new_program: programs.eitc === null,
-        is_enhancement: programs.eitc !== null,
         is_configurable: true,
         estimated_household_impact: 500,
         adjustable_params: [
@@ -663,8 +670,6 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
       name: `${programs.state_name} EITC`,
       description: optionDescription,
       category: 'state_eitc',
-      is_new_program: programs.eitc === null,
-      is_enhancement: programs.eitc !== null,
       is_configurable: !greyed,
       ...(greyed ? { in_development: true } : {}),
       estimated_household_impact: 500,
@@ -844,8 +849,6 @@ function buildDependentExemptionOptions(
         ? `Adjust, partially repeal, or eliminate ${programs.state_name}'s ${kindLabel}. Pair it with a state EITC or child allowance to model a swap.`
         : `Eliminate ${programs.state_name}'s ${kindLabel}. (Its per-dependent value varies by income/age/filing status, so only full repeal is offered.) Pair it with a state EITC or child allowance to model a swap.`,
       category: 'state_dependent_exemption',
-      is_new_program: false,
-      is_enhancement: false,
       is_configurable: true,
       adjustable_params: params,
     },
@@ -865,8 +868,6 @@ function buildChildAllowanceOptions(): ReformOption[] {
       description:
         'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a child tax credit — works in every state, including those with no state CTC.',
       category: 'child_allowance',
-      is_new_program: true,
-      is_enhancement: false,
       is_configurable: true,
       adjustable_params: [
         {
@@ -887,7 +888,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
           default_value: 1000,
           step: 100,
           unit: '$',
-          description: 'Annual amount per child age 1 through 3 (with under 1, the prenatal-to-3 band).',
+          description: 'Annual amount per child age 1 through 3.',
         },
         {
           name: 'preschool_amount',
@@ -1031,8 +1032,6 @@ function buildSnapOptions(): ReformOption[] {
       description:
         "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction.",
       category: 'snap',
-      is_new_program: false,
-      is_enhancement: true,
       is_configurable: true,
       adjustable_params: [
         {
@@ -1093,8 +1092,6 @@ function buildFederalOptions(): ReformOption[] {
       description:
         '$3,600 for children under 6, $3,000 for ages 6–17, fully refundable.',
       category: 'federal_ctc',
-      is_new_program: false,
-      is_enhancement: true,
     },
     {
       id: 'federal_afa',
@@ -1102,8 +1099,6 @@ function buildFederalOptions(): ReformOption[] {
       description:
         "Sen. Bennet's American Family Act: a fully-refundable CTC of $3,600/child (1.2× for under-6), with a baby bonus in the first month and income phase-out.",
       category: 'federal_ctc',
-      is_new_program: false,
-      is_enhancement: true,
     },
     {
       // ID must not end in `_eitc` (that routes to the state-EITC builder).
@@ -1112,8 +1107,6 @@ function buildFederalOptions(): ReformOption[] {
       description:
         'EITC expansion for workers without qualifying children: roughly doubles the maximum credit (to ~$1,500), raises the phase-in and phase-out rates to 15.3%, and broadens age eligibility to 19+ with no upper limit.',
       category: 'federal_eitc',
-      is_new_program: false,
-      is_enhancement: true,
     },
     {
       id: 'federal_working_parents_tax_relief',
@@ -1121,8 +1114,6 @@ function buildFederalOptions(): ReformOption[] {
       description:
         "McDonald–Rivet's Working Parents Tax Relief Act: boosts the EITC for parents of young children (under 4) — a higher credit percentage per young child and a larger phase-out threshold.",
       category: 'federal_eitc',
-      is_new_program: false,
-      is_enhancement: true,
     },
   ];
 }
@@ -1654,8 +1645,6 @@ export function buildStateCtcOptions(
       name: entry.name,
       description: entry.description,
       category: 'state_ctc',
-      is_new_program: false,
-      is_enhancement: true,
       is_configurable: !entry.in_development,
       ...(entry.in_development ? { in_development: true } : {}),
       adjustable_params,
