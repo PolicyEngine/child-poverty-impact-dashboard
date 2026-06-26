@@ -1,8 +1,13 @@
-# Reform cost sweep — policyengine-us 1.729.5
+# Reform cost sweep — policyengine-us 1.745.0
 
-> ⚠️ Scored on the **currently-deployed** Modal endpoint, which is **behind the repo pin (1.739.4)** — its `/healthz` predates the version field, and `RI:ri_ctc` errors because the deploy is older than 1.731.0 (where RI CTC shipped). The ~11 EITC options showing exactly $0 are likely the same stale-deploy cause. **Redeploy the endpoint, then re-run to take the official baseline** (future sweeps self-label from `/healthz`).
+Annual budgetary cost of every configurable reform option, scored on the dashboard's own backend at version **1.745.0**. 79 options.
 
-Annual budgetary cost of every configurable reform option, scored on the dashboard's own backend at the **currently-deployed** version (≈1.729.5). 78 options.
+## Cost changes vs 1.729.5
+
+| Reform | Prev | Now | Δ | Δ% |
+|---|---|---|---|---|
+| SC:sc_eitc | $3.6M | $1.63B | $1.63B | +45717% |
+| AZ:az_dependent_exemption | -$114.8M | -$139.4M | -$24.6M | -21% |
 
 ## All reforms (by cost)
 
@@ -10,7 +15,8 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 |---|---|---|---|---|
 | CA:child_allowance | CA | $8.57B | -2.63pp | -0.0039 |
 | CA:ca_dependent_exemption | CA | -$2.57B | +0.17pp | +0.0004 |
-| GA:ga_dependent_exemption | GA | -$457.0M | +0.20pp | +0.0005 |
+| SC:sc_eitc | SC | $1.63B | -4.18pp | -0.0074 |
+| GA:ga_dependent_exemption | GA | -$458.0M | +0.20pp | +0.0005 |
 | IL:il_dependent_exemption | IL | -$423.7M | +0.11pp | +0.0005 |
 | MN:mn_dependent_exemption | MN | -$365.4M | +0.06pp | +0.0007 |
 | CO:co_eitc | CO | $266.2M | -0.81pp | -0.0010 |
@@ -21,7 +27,7 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | OR:or_dependent_exemption | OR | -$177.1M | +0.63pp | +0.0007 |
 | NJ:nj_dependent_exemption | NJ | -$169.0M | +0.14pp | +0.0001 |
 | IL:il_eitc | IL | $165.6M | -0.26pp | -0.0003 |
-| AZ:az_dependent_exemption | AZ | -$114.8M | +0.09pp | +0.0002 |
+| AZ:az_dependent_exemption | AZ | -$139.4M | +0.18pp | +0.0002 |
 | PA:pa_eitc | PA | $108.6M | -0.11pp | -0.0002 |
 | MD:md_eitc | MD | $102.4M | -0.36pp | -0.0004 |
 | VA:va_dependent_exemption | VA | -$99.6M | +0.01pp | +0.0001 |
@@ -42,7 +48,7 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | GA:ga_ctc | GA | $36.6M | -0.00pp | -0.0000 |
 | RI:ri_dependent_exemption | RI | -$36.5M | +0.21pp | +0.0004 |
 | AL:al_dependent_exemption | AL | -$36.5M | +0.07pp | +0.0002 |
-| CO:co_ctc | CO | $35.3M | -0.06pp | -0.0002 |
+| CO:co_ctc | CO | $35.3M | -0.06pp | -0.0001 |
 | CA:ca_eitc | CA | $32.3M | -0.01pp | -0.0000 |
 | OK:ok_eitc | OK | $31.8M | -0.16pp | -0.0002 |
 | NM:nm_eitc | NM | $31.1M | -0.30pp | -0.0004 |
@@ -58,6 +64,7 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | NE:ne_eitc | NE | $15.0M | -0.09pp | -0.0002 |
 | IL:il_ctc | IL | $14.1M | -0.02pp | -0.0000 |
 | MD:md_ctc | MD | $13.5M | -0.00pp | -0.0001 |
+| CA:snap_reform | CA | $10.4M | -0.01pp | -0.0000 |
 | HI:hi_eitc | HI | $10.4M | -0.16pp | -0.0002 |
 | MA:ma_ctc | MA | $10.1M | -0.00pp | -0.0000 |
 | ME:me_eitc | ME | $8.7M | -0.00pp | -0.0002 |
@@ -70,13 +77,12 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | DC:dc_ctc | DC | $6.1M | +0.00pp | -0.0002 |
 | OR:or_eitc | OR | $5.4M | -0.05pp | -0.0000 |
 | VT:vt_ctc | VT | $5.3M | -0.00pp | -0.0002 |
-| SC:sc_eitc | SC | $3.6M | +0.00pp | -0.0000 |
 | WA:wa_eitc | WA | -$3.1M | +0.00pp | +0.0000 |
 | ME:me_ctc | ME | $1.2M | -0.00pp | -0.0002 |
 | MN:mn_ctc | MN | $205,405 | +0.01pp | -0.0000 |
 | GA:ga_eitc | GA | $0 | +0.00pp | +0.0000 |
 | ID:id_eitc | ID | $0 | +0.00pp | +0.0000 |
-| RI:ri_ctc | RI | — | — | — (ERROR: RuntimeError: Could not find the parameter gov.states.ri.tax.income.credits.ctc.amount (failed at ctc).) |
+| RI:ri_ctc | RI | $0 | +0.00pp | +0.0000 |
 | VT:vt_eitc | VT | $0 | +0.00pp | +0.0000 |
 | AL:al_eitc | AL | $0 | +0.00pp | +0.0000 |
 | AZ:az_eitc | AZ | $0 | +0.00pp | +0.0000 |
@@ -88,4 +94,4 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | WV:wv_eitc | WV | $0 | +0.00pp | +0.0000 |
 
 ## Summary
-78 options, 1 errored. Cost = annual budgetary impact (positive = costs money), state-scoped.
+79 options, 0 errored. Cost = annual budgetary impact (positive = costs money), state-scoped.
