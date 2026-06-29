@@ -11,6 +11,7 @@
   "AK": null,
   "AZ": {
     "creates_credit": true,
+    "in_development": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.az.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.az.child_poverty_impact_dashboard.eitc.match",
@@ -66,6 +67,7 @@
   },
   "ID": {
     "creates_credit": true,
+    "in_development": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.id.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.id.child_poverty_impact_dashboard.eitc.match",
@@ -170,6 +172,7 @@
   },
   "NC": {
     "creates_credit": true,
+    "in_development": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.nc.eitc.in_effect",
     "match": "gov.contrib.states.nc.eitc.match",
@@ -247,6 +250,7 @@
   "WA": null,
   "WV": {
     "creates_credit": true,
+    "in_development": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.match",

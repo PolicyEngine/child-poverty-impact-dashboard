@@ -79,6 +79,10 @@ type EitcReformEntry =
        *  from-scratch options never expose. Without it the match slider sets a
        *  rate on a credit that's still switched off, so the reform pays $0. */
       creates_credit?: boolean;
+      /** Grey the option out (skipped by the coverage sweep and the selector)
+       *  while its upstream reform is broken — e.g. the create-state EITCs that
+       *  delete baseline refundable credits (policyengine-us#8775). */
+      in_development?: boolean;
       note?: string;
     };
 
@@ -571,6 +575,10 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
         category: 'state_eitc',
         is_configurable: true,
         estimated_household_impact: 500,
+        // Some create-state contrib EITC reforms delete the state's baseline
+        // refundable credits upstream (policyengine-us#8775), producing
+        // negative-cost results; grey them out until a fixed PE-US ships.
+        ...(entry?.in_development ? { in_development: true } : {}),
         adjustable_params: [
           {
             name: 'match_rate',

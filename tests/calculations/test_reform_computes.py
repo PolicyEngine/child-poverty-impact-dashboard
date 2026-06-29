@@ -285,7 +285,9 @@ _EITC_REFORMS = json.loads(
 _CREATE_CREDIT_STATES = sorted(
     st
     for st, v in _EITC_REFORMS.items()
-    if isinstance(v, dict) and v.get("creates_credit")
+    if isinstance(v, dict)
+    and v.get("creates_credit")
+    and not v.get("in_development")
 )
 
 
@@ -339,9 +341,9 @@ def _low_income_eitc_household(state: str, year: int) -> dict:
     }
 
 
-# One per distinct mechanism: child_poverty_impact_dashboard contrib (GA),
-# the gov.contrib.states.nc.eitc contrib (NC), and VT's enhanced structure.
-@pytest.mark.parametrize("state", ["GA", "NC", "VT"])
+# One per active mechanism: child_poverty_impact_dashboard contrib (GA, AL)
+# and VT's enhanced structure. (NC's contrib variant is gated -- see #8775.)
+@pytest.mark.parametrize("state", ["GA", "AL", "VT"])
 def test_state_eitc_slider_actually_moves_credit(state: str) -> None:
     """A touched state-EITC match slider must raise a low-income family's net
     income -- not silently pay $0 (the inert-option bug class)."""
