@@ -341,9 +341,10 @@ def _low_income_eitc_household(state: str, year: int) -> dict:
     }
 
 
-# One per active mechanism: child_poverty_impact_dashboard contrib (GA, AL)
-# and VT's enhanced structure. (NC's contrib variant is gated -- see #8775.)
-@pytest.mark.parametrize("state", ["GA", "AL", "VT"])
+# One per mechanism: child_poverty_impact_dashboard contrib (GA, AL), the
+# gov.contrib.states.nc.eitc contrib (NC), and VT's enhanced structure. All
+# now live on the pinned PE-US after the #8775 fix (us 1.747.6).
+@pytest.mark.parametrize("state", ["GA", "AL", "NC", "VT"])
 def test_state_eitc_slider_actually_moves_credit(state: str) -> None:
     """A touched state-EITC match slider must raise a low-income family's net
     income -- not silently pay $0 (the inert-option bug class)."""
