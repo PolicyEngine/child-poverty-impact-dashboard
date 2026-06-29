@@ -184,6 +184,7 @@ function mapEconomyToAnalysisResponse(
       decile_impacts: (dist?.deciles ?? []).map((d) => ({
         decile: d.decile,
         average_gain: d.average_gain,
+        relative_gain: d.relative_gain ?? 0,
         percent_gaining: d.percent_gaining,
         percent_losing: d.percent_losing,
         gain_more_than_5_pct: d.gain_more_than_5_pct,

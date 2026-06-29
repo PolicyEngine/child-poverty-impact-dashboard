@@ -42,7 +42,7 @@ app = modal.App("cpid-backend")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "policyengine-us==1.745.0",
+        "policyengine-us==1.747.6",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-06-25-pe-us-1.745.0"})
+    .env({"CPID_BUILD_REV": "2026-06-29-pe-us-1.747.6"})
 )
 
 
@@ -212,6 +212,8 @@ def _household_point(sim_baseline, sim_reform, year: int, state_code: str) -> di
     def _row(sim) -> dict:
         return {
             "net_income": _val(sim, "household_net_income"),
+            "federal_income_tax": _val(sim, "income_tax"),
+            "state_income_tax": _val(sim, "state_income_tax"),
             "federal_ctc": _val(sim, "ctc"),
             "federal_eitc": _val(sim, "eitc"),
             "state_ctc": _sum(sim, ctc_vars),
@@ -293,6 +295,8 @@ def compute_household_sweep(payload: dict) -> dict:
 
         def _rows(sim):
             net = _arr(sim, "household_net_income")
+            fit = _arr(sim, "income_tax")
+            sit = _arr(sim, "state_income_tax")
             fctc = _arr(sim, "ctc")
             feitc = _arr(sim, "eitc")
             sctc = _sum_arr(sim, ctc_vars)
@@ -304,6 +308,8 @@ def compute_household_sweep(payload: dict) -> dict:
                 {
                     "income": float(incomes[i]),
                     "net_income": float(net[i]),
+                    "federal_income_tax": float(fit[i]),
+                    "state_income_tax": float(sit[i]),
                     "federal_ctc": float(fctc[i]),
                     "federal_eitc": float(feitc[i]),
                     "state_ctc": float(sctc[i]),
@@ -572,6 +578,7 @@ def compute_economy(payload: dict) -> dict:
                 {
                     "decile": d,
                     "average_gain": 0.0,
+                    "relative_gain": 0.0,
                     "percent_gaining": 0.0,
                     "percent_losing": 0.0,
                     "percent_unchanged": 100.0,
@@ -588,6 +595,14 @@ def compute_economy(payload: dict) -> dict:
         g = person_gain[mask]
         r = rel_gain[mask]
         gain_total = float((g * w).sum())
+        # Decile relative gain = decile total gain / decile baseline net
+        # income, for the "relative" (% change) distributional view.
+        decile_baseline_total = float((person_net_baseline[mask] * w).sum())
+        decile_relative_gain = (
+            gain_total / decile_baseline_total
+            if decile_baseline_total > 0
+            else 0.0
+        )
         pct_gain_more = float((w * (r > GAIN_THRESHOLD)).sum() / sw * 100)
         pct_gain_less = float(
             (w * ((r > 0) & (r <= GAIN_THRESHOLD))).sum() / sw * 100
@@ -604,6 +619,7 @@ def compute_economy(payload: dict) -> dict:
             {
                 "decile": d,
                 "average_gain": float((g * w).sum() / sw),
+                "relative_gain": decile_relative_gain,
                 "percent_gaining": pct_gain_more + pct_gain_less,
                 "percent_losing": pct_lose_less + pct_lose_more,
                 "percent_unchanged": pct_no_change,

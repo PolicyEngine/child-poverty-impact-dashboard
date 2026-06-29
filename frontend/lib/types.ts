@@ -81,6 +81,7 @@ export interface ReformRequest {
 export interface DecileImpact {
   decile: number;
   average_gain: number;
+  relative_gain?: number;
   percent_gaining: number;
   percent_losing: number;
   gain_more_than_5_pct?: number;

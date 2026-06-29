@@ -369,41 +369,6 @@ export default function HouseholdForm({
                       }
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-pe-gray-500 mb-1">Childcare</label>
-                    <label className="flex items-center gap-2 w-full px-4 py-2.5 bg-white border border-pe-gray-200 rounded-lg cursor-pointer hover:border-pe-gray-300 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={child.in_childcare || false}
-                        onChange={(e) =>
-                          updateChild(index, { in_childcare: e.target.checked })
-                        }
-                        className="h-4 w-4 accent-pe-teal-500"
-                      />
-                      <span className="text-sm text-pe-gray-700">In childcare</span>
-                    </label>
-                  </div>
-                  {child.in_childcare && (
-                    <div>
-                      <label className="block text-xs font-medium text-pe-gray-500 mb-1">
-                        Annual cost
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
-                        <input
-                          type="number"
-                          className="input pl-7"
-                          value={child.childcare_expenses_annual || 0}
-                          min={0}
-                          onChange={(e) =>
-                            updateChild(index, {
-                              childcare_expenses_annual: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

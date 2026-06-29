@@ -1,28 +1,99 @@
-# Reform cost sweep — policyengine-us 1.729.5
+# Reform cost sweep — policyengine-us 1.745.0
 
-> ⚠️ Scored on the **currently-deployed** Modal endpoint, which is **behind the repo pin (1.739.4)** — its `/healthz` predates the version field, and `RI:ri_ctc` errors because the deploy is older than 1.731.0 (where RI CTC shipped). The ~11 EITC options showing exactly $0 are likely the same stale-deploy cause. **Redeploy the endpoint, then re-run to take the official baseline** (future sweeps self-label from `/healthz`).
+Annual budgetary cost of every configurable reform option, scored on the dashboard's own backend at version **1.745.0**. 179 options.
 
-Annual budgetary cost of every configurable reform option, scored on the dashboard's own backend at the **currently-deployed** version (≈1.729.5). 78 options.
+## Cost changes vs 1.729.5
+
+| Reform | Prev | Now | Δ | Δ% |
+|---|---|---|---|---|
+| SC:sc_eitc | $3.6M | $1.63B | $1.63B | +45717% |
+| ID:id_eitc | $0 | -$271.0M | -$271.0M | +100% |
+| NC:nc_eitc | $0 | -$186.5M | -$186.5M | +100% |
+| WV:wv_eitc | $0 | -$166.6M | -$166.6M | +100% |
+| GA:ga_eitc | $0 | $152.5M | $152.5M | +100% |
+| AZ:az_eitc | $0 | -$106.5M | -$106.5M | +100% |
+| AL:al_eitc | $0 | $68.9M | $68.9M | +100% |
+| MS:ms_eitc | $0 | $52.7M | $52.7M | +100% |
+| KY:ky_eitc | $0 | $49.5M | $49.5M | +100% |
+| AR:ar_eitc | $0 | $39.7M | $39.7M | +100% |
+| AZ:az_dependent_exemption | -$114.8M | -$139.4M | -$24.6M | -21% |
+| ND:nd_eitc | $0 | $5.0M | $5.0M | +100% |
 
 ## All reforms (by cost)
 
 | Reform | State | Annual cost | Δ child pov | Δ Gini |
 |---|---|---|---|---|
 | CA:child_allowance | CA | $8.57B | -2.63pp | -0.0039 |
+| TX:child_allowance | TX | $8.09B | -2.89pp | -0.0051 |
+| FL:child_allowance | FL | $4.86B | -2.68pp | -0.0040 |
+| NY:child_allowance | NY | $4.17B | -2.56pp | -0.0038 |
+| PA:child_allowance | PA | $2.78B | -1.73pp | -0.0038 |
+| OH:child_allowance | OH | $2.77B | -1.67pp | -0.0044 |
+| IL:child_allowance | IL | $2.75B | -2.20pp | -0.0039 |
+| GA:child_allowance | GA | $2.73B | -2.76pp | -0.0051 |
 | CA:ca_dependent_exemption | CA | -$2.57B | +0.17pp | +0.0004 |
-| GA:ga_dependent_exemption | GA | -$457.0M | +0.20pp | +0.0005 |
+| NC:child_allowance | NC | $2.51B | -1.88pp | -0.0044 |
+| MI:child_allowance | MI | $2.25B | -1.53pp | -0.0040 |
+| NJ:child_allowance | NJ | $1.93B | -2.37pp | -0.0035 |
+| VA:child_allowance | VA | $1.89B | -1.89pp | -0.0038 |
+| AZ:child_allowance | AZ | $1.73B | -2.39pp | -0.0045 |
+| IN:child_allowance | IN | $1.72B | -1.97pp | -0.0047 |
+| TN:child_allowance | TN | $1.71B | -2.65pp | -0.0046 |
+| SC:sc_eitc | SC | $1.63B | -4.18pp | -0.0074 |
+| WA:child_allowance | WA | $1.61B | -1.85pp | -0.0034 |
+| MO:child_allowance | MO | $1.47B | -1.83pp | -0.0045 |
+| MD:child_allowance | MD | $1.33B | -2.44pp | -0.0036 |
+| WI:child_allowance | WI | $1.32B | -1.35pp | -0.0039 |
+| MN:child_allowance | MN | $1.30B | -1.17pp | -0.0037 |
+| MA:child_allowance | MA | $1.28B | -2.09pp | -0.0029 |
+| AL:child_allowance | AL | $1.28B | -3.23pp | -0.0052 |
+| SC:child_allowance | SC | $1.27B | -2.15pp | -0.0046 |
+| CO:child_allowance | CO | $1.20B | -1.82pp | -0.0034 |
+| LA:child_allowance | LA | $1.17B | -3.12pp | -0.0052 |
+| KY:child_allowance | KY | $1.13B | -1.97pp | -0.0049 |
+| OK:child_allowance | OK | $1.06B | -1.94pp | -0.0051 |
+| UT:child_allowance | UT | $958.5M | -1.11pp | -0.0046 |
+| OR:child_allowance | OR | $864.0M | -2.18pp | -0.0039 |
+| IA:child_allowance | IA | $782.4M | -1.15pp | -0.0043 |
+| MS:child_allowance | MS | $780.5M | -2.89pp | -0.0058 |
+| AR:child_allowance | AR | $779.8M | -2.20pp | -0.0052 |
+| NV:child_allowance | NV | $744.9M | -3.36pp | -0.0044 |
+| KS:child_allowance | KS | $736.4M | -2.06pp | -0.0048 |
+| CT:child_allowance | CT | $698.8M | -1.70pp | -0.0033 |
+| ID:child_allowance | ID | $511.7M | -1.48pp | -0.0046 |
+| NM:child_allowance | NM | $505.3M | -1.67pp | -0.0049 |
+| NE:child_allowance | NE | $499.9M | -0.80pp | -0.0042 |
+| GA:ga_dependent_exemption | GA | -$458.0M | +0.20pp | +0.0005 |
 | IL:il_dependent_exemption | IL | -$423.7M | +0.11pp | +0.0005 |
+| WV:child_allowance | WV | $401.6M | -2.18pp | -0.0047 |
 | MN:mn_dependent_exemption | MN | -$365.4M | +0.06pp | +0.0007 |
+| HI:child_allowance | HI | $303.3M | -2.24pp | -0.0036 |
+| ID:id_eitc | ID | -$271.0M | +0.08pp | +0.0012 |
 | CO:co_eitc | CO | $266.2M | -0.81pp | -0.0010 |
 | NY:ny_dependent_exemption | NY | -$265.9M | +0.19pp | +0.0002 |
+| ME:child_allowance | ME | $265.4M | -2.46pp | -0.0033 |
+| MT:child_allowance | MT | $252.0M | -1.18pp | -0.0040 |
+| NH:child_allowance | NH | $238.8M | -1.74pp | -0.0024 |
+| SD:child_allowance | SD | $232.7M | -1.06pp | -0.0042 |
+| DE:child_allowance | DE | $230.4M | -2.34pp | -0.0042 |
+| RI:child_allowance | RI | $216.5M | -2.31pp | -0.0035 |
 | NY:ny_eitc | NY | $194.3M | -0.25pp | -0.0002 |
 | SC:sc_dependent_exemption | SC | -$187.3M | +0.07pp | +0.0003 |
+| NC:nc_eitc | NC | -$186.5M | -0.09pp | -0.0003 |
+| ND:child_allowance | ND | $185.4M | -0.57pp | -0.0036 |
 | NY:ny_ctc | NY | $184.6M | -0.12pp | -0.0002 |
+| AK:child_allowance | AK | $178.8M | -1.88pp | -0.0043 |
 | OR:or_dependent_exemption | OR | -$177.1M | +0.63pp | +0.0007 |
 | NJ:nj_dependent_exemption | NJ | -$169.0M | +0.14pp | +0.0001 |
+| WV:wv_eitc | WV | -$166.6M | +0.00pp | +0.0018 |
 | IL:il_eitc | IL | $165.6M | -0.26pp | -0.0003 |
-| AZ:az_dependent_exemption | AZ | -$114.8M | +0.09pp | +0.0002 |
+| GA:ga_eitc | GA | $152.5M | -0.34pp | -0.0003 |
+| AZ:az_dependent_exemption | AZ | -$139.4M | +0.18pp | +0.0002 |
+| WY:child_allowance | WY | $136.5M | -1.63pp | -0.0039 |
+| VT:child_allowance | VT | $123.1M | -0.94pp | -0.0032 |
+| DC:child_allowance | DC | $121.9M | -1.91pp | -0.0031 |
 | PA:pa_eitc | PA | $108.6M | -0.11pp | -0.0002 |
+| AZ:az_eitc | AZ | -$106.5M | -0.23pp | +0.0002 |
 | MD:md_eitc | MD | $102.4M | -0.36pp | -0.0004 |
 | VA:va_dependent_exemption | VA | -$99.6M | +0.01pp | +0.0001 |
 | MI:mi_eitc | MI | $98.3M | -0.19pp | -0.0002 |
@@ -35,14 +106,18 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | IN:in_dependent_exemption | IN | -$75.8M | +0.07pp | +0.0002 |
 | LA:la_eitc | LA | $74.8M | -0.54pp | -0.0004 |
 | VA:va_eitc | VA | $72.3M | -0.43pp | -0.0002 |
+| AL:al_eitc | AL | $68.9M | -0.25pp | -0.0004 |
 | NJ:nj_ctc | NJ | $63.9M | -0.13pp | -0.0002 |
 | IN:in_eitc | IN | $63.3M | -0.19pp | -0.0002 |
+| MS:ms_eitc | MS | $52.7M | -0.15pp | -0.0005 |
+| KY:ky_eitc | KY | $49.5M | -0.15pp | -0.0003 |
 | MA:ma_eitc | MA | $41.7M | -0.31pp | -0.0001 |
 | MN:mn_eitc | MN | $41.4M | -0.03pp | -0.0001 |
+| AR:ar_eitc | AR | $39.7M | -0.36pp | -0.0004 |
 | GA:ga_ctc | GA | $36.6M | -0.00pp | -0.0000 |
 | RI:ri_dependent_exemption | RI | -$36.5M | +0.21pp | +0.0004 |
 | AL:al_dependent_exemption | AL | -$36.5M | +0.07pp | +0.0002 |
-| CO:co_ctc | CO | $35.3M | -0.06pp | -0.0002 |
+| CO:co_ctc | CO | $35.3M | -0.06pp | -0.0001 |
 | CA:ca_eitc | CA | $32.3M | -0.01pp | -0.0000 |
 | OK:ok_eitc | OK | $31.8M | -0.16pp | -0.0002 |
 | NM:nm_eitc | NM | $31.1M | -0.30pp | -0.0004 |
@@ -58,6 +133,7 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | NE:ne_eitc | NE | $15.0M | -0.09pp | -0.0002 |
 | IL:il_ctc | IL | $14.1M | -0.02pp | -0.0000 |
 | MD:md_ctc | MD | $13.5M | -0.00pp | -0.0001 |
+| CA:snap_reform | CA | $10.4M | -0.01pp | -0.0000 |
 | HI:hi_eitc | HI | $10.4M | -0.16pp | -0.0002 |
 | MA:ma_ctc | MA | $10.1M | -0.00pp | -0.0000 |
 | ME:me_eitc | ME | $8.7M | -0.00pp | -0.0002 |
@@ -68,24 +144,64 @@ Annual budgetary cost of every configurable reform option, scored on the dashboa
 | DE:de_eitc | DE | $6.3M | -0.17pp | -0.0002 |
 | UT:ut_ctc | UT | -$6.1M | +0.00pp | +0.0000 |
 | DC:dc_ctc | DC | $6.1M | +0.00pp | -0.0002 |
+| TX:snap_reform | TX | $5.7M | +0.00pp | -0.0000 |
 | OR:or_eitc | OR | $5.4M | -0.05pp | -0.0000 |
 | VT:vt_ctc | VT | $5.3M | -0.00pp | -0.0002 |
-| SC:sc_eitc | SC | $3.6M | +0.00pp | -0.0000 |
+| FL:snap_reform | FL | $5.1M | -0.01pp | -0.0000 |
+| ND:nd_eitc | ND | $5.0M | -0.00pp | -0.0002 |
+| NY:snap_reform | NY | $4.1M | -0.01pp | -0.0000 |
+| GA:snap_reform | GA | $3.8M | -0.00pp | -0.0000 |
+| VT:vt_eitc | VT | $3.7M | -0.00pp | -0.0001 |
+| OH:snap_reform | OH | $3.3M | +0.00pp | -0.0000 |
 | WA:wa_eitc | WA | -$3.1M | +0.00pp | +0.0000 |
+| PA:snap_reform | PA | $3.0M | -0.03pp | -0.0000 |
+| IL:snap_reform | IL | $2.7M | +0.00pp | -0.0000 |
+| NC:snap_reform | NC | $2.6M | -0.00pp | -0.0000 |
+| MI:snap_reform | MI | $2.3M | +0.00pp | -0.0000 |
+| TN:snap_reform | TN | $2.1M | +0.00pp | -0.0000 |
+| AL:snap_reform | AL | $1.7M | +0.00pp | -0.0000 |
+| MO:snap_reform | MO | $1.7M | +0.00pp | -0.0000 |
+| LA:snap_reform | LA | $1.6M | +0.00pp | -0.0000 |
+| VA:snap_reform | VA | $1.5M | +0.00pp | -0.0000 |
+| IN:snap_reform | IN | $1.5M | +0.00pp | -0.0000 |
+| AZ:snap_reform | AZ | $1.5M | +0.00pp | -0.0000 |
+| SC:snap_reform | SC | $1.4M | +0.00pp | -0.0000 |
+| OK:snap_reform | OK | $1.4M | -0.06pp | -0.0000 |
+| MA:snap_reform | MA | $1.4M | -0.00pp | -0.0000 |
+| MS:snap_reform | MS | $1.4M | +0.00pp | -0.0000 |
+| WA:snap_reform | WA | $1.3M | +0.00pp | -0.0000 |
 | ME:me_ctc | ME | $1.2M | -0.00pp | -0.0002 |
+| KY:snap_reform | KY | $1.1M | +0.00pp | -0.0000 |
+| WI:snap_reform | WI | $1.1M | +0.00pp | -0.0000 |
+| AR:snap_reform | AR | $1.0M | +0.00pp | -0.0000 |
+| OR:snap_reform | OR | $995,328 | +0.00pp | -0.0000 |
+| CO:snap_reform | CO | $919,552 | +0.00pp | -0.0000 |
+| MD:snap_reform | MD | $897,024 | +0.00pp | -0.0000 |
+| NJ:snap_reform | NJ | $876,544 | +0.00pp | -0.0000 |
+| NV:snap_reform | NV | $737,280 | +0.00pp | -0.0000 |
+| MN:snap_reform | MN | $718,848 | +0.00pp | -0.0000 |
+| CT:snap_reform | CT | $675,840 | +0.00pp | -0.0000 |
+| NM:snap_reform | NM | $658,432 | +0.00pp | -0.0000 |
+| KS:snap_reform | KS | $547,840 | +0.00pp | -0.0000 |
+| WV:snap_reform | WV | $443,392 | +0.00pp | -0.0000 |
+| IA:snap_reform | IA | $425,984 | +0.00pp | -0.0000 |
+| HI:snap_reform | HI | $399,872 | +0.00pp | -0.0000 |
+| AK:snap_reform | AK | $308,992 | +0.00pp | -0.0000 |
+| ID:snap_reform | ID | $291,843 | +0.00pp | -0.0000 |
+| NE:snap_reform | NE | $279,552 | +0.00pp | -0.0000 |
+| ME:snap_reform | ME | $269,824 | +0.00pp | -0.0000 |
+| UT:snap_reform | UT | $266,240 | -0.01pp | -0.0000 |
+| RI:snap_reform | RI | $234,496 | +0.00pp | -0.0000 |
 | MN:mn_ctc | MN | $205,405 | +0.01pp | -0.0000 |
-| GA:ga_eitc | GA | $0 | +0.00pp | +0.0000 |
-| ID:id_eitc | ID | $0 | +0.00pp | +0.0000 |
-| RI:ri_ctc | RI | — | — | — (ERROR: RuntimeError: Could not find the parameter gov.states.ri.tax.income.credits.ctc.amount (failed at ctc).) |
-| VT:vt_eitc | VT | $0 | +0.00pp | +0.0000 |
-| AL:al_eitc | AL | $0 | +0.00pp | +0.0000 |
-| AZ:az_eitc | AZ | $0 | +0.00pp | +0.0000 |
-| AR:ar_eitc | AR | $0 | +0.00pp | +0.0000 |
-| KY:ky_eitc | KY | $0 | +0.00pp | +0.0000 |
-| MS:ms_eitc | MS | $0 | +0.00pp | +0.0000 |
-| NC:nc_eitc | NC | $0 | +0.00pp | +0.0000 |
-| ND:nd_eitc | ND | $0 | +0.00pp | +0.0000 |
-| WV:wv_eitc | WV | $0 | +0.00pp | +0.0000 |
+| DE:snap_reform | DE | $201,216 | +0.00pp | -0.0000 |
+| DC:snap_reform | DC | $148,992 | +0.00pp | -0.0000 |
+| MT:snap_reform | MT | $142,848 | +0.00pp | -0.0000 |
+| SD:snap_reform | SD | $141,056 | +0.00pp | -0.0000 |
+| NH:snap_reform | NH | $135,680 | +0.00pp | -0.0000 |
+| ND:snap_reform | ND | $115,968 | +0.00pp | -0.0000 |
+| VT:snap_reform | VT | $96,256 | +0.00pp | -0.0000 |
+| WY:snap_reform | WY | $44,800 | +0.00pp | -0.0000 |
+| RI:ri_ctc | RI | $0 | +0.00pp | +0.0000 |
 
 ## Summary
-78 options, 1 errored. Cost = annual budgetary impact (positive = costs money), state-scoped.
+179 options, 0 errored. Cost = annual budgetary impact (positive = costs money), state-scoped.

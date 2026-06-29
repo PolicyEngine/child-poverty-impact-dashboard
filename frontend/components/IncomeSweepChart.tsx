@@ -55,6 +55,13 @@ export default function IncomeSweepChart({
       total_benefits: point.total_benefits,
       effective_tax_rate: point.effective_tax_rate,
       in_poverty: point.in_poverty,
+      income_tax:
+        (point.federal_income_tax ?? 0) + (point.state_income_tax ?? 0),
+      reform_income_tax:
+        reformData?.[index] !== undefined
+          ? (reformData[index].federal_income_tax ?? 0) +
+            (reformData[index].state_income_tax ?? 0)
+          : undefined,
       reform_net_income: reformData?.[index]?.net_income,
       reform_total_benefits: reformData?.[index]?.total_benefits,
       reform_effective_tax_rate: reformData?.[index]?.effective_tax_rate,
@@ -109,6 +116,24 @@ export default function IncomeSweepChart({
               strokeWidth={1}
               dot={false}
             />
+            <Line
+              type="monotone"
+              dataKey="income_tax"
+              name="Baseline Income Tax"
+              stroke={chartColors.neutral}
+              strokeWidth={1.5}
+              dot={false}
+            />
+            {reformData && (
+              <Line
+                type="monotone"
+                dataKey="reform_income_tax"
+                name="Reform Income Tax"
+                stroke={chartColors.negative}
+                strokeWidth={1.5}
+                dot={false}
+              />
+            )}
           </LineChart>
         );
 

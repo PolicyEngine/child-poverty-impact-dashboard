@@ -12,10 +12,7 @@ export interface PersonInput {
   is_disabled?: boolean;
 }
 
-export interface ChildInput extends PersonInput {
-  in_childcare?: boolean;
-  childcare_expenses_annual?: number;
-}
+export type ChildInput = PersonInput;
 
 export interface IncomeInput {
   employment_income: number;
@@ -95,8 +92,6 @@ export interface ReformOption {
   name: string;
   description: string;
   category: string;
-  is_new_program: boolean;
-  is_enhancement: boolean;
   estimated_household_impact?: number;
   customizable_params: string[];
   is_configurable?: boolean;
@@ -139,6 +134,8 @@ export interface StatePrograms {
 export interface IncomeSweepDataPoint {
   income: number;
   net_income: number;
+  federal_income_tax?: number;
+  state_income_tax?: number;
   federal_ctc: number;
   state_ctc: number;
   federal_eitc: number;

@@ -127,8 +127,12 @@ export interface ManifestEntry {
 
 /** Build the full coverage manifest: every option singly (at default and,
  *  if configurable, at an edited value) plus the per-state all-categories
- *  combo. Deduplicated by ``(ids, reform)`` so federal/child-allowance
- *  options — identical across all states — are only emitted once. */
+ *  combo. Deduplicated by ``(state, ids, reform)`` — one entry per
+ *  ``(state, option)`` — so national reforms (SNAP, the child allowance,
+ *  federal switches) whose dict is identical across states are still scored
+ *  in every state. That gives the cost sweep "each reform in every state";
+ *  the exhaustive compute test re-dedupes by reform dict so per-PR CI stays
+ *  flat (an identical dict computes identically regardless of state tag). */
 export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
   const entries: ManifestEntry[] = [];
   for (const state of allStateCodes()) {
@@ -173,7 +177,7 @@ export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
   const seen = new Set<string>();
   const deduped: ManifestEntry[] = [];
   for (const e of entries) {
-    const key = JSON.stringify([e.ids, e.reform]);
+    const key = JSON.stringify([e.state, e.ids, e.reform]);
     if (seen.has(key)) continue;
     seen.add(key);
     deduped.push(e);

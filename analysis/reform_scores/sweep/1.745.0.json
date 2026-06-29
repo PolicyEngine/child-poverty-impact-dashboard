@@ -1,0 +1,1076 @@
+{
+  "CA:ca_ctc": {
+    "state": "CA",
+    "annual_cost": 89042592.73397827,
+    "poverty_child_delta": -0.00012670516967772105,
+    "gini_delta": -5.9039595187937444e-05
+  },
+  "CA:ca_eitc": {
+    "state": "CA",
+    "annual_cost": 32334284.24458313,
+    "poverty_child_delta": -0.00014419555664060835,
+    "gini_delta": -1.8595590553394103e-05
+  },
+  "CA:ca_dependent_exemption": {
+    "state": "CA",
+    "annual_cost": -2569588691.695236,
+    "poverty_child_delta": 0.0017378997802734442,
+    "gini_delta": 0.00042202765560328537
+  },
+  "CA:snap_reform": {
+    "state": "CA",
+    "annual_cost": 10420224.0,
+    "poverty_child_delta": -7.410049438474897e-05,
+    "gini_delta": -6.314985818600682e-06
+  },
+  "CA:child_allowance": {
+    "state": "CA",
+    "annual_cost": 8571518976.0,
+    "poverty_child_delta": -0.02629568099975585,
+    "gini_delta": -0.0038575758361394374
+  },
+  "CO:co_ctc": {
+    "state": "CO",
+    "annual_cost": 35342896.4448843,
+    "poverty_child_delta": -0.0006345939636230313,
+    "gini_delta": -0.00014998174755465055
+  },
+  "CO:co_eitc": {
+    "state": "CO",
+    "annual_cost": 266168786.4814186,
+    "poverty_child_delta": -0.008140115737915038,
+    "gini_delta": -0.0010353661912745338
+  },
+  "CO:snap_reform": {
+    "state": "CO",
+    "annual_cost": 919552.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.813547190034683e-06
+  },
+  "CO:child_allowance": {
+    "state": "CO",
+    "annual_cost": 1202716672.0,
+    "poverty_child_delta": -0.01819899559020996,
+    "gini_delta": -0.003408365325494933
+  },
+  "CT:ct_eitc": {
+    "state": "CT",
+    "annual_cost": -20595411.009881973,
+    "poverty_child_delta": 0.0008526611328124878,
+    "gini_delta": 0.00012536382554528824
+  },
+  "CT:snap_reform": {
+    "state": "CT",
+    "annual_cost": 675840.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.2272335325499455e-06
+  },
+  "CT:child_allowance": {
+    "state": "CT",
+    "annual_cost": 698783744.0,
+    "poverty_child_delta": -0.017014274597167978,
+    "gini_delta": -0.00329090945203947
+  },
+  "DC:dc_ctc": {
+    "state": "DC",
+    "annual_cost": 6087062.554784775,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -0.00017417070900982434
+  },
+  "DC:dc_eitc": {
+    "state": "DC",
+    "annual_cost": -6624924.140001774,
+    "poverty_child_delta": 2.822875976582484e-06,
+    "gini_delta": 0.0001793104482755714
+  },
+  "DC:snap_reform": {
+    "state": "DC",
+    "annual_cost": 148992.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.995546097423919e-06
+  },
+  "DC:child_allowance": {
+    "state": "DC",
+    "annual_cost": 121921024.0,
+    "poverty_child_delta": -0.019077587127685536,
+    "gini_delta": -0.0030700360095338164
+  },
+  "GA:ga_ctc": {
+    "state": "GA",
+    "annual_cost": 36553771.96634674,
+    "poverty_child_delta": -2.002716064453125e-05,
+    "gini_delta": -2.6086578638451208e-05
+  },
+  "GA:ga_eitc": {
+    "state": "GA",
+    "annual_cost": 152451299.94944763,
+    "poverty_child_delta": -0.003360919952392627,
+    "gini_delta": -0.0003452506258115884
+  },
+  "GA:ga_dependent_exemption": {
+    "state": "GA",
+    "annual_cost": -458010938.40815353,
+    "poverty_child_delta": 0.0019820404052733887,
+    "gini_delta": 0.00045738705184938944
+  },
+  "GA:snap_reform": {
+    "state": "GA",
+    "annual_cost": 3784704.0,
+    "poverty_child_delta": -1.907348634588857e-08,
+    "gini_delta": -9.079768637176855e-06
+  },
+  "GA:child_allowance": {
+    "state": "GA",
+    "annual_cost": 2734260224.0,
+    "poverty_child_delta": -0.027588539123535177,
+    "gini_delta": -0.005081068123367394
+  },
+  "ID:id_eitc": {
+    "state": "ID",
+    "annual_cost": -270962239.15393496,
+    "poverty_child_delta": 0.0007720565795898415,
+    "gini_delta": 0.0012085589823691567
+  },
+  "ID:snap_reform": {
+    "state": "ID",
+    "annual_cost": 291843.0877671242,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.391325218566777e-06
+  },
+  "ID:child_allowance": {
+    "state": "ID",
+    "annual_cost": 511675392.0,
+    "poverty_child_delta": -0.014829120635986334,
+    "gini_delta": -0.004637455841908222
+  },
+  "IL:il_ctc": {
+    "state": "IL",
+    "annual_cost": 14124630.612926483,
+    "poverty_child_delta": -0.00019063949584960382,
+    "gini_delta": -2.9639297121075714e-05
+  },
+  "IL:il_eitc": {
+    "state": "IL",
+    "annual_cost": 165644206.7748947,
+    "poverty_child_delta": -0.002552518844604501,
+    "gini_delta": -0.00032213179698870054
+  },
+  "IL:il_dependent_exemption": {
+    "state": "IL",
+    "annual_cost": -423729515.94072723,
+    "poverty_child_delta": 0.0011490154266357577,
+    "gini_delta": 0.00048631544109478675
+  },
+  "IL:snap_reform": {
+    "state": "IL",
+    "annual_cost": 2662400.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.259422369174871e-06
+  },
+  "IL:child_allowance": {
+    "state": "IL",
+    "annual_cost": 2754072576.0,
+    "poverty_child_delta": -0.022038736343383797,
+    "gini_delta": -0.003920788157624311
+  },
+  "MA:ma_ctc": {
+    "state": "MA",
+    "annual_cost": 10131879.583255768,
+    "poverty_child_delta": -5.7220458982154554e-08,
+    "gini_delta": -1.6802100545776355e-05
+  },
+  "MA:ma_eitc": {
+    "state": "MA",
+    "annual_cost": 41675482.92992401,
+    "poverty_child_delta": -0.003110771179199223,
+    "gini_delta": -0.0001266641769492871
+  },
+  "MA:ma_dependent_exemption": {
+    "state": "MA",
+    "annual_cost": -78496790.00444794,
+    "poverty_child_delta": 0.0014270019531250067,
+    "gini_delta": 0.00011319085222805114
+  },
+  "MA:snap_reform": {
+    "state": "MA",
+    "annual_cost": 1382017.1854820251,
+    "poverty_child_delta": -5.7220458982154554e-08,
+    "gini_delta": -3.99378291937591e-06
+  },
+  "MA:child_allowance": {
+    "state": "MA",
+    "annual_cost": 1279754240.0,
+    "poverty_child_delta": -0.020914344787597655,
+    "gini_delta": -0.002943314643155448
+  },
+  "MD:md_ctc": {
+    "state": "MD",
+    "annual_cost": 13474579.767534256,
+    "poverty_child_delta": -4.3869018553910344e-07,
+    "gini_delta": -5.5380568009355535e-05
+  },
+  "MD:md_eitc": {
+    "state": "MD",
+    "annual_cost": 102406124.21265984,
+    "poverty_child_delta": -0.003570499420166018,
+    "gini_delta": -0.00036566847136854097
+  },
+  "MD:snap_reform": {
+    "state": "MD",
+    "annual_cost": 897024.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.6138521093409537e-06
+  },
+  "MD:child_allowance": {
+    "state": "MD",
+    "annual_cost": 1327081472.0,
+    "poverty_child_delta": -0.02439508438110352,
+    "gini_delta": -0.003598282472823122
+  },
+  "MN:mn_ctc": {
+    "state": "MN",
+    "annual_cost": 205404.50747680664,
+    "poverty_child_delta": 0.00012309074401854747,
+    "gini_delta": -1.8296757900215788e-05
+  },
+  "MN:mn_eitc": {
+    "state": "MN",
+    "annual_cost": 41425295.151412964,
+    "poverty_child_delta": -0.0002914333343505965,
+    "gini_delta": -9.61164694955885e-05
+  },
+  "MN:mn_dependent_exemption": {
+    "state": "MN",
+    "annual_cost": -365427929.1154213,
+    "poverty_child_delta": 0.0005753898620605435,
+    "gini_delta": 0.0007286788026091839
+  },
+  "MN:snap_reform": {
+    "state": "MN",
+    "annual_cost": 718848.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.1152740218587383e-06
+  },
+  "MN:child_allowance": {
+    "state": "MN",
+    "annual_cost": 1298429952.0,
+    "poverty_child_delta": -0.011679077148437508,
+    "gini_delta": -0.0037229561215801343
+  },
+  "NJ:nj_ctc": {
+    "state": "NJ",
+    "annual_cost": 63909191.735946655,
+    "poverty_child_delta": -0.0013466072082519431,
+    "gini_delta": -0.000159984702915561
+  },
+  "NJ:nj_eitc": {
+    "state": "NJ",
+    "annual_cost": 87645373.27687454,
+    "poverty_child_delta": -0.001122837066650395,
+    "gini_delta": -0.00019435026021641377
+  },
+  "NJ:nj_dependent_exemption": {
+    "state": "NJ",
+    "annual_cost": -168950390.48383713,
+    "poverty_child_delta": 0.0013785552978515525,
+    "gini_delta": 0.00013453547221609075
+  },
+  "NJ:snap_reform": {
+    "state": "NJ",
+    "annual_cost": 876544.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -2.3908743498335383e-06
+  },
+  "NJ:child_allowance": {
+    "state": "NJ",
+    "annual_cost": 1934295040.0,
+    "poverty_child_delta": -0.023698263168334954,
+    "gini_delta": -0.0034561517556430665
+  },
+  "NM:nm_ctc": {
+    "state": "NM",
+    "annual_cost": 21364541.31545639,
+    "poverty_child_delta": -3.814697266402156e-08,
+    "gini_delta": -0.00017047577886242227
+  },
+  "NM:nm_eitc": {
+    "state": "NM",
+    "annual_cost": 31127819.48004675,
+    "poverty_child_delta": -0.002986145019531261,
+    "gini_delta": -0.0003785126192852317
+  },
+  "NM:snap_reform": {
+    "state": "NM",
+    "annual_cost": 658432.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -8.265903651993867e-06
+  },
+  "NM:child_allowance": {
+    "state": "NM",
+    "annual_cost": 505272320.0,
+    "poverty_child_delta": -0.01667636871337891,
+    "gini_delta": -0.004853503920621449
+  },
+  "NY:ny_ctc": {
+    "state": "NY",
+    "annual_cost": 184586396.33768463,
+    "poverty_child_delta": -0.0011780929565429477,
+    "gini_delta": -0.00016260427657788235
+  },
+  "NY:ny_eitc": {
+    "state": "NY",
+    "annual_cost": 194287555.96845245,
+    "poverty_child_delta": -0.0024767303466796675,
+    "gini_delta": -0.0002289100127702559
+  },
+  "NY:ny_dependent_exemption": {
+    "state": "NY",
+    "annual_cost": -265890931.5627365,
+    "poverty_child_delta": 0.0018571090698242254,
+    "gini_delta": 0.0001675754187777656
+  },
+  "NY:snap_reform": {
+    "state": "NY",
+    "annual_cost": 4079616.0,
+    "poverty_child_delta": -0.0001103591918945046,
+    "gini_delta": -4.844300734330176e-06
+  },
+  "NY:child_allowance": {
+    "state": "NY",
+    "annual_cost": 4166008832.0,
+    "poverty_child_delta": -0.025559501647949207,
+    "gini_delta": -0.0038486078323901607
+  },
+  "OK:ok_eitc": {
+    "state": "OK",
+    "annual_cost": 31794239.39920807,
+    "poverty_child_delta": -0.0016363525390624967,
+    "gini_delta": -0.00021897016834060423
+  },
+  "OK:snap_reform": {
+    "state": "OK",
+    "annual_cost": 1414144.0,
+    "poverty_child_delta": -0.0005889129638671775,
+    "gini_delta": -9.77891486619864e-06
+  },
+  "OK:child_allowance": {
+    "state": "OK",
+    "annual_cost": 1058365440.0,
+    "poverty_child_delta": -0.01941065788269042,
+    "gini_delta": -0.005102308973463865
+  },
+  "OR:or_ctc": {
+    "state": "OR",
+    "annual_cost": 15165000.808216095,
+    "poverty_child_delta": -0.0005220794677734397,
+    "gini_delta": -0.0001116493214295966
+  },
+  "OR:or_eitc": {
+    "state": "OR",
+    "annual_cost": 5432854.555557251,
+    "poverty_child_delta": -0.0005371475219726751,
+    "gini_delta": -3.2690891561992785e-05
+  },
+  "OR:or_dependent_exemption": {
+    "state": "OR",
+    "annual_cost": -177123762.65127945,
+    "poverty_child_delta": 0.006312751770019526,
+    "gini_delta": 0.0007192650644510801
+  },
+  "OR:snap_reform": {
+    "state": "OR",
+    "annual_cost": 995328.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.7401377228094574e-06
+  },
+  "OR:child_allowance": {
+    "state": "OR",
+    "annual_cost": 864026624.0,
+    "poverty_child_delta": -0.021791992187499998,
+    "gini_delta": -0.003858659073670001
+  },
+  "RI:ri_ctc": {
+    "state": "RI",
+    "annual_cost": -0.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0
+  },
+  "RI:ri_eitc": {
+    "state": "RI",
+    "annual_cost": 7359355.947793007,
+    "poverty_child_delta": -0.001367740631103509,
+    "gini_delta": -0.00015921563066412237
+  },
+  "RI:ri_dependent_exemption": {
+    "state": "RI",
+    "annual_cost": -36494317.99533558,
+    "poverty_child_delta": 0.002099781036376952,
+    "gini_delta": 0.0003813261120483302
+  },
+  "RI:snap_reform": {
+    "state": "RI",
+    "annual_cost": 234496.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.133949896984902e-06
+  },
+  "RI:child_allowance": {
+    "state": "RI",
+    "annual_cost": 216466432.0,
+    "poverty_child_delta": -0.023118743896484356,
+    "gini_delta": -0.003492409170056665
+  },
+  "VT:vt_ctc": {
+    "state": "VT",
+    "annual_cost": 5332113.679312229,
+    "poverty_child_delta": -2.8610229491077277e-08,
+    "gini_delta": -0.00019171580680077405
+  },
+  "VT:vt_eitc": {
+    "state": "VT",
+    "annual_cost": 3665579.443101883,
+    "poverty_child_delta": -5.054473876942023e-07,
+    "gini_delta": -0.00014522833323571405
+  },
+  "VT:snap_reform": {
+    "state": "VT",
+    "annual_cost": 96256.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.880799663402712e-06
+  },
+  "VT:child_allowance": {
+    "state": "VT",
+    "annual_cost": 123147520.0,
+    "poverty_child_delta": -0.00938604354858398,
+    "gini_delta": -0.0032406643877413988
+  },
+  "DE:de_eitc": {
+    "state": "DE",
+    "annual_cost": 6344129.200229883,
+    "poverty_child_delta": -0.001684360504150384,
+    "gini_delta": -0.00015164802215483775
+  },
+  "DE:de_dependent_exemption": {
+    "state": "DE",
+    "annual_cost": -22099322.831650972,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.00027751918579588253
+  },
+  "DE:snap_reform": {
+    "state": "DE",
+    "annual_cost": 201216.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.119800101982541e-06
+  },
+  "DE:child_allowance": {
+    "state": "DE",
+    "annual_cost": 230431232.0,
+    "poverty_child_delta": -0.0234292221069336,
+    "gini_delta": -0.004188703441175057
+  },
+  "HI:hi_eitc": {
+    "state": "HI",
+    "annual_cost": 10407375.48437643,
+    "poverty_child_delta": -0.0016345787048339666,
+    "gini_delta": -0.00017342432733813418
+  },
+  "HI:snap_reform": {
+    "state": "HI",
+    "annual_cost": 399872.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -7.530397029609226e-06
+  },
+  "HI:child_allowance": {
+    "state": "HI",
+    "annual_cost": 303295488.0,
+    "poverty_child_delta": -0.022417879104614263,
+    "gini_delta": -0.0036315407161372493
+  },
+  "IN:in_eitc": {
+    "state": "IN",
+    "annual_cost": 63305815.950782776,
+    "poverty_child_delta": -0.0019174957275390758,
+    "gini_delta": -0.000246794360682423
+  },
+  "IN:in_dependent_exemption": {
+    "state": "IN",
+    "annual_cost": -75753312.5539217,
+    "poverty_child_delta": 0.0007102584838867276,
+    "gini_delta": 0.00016937366466474035
+  },
+  "IN:snap_reform": {
+    "state": "IN",
+    "annual_cost": 1482752.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.981335836402479e-06
+  },
+  "IN:child_allowance": {
+    "state": "IN",
+    "annual_cost": 1720950784.0,
+    "poverty_child_delta": -0.019679813385009765,
+    "gini_delta": -0.004706384557760068
+  },
+  "IA:ia_eitc": {
+    "state": "IA",
+    "annual_cost": 23305253.01672077,
+    "poverty_child_delta": -0.0012264347076416104,
+    "gini_delta": -0.0001905272598092811
+  },
+  "IA:ia_dependent_exemption": {
+    "state": "IA",
+    "annual_cost": -28525816.456520557,
+    "poverty_child_delta": 2.2792816162103824e-05,
+    "gini_delta": 0.00010457996397505998
+  },
+  "IA:snap_reform": {
+    "state": "IA",
+    "annual_cost": 425984.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.80788068810034e-06
+  },
+  "IA:child_allowance": {
+    "state": "IA",
+    "annual_cost": 782432256.0,
+    "poverty_child_delta": -0.011549568176269537,
+    "gini_delta": -0.004290705761834657
+  },
+  "KS:ks_eitc": {
+    "state": "KS",
+    "annual_cost": 23671625.290830612,
+    "poverty_child_delta": -0.0015949821472168169,
+    "gini_delta": -0.00021377699143532158
+  },
+  "KS:ks_dependent_exemption": {
+    "state": "KS",
+    "annual_cost": -85774998.37421131,
+    "poverty_child_delta": 0.0028795337677001986,
+    "gini_delta": 0.00036690921905169205
+  },
+  "KS:snap_reform": {
+    "state": "KS",
+    "annual_cost": 547840.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.746410659646095e-06
+  },
+  "KS:child_allowance": {
+    "state": "KS",
+    "annual_cost": 736392192.0,
+    "poverty_child_delta": -0.020596618652343773,
+    "gini_delta": -0.004804880015479851
+  },
+  "LA:la_eitc": {
+    "state": "LA",
+    "annual_cost": 74842077.41274452,
+    "poverty_child_delta": -0.005358180999755879,
+    "gini_delta": -0.0004211401262014247
+  },
+  "LA:snap_reform": {
+    "state": "LA",
+    "annual_cost": 1613824.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -9.983627848098031e-06
+  },
+  "LA:child_allowance": {
+    "state": "LA",
+    "annual_cost": 1168414720.0,
+    "poverty_child_delta": -0.03121562957763674,
+    "gini_delta": -0.005224816598531357
+  },
+  "ME:me_ctc": {
+    "state": "ME",
+    "annual_cost": 1209590.2691249847,
+    "poverty_child_delta": -5.311965942389474e-06,
+    "gini_delta": -0.00015755307535392227
+  },
+  "ME:me_eitc": {
+    "state": "ME",
+    "annual_cost": 8734258.000716448,
+    "poverty_child_delta": -5.311965942389474e-06,
+    "gini_delta": -0.0001580654218614752
+  },
+  "ME:snap_reform": {
+    "state": "ME",
+    "annual_cost": 269824.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.9034233614575484e-06
+  },
+  "ME:child_allowance": {
+    "state": "ME",
+    "annual_cost": 265436672.0,
+    "poverty_child_delta": -0.02456899642944335,
+    "gini_delta": -0.0033122862400289943
+  },
+  "MI:mi_eitc": {
+    "state": "MI",
+    "annual_cost": 98286023.12429047,
+    "poverty_child_delta": -0.0019378471374511819,
+    "gini_delta": -0.00024463641570715566
+  },
+  "MI:snap_reform": {
+    "state": "MI",
+    "annual_cost": 2285568.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.924733208151345e-06
+  },
+  "MI:child_allowance": {
+    "state": "MI",
+    "annual_cost": 2253275136.0,
+    "poverty_child_delta": -0.015288972854614266,
+    "gini_delta": -0.004020533987654118
+  },
+  "MO:snap_reform": {
+    "state": "MO",
+    "annual_cost": 1720320.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -8.020228161820242e-06
+  },
+  "MO:child_allowance": {
+    "state": "MO",
+    "annual_cost": 1472086016.0,
+    "poverty_child_delta": -0.018283548355102514,
+    "gini_delta": -0.004478328012212707
+  },
+  "MT:mt_eitc": {
+    "state": "MT",
+    "annual_cost": 8236637.354897499,
+    "poverty_child_delta": -0.002443590164184578,
+    "gini_delta": -0.00017900304099227604
+  },
+  "MT:snap_reform": {
+    "state": "MT",
+    "annual_cost": 142848.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.5307592674005406e-06
+  },
+  "MT:child_allowance": {
+    "state": "MT",
+    "annual_cost": 252005888.0,
+    "poverty_child_delta": -0.011814565658569337,
+    "gini_delta": -0.003955656218441739
+  },
+  "NE:ne_eitc": {
+    "state": "NE",
+    "annual_cost": 15024765.468605042,
+    "poverty_child_delta": -0.0009449863433837885,
+    "gini_delta": -0.00020173058066763616
+  },
+  "NE:snap_reform": {
+    "state": "NE",
+    "annual_cost": 279552.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.947788003388908e-06
+  },
+  "NE:child_allowance": {
+    "state": "NE",
+    "annual_cost": 499852288.0,
+    "poverty_child_delta": -0.00798223495483398,
+    "gini_delta": -0.0041627408421326395
+  },
+  "OH:snap_reform": {
+    "state": "OH",
+    "annual_cost": 3301376.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -7.413025105318383e-06
+  },
+  "OH:child_allowance": {
+    "state": "OH",
+    "annual_cost": 2766135296.0,
+    "poverty_child_delta": -0.016660079956054674,
+    "gini_delta": -0.0043520192221604415
+  },
+  "PA:pa_eitc": {
+    "state": "PA",
+    "annual_cost": 108628170.53910828,
+    "poverty_child_delta": -0.0010913181304931519,
+    "gini_delta": -0.0002094321256693732
+  },
+  "PA:snap_reform": {
+    "state": "PA",
+    "annual_cost": 2957312.0,
+    "poverty_child_delta": -0.00027917861938475674,
+    "gini_delta": -5.658817186837695e-06
+  },
+  "PA:child_allowance": {
+    "state": "PA",
+    "annual_cost": 2782748672.0,
+    "poverty_child_delta": -0.017276105880737302,
+    "gini_delta": -0.003833309460740897
+  },
+  "SC:sc_eitc": {
+    "state": "SC",
+    "annual_cost": 1634963615.988329,
+    "poverty_child_delta": -0.04178643226623535,
+    "gini_delta": -0.007432442491594582
+  },
+  "SC:sc_dependent_exemption": {
+    "state": "SC",
+    "annual_cost": -187305152.3386383,
+    "poverty_child_delta": 0.0006761932373046675,
+    "gini_delta": 0.00027468623653548185
+  },
+  "SC:snap_reform": {
+    "state": "SC",
+    "annual_cost": 1441792.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -7.620432114552322e-06
+  },
+  "SC:child_allowance": {
+    "state": "SC",
+    "annual_cost": 1272762368.0,
+    "poverty_child_delta": -0.02146818161010744,
+    "gini_delta": -0.0046079315286762235
+  },
+  "UT:ut_ctc": {
+    "state": "UT",
+    "annual_cost": -6145442.6024189,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 4.0380638228421084e-05
+  },
+  "UT:ut_dependent_exemption": {
+    "state": "UT",
+    "annual_cost": -92007501.25089264,
+    "poverty_child_delta": 0.00039937973022460826,
+    "gini_delta": 0.00033802641783564624
+  },
+  "UT:snap_reform": {
+    "state": "UT",
+    "annual_cost": 266240.0,
+    "poverty_child_delta": -0.00013689041137694702,
+    "gini_delta": -2.2363447443884965e-06
+  },
+  "UT:child_allowance": {
+    "state": "UT",
+    "annual_cost": 958456832.0,
+    "poverty_child_delta": -0.01105292320251465,
+    "gini_delta": -0.00457503612169019
+  },
+  "VA:va_eitc": {
+    "state": "VA",
+    "annual_cost": 72276711.88246155,
+    "poverty_child_delta": -0.00430027008056641,
+    "gini_delta": -0.00019302068696414043
+  },
+  "VA:va_dependent_exemption": {
+    "state": "VA",
+    "annual_cost": -99616115.2316513,
+    "poverty_child_delta": 0.0001060485839843861,
+    "gini_delta": 0.00012936627157711378
+  },
+  "VA:snap_reform": {
+    "state": "VA",
+    "annual_cost": 1495040.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.235264234098146e-06
+  },
+  "VA:child_allowance": {
+    "state": "VA",
+    "annual_cost": 1888956416.0,
+    "poverty_child_delta": -0.018862915039062483,
+    "gini_delta": -0.003828639767521236
+  },
+  "WA:wa_eitc": {
+    "state": "WA",
+    "annual_cost": -3087694.3442050815,
+    "poverty_child_delta": 4.043579101581374e-06,
+    "gini_delta": 9.428585019621849e-06
+  },
+  "WA:snap_reform": {
+    "state": "WA",
+    "annual_cost": 1339392.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -3.8048260545542334e-06
+  },
+  "WA:child_allowance": {
+    "state": "WA",
+    "annual_cost": 1610633216.0,
+    "poverty_child_delta": -0.018523979187011708,
+    "gini_delta": -0.0034442721125075293
+  },
+  "WI:wi_eitc": {
+    "state": "WI",
+    "annual_cost": 7674401.359249115,
+    "poverty_child_delta": -0.0001893806457519548,
+    "gini_delta": -3.3688217394800546e-05
+  },
+  "WI:snap_reform": {
+    "state": "WI",
+    "annual_cost": 1110016.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.031001250377365e-06
+  },
+  "WI:child_allowance": {
+    "state": "WI",
+    "annual_cost": 1316190208.0,
+    "poverty_child_delta": -0.013520030975341796,
+    "gini_delta": -0.003917171097217231
+  },
+  "AK:snap_reform": {
+    "state": "AK",
+    "annual_cost": 308992.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -8.626510737297366e-06
+  },
+  "AK:child_allowance": {
+    "state": "AK",
+    "annual_cost": 178778368.0,
+    "poverty_child_delta": -0.01882311820983887,
+    "gini_delta": -0.004297638137004345
+  },
+  "FL:snap_reform": {
+    "state": "FL",
+    "annual_cost": 5087232.0,
+    "poverty_child_delta": -7.141113281250444e-05,
+    "gini_delta": -5.572000350451134e-06
+  },
+  "FL:child_allowance": {
+    "state": "FL",
+    "annual_cost": 4862197760.0,
+    "poverty_child_delta": -0.026819877624511684,
+    "gini_delta": -0.00397536526723119
+  },
+  "NV:snap_reform": {
+    "state": "NV",
+    "annual_cost": 737280.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -6.090658800084192e-06
+  },
+  "NV:child_allowance": {
+    "state": "NV",
+    "annual_cost": 744857600.0,
+    "poverty_child_delta": -0.03359601974487303,
+    "gini_delta": -0.004350079474155222
+  },
+  "SD:snap_reform": {
+    "state": "SD",
+    "annual_cost": 141056.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.6079302394863575e-06
+  },
+  "SD:child_allowance": {
+    "state": "SD",
+    "annual_cost": 232718848.0,
+    "poverty_child_delta": -0.010565834045410144,
+    "gini_delta": -0.004228220392001214
+  },
+  "TN:snap_reform": {
+    "state": "TN",
+    "annual_cost": 2109440.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -7.921373282981925e-06
+  },
+  "TN:child_allowance": {
+    "state": "TN",
+    "annual_cost": 1709199360.0,
+    "poverty_child_delta": -0.026523342132568378,
+    "gini_delta": -0.004617642113595166
+  },
+  "TX:snap_reform": {
+    "state": "TX",
+    "annual_cost": 5726208.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.8184862440070475e-06
+  },
+  "TX:child_allowance": {
+    "state": "TX",
+    "annual_cost": 8091033600.0,
+    "poverty_child_delta": -0.028896732330322278,
+    "gini_delta": -0.005099371751419279
+  },
+  "WY:snap_reform": {
+    "state": "WY",
+    "annual_cost": 44800.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -2.1315221014894803e-06
+  },
+  "WY:child_allowance": {
+    "state": "WY",
+    "annual_cost": 136480768.0,
+    "poverty_child_delta": -0.016315917968749996,
+    "gini_delta": -0.00394699389238673
+  },
+  "AL:al_eitc": {
+    "state": "AL",
+    "annual_cost": 68921416.1764698,
+    "poverty_child_delta": -0.002521877288818364,
+    "gini_delta": -0.0003572845806913971
+  },
+  "AL:al_dependent_exemption": {
+    "state": "AL",
+    "annual_cost": -36478967.791360855,
+    "poverty_child_delta": 0.0006731796264648482,
+    "gini_delta": 0.00015657783204658937
+  },
+  "AL:snap_reform": {
+    "state": "AL",
+    "annual_cost": 1748992.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -9.943851599025777e-06
+  },
+  "AL:child_allowance": {
+    "state": "AL",
+    "annual_cost": 1275551744.0,
+    "poverty_child_delta": -0.03229480743408203,
+    "gini_delta": -0.005220575132220517
+  },
+  "AZ:az_eitc": {
+    "state": "AZ",
+    "annual_cost": -106511092.19532776,
+    "poverty_child_delta": -0.002348613739013683,
+    "gini_delta": 0.0001575121743087049
+  },
+  "AZ:az_dependent_exemption": {
+    "state": "AZ",
+    "annual_cost": -139410472.04783344,
+    "poverty_child_delta": 0.0017745208740234386,
+    "gini_delta": 0.0002429549469697978
+  },
+  "AZ:snap_reform": {
+    "state": "AZ",
+    "annual_cost": 1474560.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -5.441071701972611e-06
+  },
+  "AZ:child_allowance": {
+    "state": "AZ",
+    "annual_cost": 1728081920.0,
+    "poverty_child_delta": -0.023932933807373047,
+    "gini_delta": -0.004460803008416225
+  },
+  "AR:ar_eitc": {
+    "state": "AR",
+    "annual_cost": 39679901.86033106,
+    "poverty_child_delta": -0.0036320877075195213,
+    "gini_delta": -0.0003533823482684273
+  },
+  "AR:ar_dependent_exemption": {
+    "state": "AR",
+    "annual_cost": -17931771.43543005,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 8.49022552329437e-05
+  },
+  "AR:snap_reform": {
+    "state": "AR",
+    "annual_cost": 1040384.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -1.0544231989428887e-05
+  },
+  "AR:child_allowance": {
+    "state": "AR",
+    "annual_cost": 779778048.0,
+    "poverty_child_delta": -0.02198380470275879,
+    "gini_delta": -0.005166278680391545
+  },
+  "KY:ky_eitc": {
+    "state": "KY",
+    "annual_cost": 49528648.09927368,
+    "poverty_child_delta": -0.0015304374694824208,
+    "gini_delta": -0.0002905976169134128
+  },
+  "KY:snap_reform": {
+    "state": "KY",
+    "annual_cost": 1126400.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -7.16258105426526e-06
+  },
+  "KY:child_allowance": {
+    "state": "KY",
+    "annual_cost": 1132175360.0,
+    "poverty_child_delta": -0.019673404693603513,
+    "gini_delta": -0.004934132530727164
+  },
+  "MS:ms_eitc": {
+    "state": "MS",
+    "annual_cost": 52665083.330844164,
+    "poverty_child_delta": -0.0015075111389160067,
+    "gini_delta": -0.00048284172295176564
+  },
+  "MS:ms_dependent_exemption": {
+    "state": "MS",
+    "annual_cost": -28591006.88241434,
+    "poverty_child_delta": 0.0,
+    "gini_delta": 0.0001274731417728603
+  },
+  "MS:snap_reform": {
+    "state": "MS",
+    "annual_cost": 1369088.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -1.4007677248573103e-05
+  },
+  "MS:child_allowance": {
+    "state": "MS",
+    "annual_cost": 780537856.0,
+    "poverty_child_delta": -0.028909950256347655,
+    "gini_delta": -0.005798531022857434
+  },
+  "NC:nc_eitc": {
+    "state": "NC",
+    "annual_cost": -186488957.2191925,
+    "poverty_child_delta": -0.0009401702880859342,
+    "gini_delta": -0.0002695038549542783
+  },
+  "NC:nc_dependent_exemption": {
+    "state": "NC",
+    "annual_cost": -93148808.52074051,
+    "poverty_child_delta": 0.0008644676208496016,
+    "gini_delta": 0.00019662791970620486
+  },
+  "NC:snap_reform": {
+    "state": "NC",
+    "annual_cost": 2555904.0,
+    "poverty_child_delta": -1.7166137697421924e-07,
+    "gini_delta": -6.2557865878609675e-06
+  },
+  "NC:child_allowance": {
+    "state": "NC",
+    "annual_cost": 2512220160.0,
+    "poverty_child_delta": -0.018841991424560556,
+    "gini_delta": -0.004389288639801592
+  },
+  "ND:nd_eitc": {
+    "state": "ND",
+    "annual_cost": 5017347.196558654,
+    "poverty_child_delta": -2.8610229492465056e-07,
+    "gini_delta": -0.00015327990776481393
+  },
+  "ND:snap_reform": {
+    "state": "ND",
+    "annual_cost": 115968.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -4.3877946316328575e-06
+  },
+  "ND:child_allowance": {
+    "state": "ND",
+    "annual_cost": 185442304.0,
+    "poverty_child_delta": -0.005661630630493172,
+    "gini_delta": -0.0036433388524730326
+  },
+  "NH:snap_reform": {
+    "state": "NH",
+    "annual_cost": 135680.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -2.1858724569279175e-06
+  },
+  "NH:child_allowance": {
+    "state": "NH",
+    "annual_cost": 238822400.0,
+    "poverty_child_delta": -0.01741807937622071,
+    "gini_delta": -0.002438996539235516
+  },
+  "WV:wv_eitc": {
+    "state": "WV",
+    "annual_cost": -166551303.86076832,
+    "poverty_child_delta": 6.6375732421797284e-06,
+    "gini_delta": 0.0017830270753772526
+  },
+  "WV:snap_reform": {
+    "state": "WV",
+    "annual_cost": 443392.0,
+    "poverty_child_delta": 0.0,
+    "gini_delta": -7.114151806764113e-06
+  },
+  "WV:child_allowance": {
+    "state": "WV",
+    "annual_cost": 401648640.0,
+    "poverty_child_delta": -0.021836414337158216,
+    "gini_delta": -0.004702369481436319
+  }
+}

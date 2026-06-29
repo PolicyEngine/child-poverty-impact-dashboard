@@ -32,6 +32,7 @@ export type ReformDict = Record<
 export interface EconomyDecileImpact {
   decile: number;
   average_gain: number;
+  relative_gain?: number;
   percent_gaining: number;
   percent_losing: number;
   percent_unchanged: number;

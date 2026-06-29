@@ -62,7 +62,7 @@ jobs:
       # Keep policyengine-us in sync with pyproject.toml,
       # backend/requirements.txt, and scripts/modal_cpid_endpoint.py.
       - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us==1.745.0" pytest
+        run: pip install "policyengine-us==1.747.6" pytest
       # Fast gate: resolve every option's parameter paths against pinned PE-US
       # (all entries) + a representative end-to-end compute per dispatch branch.
       # The exhaustive per-entry compute runs in reform-compute-full below.
@@ -101,7 +101,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us==1.745.0" pytest
+        run: pip install "policyengine-us==1.747.6" pytest
       # Each shard fully computes its slice of every non-empty reform.
       - name: Full compute (shard ${{ matrix.shard }} of 16)
         run: pytest tests/calculations/test_reform_computes.py -q -k computes_all

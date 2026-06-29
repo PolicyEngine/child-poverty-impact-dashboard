@@ -51,6 +51,8 @@ function pointToResults(
   household: HouseholdInput,
   point: {
     net_income: number;
+    federal_income_tax?: number;
+    state_income_tax?: number;
     federal_ctc: number;
     federal_eitc: number;
     state_ctc: number;
@@ -71,8 +73,8 @@ function pointToResults(
     state: household.state,
     gross_income: grossIncome,
     adjusted_gross_income: grossIncome,
-    federal_income_tax: 0,
-    state_income_tax: 0,
+    federal_income_tax: point.federal_income_tax ?? 0,
+    state_income_tax: point.state_income_tax ?? 0,
     payroll_tax: 0,
     net_income: point.net_income,
     federal_ctc: point.federal_ctc,

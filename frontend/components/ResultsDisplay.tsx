@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -230,11 +231,12 @@ function FiscalCostSection({ results }: { results: AnalysisResponse }) {
 
 function DistributionalSection({ results }: { results: AnalysisResponse }) {
   const { distributional_impact } = results;
+  const [mode, setMode] = useState<'absolute' | 'relative'>('absolute');
+  const isRel = mode === 'relative';
 
   const decileData = distributional_impact.decile_impacts.map((d) => ({
     decile: `D${d.decile}`,
-    gain: d.average_gain,
-    share: d.share_of_total_benefit * 100,
+    value: isRel ? (d.relative_gain ?? 0) * 100 : d.average_gain,
   }));
 
   return (
@@ -243,14 +245,50 @@ function DistributionalSection({ results }: { results: AnalysisResponse }) {
 
       <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <h3 className="font-medium text-gray-700 mb-4">Average Gain by Income Decile</h3>
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <h3 className="font-medium text-gray-700">
+              {isRel
+                ? 'Relative gain by income decile'
+                : 'Average gain by income decile'}
+            </h3>
+            <div className="inline-flex rounded-lg border border-gray-200 p-0.5 text-sm">
+              <button
+                type="button"
+                onClick={() => setMode('absolute')}
+                className={`px-3 py-1 rounded-md transition-colors ${
+                  !isRel ? 'bg-pe-teal-500 text-white' : 'text-gray-600'
+                }`}
+              >
+                Absolute
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('relative')}
+                className={`px-3 py-1 rounded-md transition-colors ${
+                  isRel ? 'bg-pe-teal-500 text-white' : 'text-gray-600'
+                }`}
+              >
+                Relative
+              </button>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={decileData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="decile" />
-              <YAxis tickFormatter={(v) => `$${v}`} />
-              <Tooltip formatter={(v: number) => `$${v.toFixed(0)}`} />
-              <Bar dataKey="gain" name="Average Gain" fill={chartColors.primary} />
+              <YAxis
+                tickFormatter={(v) => (isRel ? `${v.toFixed(1)}%` : `$${v}`)}
+              />
+              <Tooltip
+                formatter={(v: number) =>
+                  isRel ? `${v.toFixed(2)}%` : `$${v.toFixed(0)}`
+                }
+              />
+              <Bar
+                dataKey="value"
+                name={isRel ? 'Relative gain' : 'Average gain'}
+                fill={chartColors.primary}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -272,16 +310,6 @@ function DistributionalSection({ results }: { results: AnalysisResponse }) {
           />
 
           <div className="border-t pt-4 mt-4">
-            <MetricRow
-              label="Share to Bottom 20%"
-              value={`${distributional_impact.share_to_bottom_20_pct.toFixed(1)}%`}
-              positive={distributional_impact.share_to_bottom_20_pct > 20}
-            />
-            <MetricRow
-              label="Share to Bottom 50%"
-              value={`${distributional_impact.share_to_bottom_50_pct.toFixed(1)}%`}
-              positive={distributional_impact.share_to_bottom_50_pct > 50}
-            />
             <MetricRow
               label="Gini Change"
               value={distributional_impact.gini_change.toFixed(4)}

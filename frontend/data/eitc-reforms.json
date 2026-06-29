@@ -2,6 +2,7 @@
   "_comment": "EITC parameter paths. type=existing modifies a single baseline param; type=contrib also flips a contributed in_effect flag (e.g. convert nonrefundable to refundable). null = no income tax OR uses a bracketed param that can't be modified by a single slider (MN, WI).",
 
   "AL": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.al.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.al.child_poverty_impact_dashboard.eitc.match",
@@ -9,12 +10,14 @@
   },
   "AK": null,
   "AZ": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.az.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.az.child_poverty_impact_dashboard.eitc.match",
     "current_rate": 0
   },
   "AR": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.ar.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.ar.child_poverty_impact_dashboard.eitc.match",
@@ -50,6 +53,7 @@
   },
   "FL": null,
   "GA": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.ga.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.ga.child_poverty_impact_dashboard.eitc.match",
@@ -61,6 +65,7 @@
     "current_rate": 0.40
   },
   "ID": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.id.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.id.child_poverty_impact_dashboard.eitc.match",
@@ -87,6 +92,7 @@
     "current_rate": 0.17
   },
   "KY": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.ky.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.ky.child_poverty_impact_dashboard.eitc.match",
@@ -121,6 +127,7 @@
   },
   "MN": null,
   "MS": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.ms.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.ms.child_poverty_impact_dashboard.eitc.match",
@@ -162,6 +169,7 @@
     "current_rate": 0.30
   },
   "NC": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.nc.eitc.in_effect",
     "match": "gov.contrib.states.nc.eitc.match",
@@ -169,6 +177,7 @@
     "note": "NC contrib EITC defaults to 10% match from 2026 once in_effect=True."
   },
   "ND": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.nd.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.nd.child_poverty_impact_dashboard.eitc.match",
@@ -226,8 +235,9 @@
   },
   "VT": {
     "type": "existing",
-    "match": "gov.states.vt.tax.income.credits.eitc.match",
-    "current_rate": 0.38
+    "match": "gov.states.vt.tax.income.credits.eitc.enhanced_structure.rate[1].amount",
+    "current_rate": 0.38,
+    "note": "VT's EITC runs an enhanced bracketed structure (enhanced_structure.in_effect=True): 100% of the federal credit for filers with no qualifying children, 38% with children. That structure overrides the flat `match` param, so the slider adjusts the with-children rate (rate[1])."
   },
   "VA": {
     "type": "existing",
@@ -236,6 +246,7 @@
   },
   "WA": null,
   "WV": {
+    "creates_credit": true,
     "type": "contrib",
     "in_effect": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.contrib.states.wv.child_poverty_impact_dashboard.eitc.match",
