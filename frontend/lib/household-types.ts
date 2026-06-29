@@ -134,6 +134,8 @@ export interface StatePrograms {
 export interface IncomeSweepDataPoint {
   income: number;
   net_income: number;
+  federal_income_tax?: number;
+  state_income_tax?: number;
   federal_ctc: number;
   state_ctc: number;
   federal_eitc: number;
