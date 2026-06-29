@@ -176,6 +176,7 @@ export default function ReportBuilderPage() {
       ? [
           ...reformOptions.ctc_options,
           ...reformOptions.eitc_options,
+          ...reformOptions.dependent_exemption_options,
           ...reformOptions.snap_options,
           ...reformOptions.child_allowance_options,
           ...reformOptions.federal_options,
@@ -189,9 +190,15 @@ export default function ReportBuilderPage() {
       const name = opt?.name ?? id;
       const pv = config.parameterValues?.[id];
       const params = (opt?.adjustable_params ?? [])
-        .filter((p) => pv?.[p.name] !== undefined && p.control !== 'toggle')
+        .filter((p) => pv?.[p.name] !== undefined)
         .map((p) => {
           const cur = pv![p.name];
+          // Toggles (e.g. "Eliminate exemption", "Remove net income test")
+          // read as their label when switched on, and are dropped when off —
+          // so an eliminated dependent exemption shows the action, not a value.
+          if (p.control === 'toggle') {
+            return cur ? p.label : null;
+          }
           // Show the change from current law when the user moved it
           // (e.g. "Match rate 40% → 50%"), otherwise just the value.
           const value =
@@ -199,7 +206,8 @@ export default function ReportBuilderPage() {
               ? `${fmtValue(p.default_value, p.unit)} → ${fmtValue(cur, p.unit)}`
               : fmtValue(cur, p.unit);
           return `${p.label} ${value}`;
-        });
+        })
+        .filter(Boolean);
       return params.length ? `${name} — ${params.join(', ')}` : name;
     });
 

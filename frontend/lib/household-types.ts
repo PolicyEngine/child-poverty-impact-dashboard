@@ -12,10 +12,7 @@ export interface PersonInput {
   is_disabled?: boolean;
 }
 
-export interface ChildInput extends PersonInput {
-  in_childcare?: boolean;
-  childcare_expenses_annual?: number;
-}
+export type ChildInput = PersonInput;
 
 export interface IncomeInput {
   employment_income: number;
