@@ -58,6 +58,11 @@ export interface HouseholdResults {
   poverty_gap: number;
   effective_tax_rate: number;
   total_child_benefits: number;
+  /** Isolated dependent-exemption portion of the state income-tax change
+   *  (baseline state tax − dependent-only state tax). Positive when the
+   *  exemption is raised, negative when shrunk/eliminated; 0 when no
+   *  dependent-exemption reform is applied. */
+  dependent_exemption_change?: number;
 }
 
 export interface HouseholdImpact {
@@ -145,6 +150,9 @@ export interface IncomeSweepDataPoint {
   total_benefits: number;
   effective_tax_rate: number;
   in_poverty: boolean;
+  /** Isolated dependent-exemption portion of the state income-tax change at
+   *  this income point (baseline state tax − dependent-only state tax). */
+  dependent_exemption_change?: number;
 }
 
 export interface IncomeSweepResponse {

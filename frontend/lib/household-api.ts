@@ -15,7 +15,8 @@ import {
   modalConfigured,
   runHouseholdSweepOnModal,
 } from './modalApi';
-import { buildReformDict } from './reforms';
+import { buildReformDict, buildDependentExemptionSubReform } from './reforms';
+import type { ReformDict } from './reforms';
 
 const api = axios.create({
   baseURL: '/api',
@@ -60,6 +61,7 @@ function pointToResults(
     child_allowance?: number;
     snap_benefits: number;
     in_poverty: boolean;
+    dependent_exemption_change?: number;
   },
 ): HouseholdResults {
   const grossIncome =
@@ -89,6 +91,7 @@ function pointToResults(
     poverty_gap: 0,
     effective_tax_rate: 0,
     total_child_benefits: point.federal_ctc + point.federal_eitc,
+    dependent_exemption_change: point.dependent_exemption_change ?? 0,
   };
 }
 
@@ -97,12 +100,14 @@ function pointToResults(
 async function singlePointOnModal(
   household: HouseholdInput,
   reform: Record<string, number | boolean | Record<string, number | boolean>> | null,
+  dependentExemptionReform: ReformDict | null = null,
 ): Promise<{
   baseline: HouseholdResults;
   reform: HouseholdResults;
 }> {
   const sweep = await runHouseholdSweepOnModal({
     reform,
+    dependent_exemption_reform: dependentExemptionReform,
     year: household.year,
     state: household.state,
     married: household.adults.length > 1,
@@ -160,9 +165,15 @@ export async function calculateImpact(
         parameterValues,
         household.year,
       );
+      const depReform = buildDependentExemptionSubReform(
+        reformOptionIds,
+        parameterValues,
+        household.year,
+      );
       const { baseline, reform } = await singlePointOnModal(
         household,
         Object.keys(reformDict).length > 0 ? reformDict : null,
+        depReform,
       );
       const netChange = reform.net_income - baseline.net_income;
       return {
@@ -212,8 +223,14 @@ export async function runIncomeSweep(
   if (modalConfigured()) {
     try {
       const reform = buildReformDict(ids, parameterValues, household.year);
+      const depReform = buildDependentExemptionSubReform(
+        ids,
+        parameterValues,
+        household.year,
+      );
       return await runHouseholdSweepOnModal({
         reform: Object.keys(reform).length > 0 ? reform : null,
+        dependent_exemption_reform: depReform,
         year: household.year,
         state: household.state,
         married: household.adults.length > 1,

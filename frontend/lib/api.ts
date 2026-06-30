@@ -227,22 +227,23 @@ export async function runAnalysisFromOptions(
   const { modalConfigured, runEconomyOnModal } = await import('./modalApi');
   if (modalConfigured()) {
     try {
-      const { buildReformDict } = await import('./reforms');
+      const { buildReformDict, buildDependentExemptionSubReform } = await import(
+        './reforms'
+      );
       const reform = buildReformDict(reformOptionIds, parameterValues, year);
       // Isolated dependent-exemption sub-reform so the backend can attribute
       // its cost (the "Dependent exemption" breakdown row) on its own.
-      const depIds = reformOptionIds.filter((id) =>
-        id.endsWith('_dependent_exemption'),
+      const depReform = buildDependentExemptionSubReform(
+        reformOptionIds,
+        parameterValues,
+        year,
       );
-      const depReform = depIds.length
-        ? buildReformDict(depIds, parameterValues, year)
-        : null;
       const economy = await runEconomyOnModal(
         Object.keys(reform).length > 0 ? reform : null,
         year,
         state,
         undefined,
-        depReform && Object.keys(depReform).length > 0 ? depReform : null,
+        depReform,
       );
       return mapEconomyToAnalysisResponse(economy, state, year);
     } catch (err) {

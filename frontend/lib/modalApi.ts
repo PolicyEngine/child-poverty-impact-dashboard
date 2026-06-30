@@ -210,6 +210,9 @@ export async function runEconomyOnModal(
 
 export interface HouseholdSweepPayload {
   reform: ReformDict | null;
+  /** Dependent-exemption-only sub-reform, so the backend can isolate the
+   *  dependent-exemption portion of the state income-tax change. */
+  dependent_exemption_reform?: ReformDict | null;
   year: number;
   state: string;
   married: boolean;
