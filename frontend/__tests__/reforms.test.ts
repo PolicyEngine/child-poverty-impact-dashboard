@@ -485,6 +485,23 @@ describe('buildReformDict', () => {
     ).toEqual({});
   });
 
+  it('applies the dependent-exemption edit only to dependents under the age cap', () => {
+    // With the age cap on, the eliminate routes through the contrib reform and
+    // sets the age_limit, so only dependents under the chosen age are affected.
+    expect(
+      buildReformDict(
+        ['ri_dependent_exemption'],
+        { ri_dependent_exemption: { eliminate: 1, age_limit_enabled: 1, age_limit_age: 18 } },
+        2026,
+      ),
+    ).toEqual({
+      'gov.contrib.states.ri.dependent_exemption.in_effect': true,
+      'gov.contrib.states.ri.dependent_exemption.age_limit.in_effect': true,
+      'gov.contrib.states.ri.dependent_exemption.age_limit.threshold': 18,
+      'gov.contrib.states.ri.dependent_exemption.amount': 0,
+    });
+  });
+
   it('edits a stepped dependent exemption bracket threshold and amount', () => {
     // AL's per-dependent exemption is AGI-stepped; each tier amount AND the
     // AGI cutoffs are now editable. Changing the middle-tier cutoff and the

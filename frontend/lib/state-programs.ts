@@ -736,6 +736,22 @@ interface DependentExemptionEntry {
    *  (e.g. AL's AGI brackets, AZ's age brackets). Each gets its own editable
    *  input; "eliminate" zeroes them all. */
   extra_params?: DependentExtraParam[];
+  /** Optional age cap (us#8696 contrib `age_limit`): restrict the edit to
+   *  dependents under a chosen age. Activating it turns on the contrib reform
+   *  (which reads any edited baseline brackets) and applies the amount/eliminate
+   *  only to under-age dependents; older dependents keep the baseline. */
+  age_limit?: {
+    /** contrib `…age_limit.in_effect` flag. */
+    in_effect: string;
+    /** contrib `…age_limit.threshold` (the maximum dependent age). */
+    threshold: string;
+    /** Default maximum age (18). */
+    default: number;
+    /** The contrib reform's main in_effect flag to activate. */
+    reform_in_effect: string;
+    /** The contrib per-dependent amount param (eliminate -> 0). */
+    reform_amount: string;
+  };
   note?: string;
 }
 
@@ -768,6 +784,32 @@ export function buildDependentExemptionReform(
   const eliminate = !!pv?.eliminate;
   const editedAmount =
     entry.amount_editable && pv?.amount !== undefined ? pv.amount : undefined;
+
+  const emitTo = (path: string | string[], value: number) => {
+    for (const p of Array.isArray(path) ? path : [path]) reform[p] = value;
+  };
+
+  // Age cap: restrict the edit to dependents under a chosen age (older keep the
+  // baseline). Routes through the contrib reform, which reads any edited
+  // baseline brackets, so per-bracket edits still compose.
+  if (pv?.age_limit_enabled && entry.age_limit) {
+    const al = entry.age_limit;
+    reform[al.reform_in_effect] = true;
+    reform[al.in_effect] = true;
+    reform[al.threshold] = pv?.age_limit_age ?? al.default;
+    if (eliminate) {
+      reform[al.reform_amount] = 0;
+    } else if (editedAmount !== undefined && editedAmount !== entry.current_amount) {
+      reform[al.reform_amount] = editedAmount;
+    }
+    // Baseline per-bracket threshold/amount edits compose (read by the contrib).
+    for (const extra of entry.extra_params ?? []) {
+      if (pv?.[extra.name] !== undefined && pv[extra.name] !== extra.current_amount) {
+        emitTo(extra.path, pv[extra.name]);
+      }
+    }
+    return reform;
+  }
 
   if (entry.mechanism === 'repeal') {
     if (eliminate && entry.repeal_flag) reform[entry.repeal_flag] = true;
@@ -871,6 +913,33 @@ function buildDependentExemptionOptions(
           : `Current: ${fmt(extra.current_amount)}. Set to 0 to drop just this piece, or use Eliminate to remove all of ${programs.state_name}'s ${kindLabel}.`,
       });
     }
+  }
+
+  // Age cap (states with the us#8696 contrib age_limit): apply the change only
+  // to dependents under a chosen age; older dependents keep the baseline.
+  if (entry.age_limit) {
+    params.push({
+      name: 'age_limit_enabled',
+      label: 'Only dependents under a certain age',
+      control: 'toggle',
+      min_value: 0,
+      max_value: 1,
+      default_value: 0,
+      step: 1,
+      unit: '',
+      description: `Apply the change above only to dependents under the age below; older dependents keep ${programs.state_name}'s baseline ${kindLabel}.`,
+    });
+    params.push({
+      name: 'age_limit_age',
+      label: 'Maximum dependent age',
+      min_value: 1,
+      max_value: 24,
+      default_value: entry.age_limit.default,
+      step: 1,
+      unit: 'years',
+      depends_on: 'age_limit_enabled',
+      description: `Dependents under this age are affected by the edit above; dependents this age or older keep the baseline ${kindLabel}.`,
+    });
   }
 
   const capitalizedKind = kindLabel.charAt(0).toUpperCase() + kindLabel.slice(1);
