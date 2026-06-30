@@ -264,7 +264,8 @@ export default function ReformOptionsSelector({
 
         {tabs.find((t) => t.id === activeTab)?.options.length === 0 && (
           <div className="text-center py-6 text-gray-500">
-            No {activeTab} options available for this state
+            No {tabs.find((t) => t.id === activeTab)?.label} options available for
+            this state
           </div>
         )}
       </div>
