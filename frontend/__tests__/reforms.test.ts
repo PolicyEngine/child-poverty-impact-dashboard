@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { buildReformDict } from '@/lib/reforms';
+import {
+  buildReformDict,
+  buildDependentExemptionSubReform,
+} from '@/lib/reforms';
 
 const BI = 'gov.contrib.ubi_center.basic_income.amount.person.by_age';
 const PO = 'gov.contrib.ubi_center.basic_income.phase_out';
@@ -595,5 +598,59 @@ describe('buildReformDict', () => {
     expect(
       reform['gov.states.nj.tax.income.exemptions.dependents.amount'],
     ).toBeUndefined();
+  });
+});
+
+describe('buildDependentExemptionSubReform', () => {
+  it('returns null when no dependent-exemption option is selected', () => {
+    expect(buildDependentExemptionSubReform([], undefined, 2026)).toBeNull();
+    expect(
+      buildDependentExemptionSubReform(['ny_eitc', 'federal_ctc_expanded'], undefined, 2026),
+    ).toBeNull();
+  });
+
+  it('captures ONLY the dependent-exemption portion of a combined reform', () => {
+    // A combined reform: an NJ dependent-exemption elimination alongside a
+    // state EITC change. The isolated sub-reform must contain the dependent
+    // exemption params and nothing from the EITC option.
+    const ids = ['nj_dependent_exemption', 'ny_eitc'];
+    const params = {
+      nj_dependent_exemption: { eliminate: 1 },
+      ny_eitc: { match_rate: 50 },
+    };
+    const sub = buildDependentExemptionSubReform(ids, params, 2026);
+    // Identical to building the dependent-exemption option on its own —
+    // i.e. the EITC selection contributes nothing to the isolation.
+    expect(sub).toEqual(
+      buildReformDict(['nj_dependent_exemption'], params, 2026),
+    );
+    // Concretely: the dependent-exemption params are present…
+    expect(sub).not.toBeNull();
+    expect(sub!['gov.states.nj.tax.income.exemptions.dependents.amount']).toBe(0);
+    // …and no EITC param leaked in.
+    for (const key of Object.keys(sub!)) {
+      expect(key).toContain('dependent');
+      expect(key).not.toContain('eitc');
+    }
+  });
+
+  it('returns null when the dependent-exemption edit is a no-op (current law)', () => {
+    // A repeal-only state with no elimination builds to {} → treated as "no
+    // dependent-exemption sub-reform" so the backend skips the extra sim.
+    expect(
+      buildDependentExemptionSubReform(
+        ['sc_dependent_exemption', 'ny_eitc'],
+        { ny_eitc: { match_rate: 50 } },
+        2026,
+      ),
+    ).toBeNull();
+  });
+
+  it('excludes dependent CREDIT options (only the _dependent_exemption suffix)', () => {
+    // de_dependent_credit is a credit, not the exemption, and must not be
+    // pulled into the dependent-exemption isolation.
+    expect(
+      buildDependentExemptionSubReform(['de_dependent_credit'], undefined, 2026),
+    ).toBeNull();
   });
 });

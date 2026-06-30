@@ -194,8 +194,17 @@ def _own_state_credit_vars(sim, state_code: str, year: int, kind: str) -> list:
     ]
 
 
-def _household_point(sim_baseline, sim_reform, year: int, state_code: str) -> dict:
-    """Compute the per-point payload the React client expects."""
+def _household_point(
+    sim_baseline, sim_reform, year: int, state_code: str, sim_dep=None
+) -> dict:
+    """Compute the per-point payload the React client expects.
+
+    ``sim_dep`` is an optional baseline-plus-(dependent-exemption-only)
+    simulation. When supplied, each row carries ``dependent_exemption_change``
+    = baseline state income tax − dependent-only state income tax, which
+    isolates the dependent-exemption portion from the rest of the reform
+    (federal tax, state CTC/EITC) exactly as the economy breakdown does.
+    """
 
     def _val(sim, name: str) -> float:
         try:
@@ -223,7 +232,19 @@ def _household_point(sim_baseline, sim_reform, year: int, state_code: str) -> di
             "in_poverty": bool(_val(sim, "in_poverty") > 0),
         }
 
-    return {"baseline": _row(sim_baseline), "reform": _row(sim_reform)}
+    base_row = _row(sim_baseline)
+    reform_row = _row(sim_reform)
+    # Isolated dependent-exemption portion (signed as a benefit: positive when
+    # the exemption is raised, negative when shrunk/eliminated). 0 when no
+    # dependent-exemption sub-reform is sent.
+    dep_change = 0.0
+    if sim_dep is not None:
+        dep_change = _val(sim_baseline, "state_income_tax") - _val(
+            sim_dep, "state_income_tax"
+        )
+    base_row["dependent_exemption_change"] = dep_change
+    reform_row["dependent_exemption_change"] = dep_change
+    return {"baseline": base_row, "reform": reform_row}
 
 
 @app.function(image=image, timeout=600, memory=2048)
@@ -251,6 +272,14 @@ def compute_household_sweep(payload: dict) -> dict:
     reform = Reform.from_dict(reform_dict) if reform_dict else None
     _log(f"reform loaded (params={len(reform_dict) if reform_dict else 0})")
 
+    # Optional dependent-exemption-only sub-reform, for isolating its portion
+    # of the state income-tax change (mirrors the economy breakdown).
+    dep_reform_payload = payload.get("dependent_exemption_reform")
+    dep_reform_dict = _build_core_reform_dict(dep_reform_payload, year)
+    dep_reform = Reform.from_dict(dep_reform_dict) if dep_reform_dict else None
+    if dep_reform is not None:
+        _log("dependent-exemption sub-reform loaded")
+
     state_code = str(payload["state"]).upper()
 
     if len(incomes) == 1:
@@ -262,7 +291,12 @@ def compute_household_sweep(payload: dict) -> dict:
             if reform is not None
             else sim_b
         )
-        point = _household_point(sim_b, sim_r, year, state_code)
+        sim_dep = (
+            Simulation(situation=situation, reform=dep_reform)
+            if dep_reform is not None
+            else None
+        )
+        point = _household_point(sim_b, sim_r, year, state_code, sim_dep=sim_dep)
         data_points = [{"income": float(incomes[0]), **point["reform"]}]
         baseline_data_points = [{"income": float(incomes[0]), **point["baseline"]}]
     else:
@@ -321,8 +355,28 @@ def compute_household_sweep(payload: dict) -> dict:
                 for i in range(n)
             ]
 
+        sim_dep = (
+            Simulation(situation=situation, reform=dep_reform)
+            if dep_reform is not None
+            else None
+        )
+
         baseline_data_points = _rows(sim_b)
         data_points = _rows(sim_r)
+
+        # Isolated dependent-exemption portion per income point: baseline state
+        # income tax − dependent-only state income tax. 0 everywhere when no
+        # dependent-exemption sub-reform is supplied.
+        if sim_dep is not None:
+            dep_delta = _arr(sim_b, "state_income_tax") - _arr(
+                sim_dep, "state_income_tax"
+            )
+        else:
+            dep_delta = np.zeros(n)
+        for i in range(n):
+            v = float(dep_delta[i])
+            baseline_data_points[i]["dependent_exemption_change"] = v
+            data_points[i]["dependent_exemption_change"] = v
 
     _log(f"sweep done ({len(incomes)} points)")
 

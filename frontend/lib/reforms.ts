@@ -254,3 +254,27 @@ export function buildReformDict(
   }
   return reform;
 }
+
+/** Option IDs for the per-dependent exemption reforms all end in this suffix
+ *  (e.g. ``ri_dependent_exemption``). The dependent *credit* reforms (e.g.
+ *  ``de_dependent_credit``) are deliberately excluded — the breakdown row is
+ *  specifically the dependent exemption. */
+const DEPENDENT_EXEMPTION_ID_SUFFIX = '_dependent_exemption';
+
+/** Build the isolated dependent-exemption-only sub-reform from a set of
+ *  selected option IDs, used so the backend can attribute the dependent
+ *  exemption's portion of the state income-tax change on its own. Returns
+ *  ``null`` when no dependent-exemption option is selected (or it builds to an
+ *  empty dict, e.g. an edit that matches current law). */
+export function buildDependentExemptionSubReform(
+  reformOptionIds: string[],
+  parameterValues: ParameterValues | undefined,
+  year: number,
+): ReformDict | null {
+  const depIds = reformOptionIds.filter((id) =>
+    id.endsWith(DEPENDENT_EXEMPTION_ID_SUFFIX),
+  );
+  if (depIds.length === 0) return null;
+  const dep = buildReformDict(depIds, parameterValues, year);
+  return Object.keys(dep).length > 0 ? dep : null;
+}
