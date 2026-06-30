@@ -108,16 +108,18 @@ interface ReportConfig {
   parameterValues?: Record<string, Record<string, number>>;
 }
 
-/** One-line description of the household example (e.g. "single, age 23,
- *  child 1 age 5, child 2 age 8, employment income $40,000"). */
+/** One-line description of the household example (e.g. "Single, Age 23,
+ *  Child 1 age 5, Child 2 age 8, Employment income $40,000"). The first
+ *  word of each comma-separated segment is capitalized. */
 function householdSummary(h: HouseholdInput): string {
   const parts: string[] = [];
   const filing = h.filing_status?.startsWith('married') ? 'married' : 'single';
   const ages = (h.adults ?? []).map((a) => a.age);
-  parts.push(ages.length ? `${filing}, age ${ages.join(' & ')}` : filing);
+  parts.push(filing);
+  if (ages.length) parts.push(`age ${ages.join(' & ')}`);
   (h.children ?? []).forEach((c, i) => parts.push(`child ${i + 1} age ${c.age}`));
   parts.push(`employment income $${(h.income?.employment_income ?? 0).toLocaleString()}`);
-  return parts.join(', ');
+  return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(', ');
 }
 
 function normaliseStates(c: ReportConfig): string[] {
@@ -639,9 +641,9 @@ function ErrorState({ error }: { error: string }) {
 // HOUSEHOLD ANALYSIS COMPONENTS
 // ============================================================================
 
-// Provisions surfaced as change cards on the household overview. Federal/state
-// income tax are intentionally omitted per design — only programs that move
-// with reforms appear here.
+// Benefit provisions surfaced as change cards on the household overview. The
+// combined income-tax change (federal + state) is rendered separately after
+// this list, since it is a single netted card rather than a per-field one.
 const PROVISION_FIELDS: {
   key: 'federal_ctc' | 'federal_eitc' | 'state_ctc' | 'state_eitc' | 'snap_benefits';
   label: string;
@@ -697,6 +699,11 @@ interface ChartPoint {
   state_ctc_change: number;
   state_eitc_change: number;
   snap_change: number;
+  /** Net-income contribution of the income-tax change: baseline tax − reform
+   *  tax (federal + state). Positive = tax cut (raises net income), negative =
+   *  tax increase (lowers net income), keeping the sign convention of the
+   *  benefit rows above. */
+  income_tax_change: number;
 }
 
 function NetIncomeChangeTooltip({
@@ -738,6 +745,10 @@ function NetIncomeChangeTooltip({
         <div className="flex justify-between gap-3">
           <span>SNAP</span>
           <span>{fmt(p.snap_change)}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>Income tax</span>
+          <span>{fmt(p.income_tax_change)}</span>
         </div>
       </div>
       <div className="border-t border-pe-gray-200 mt-1 pt-1 flex justify-between gap-3 font-semibold text-pe-gray-800">
@@ -784,6 +795,9 @@ function HouseholdOverviewTab({
           (b.state_ctc + (b.child_allowance ?? 0)),
         state_eitc_change: r.state_eitc - b.state_eitc,
         snap_change: r.snap_benefits - b.snap_benefits,
+        income_tax_change:
+          ((b.federal_income_tax ?? 0) + (b.state_income_tax ?? 0)) -
+          ((r.federal_income_tax ?? 0) + (r.state_income_tax ?? 0)),
       });
     }
     return out;
@@ -804,7 +818,7 @@ function HouseholdOverviewTab({
         </p>
       </div>
 
-      {/* Per-provision change cards (federal/state income tax intentionally excluded) */}
+      {/* Per-provision change cards, plus a combined income-tax and net-income card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {PROVISION_FIELDS.map(({ key, label }) => {
           // State CTC card also includes the child allowance (basic income).
@@ -818,6 +832,13 @@ function HouseholdOverviewTab({
             <ChangeCard key={key} label={label} change={reformVal - baseVal} />
           );
         })}
+        <ChangeCard
+          label="Income tax"
+          change={
+            (baselineHH.federal_income_tax + baselineHH.state_income_tax) -
+            (reform.federal_income_tax + reform.state_income_tax)
+          }
+        />
         <ChangeCard
           label="Net income"
           change={net_income_change}
@@ -870,6 +891,14 @@ function HouseholdOverviewTab({
               />
               <ReferenceLine y={0} stroke="#9CA3AF" />
               <Tooltip content={<NetIncomeChangeTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="income_tax_change"
+                stroke={COLORS.baseline}
+                strokeWidth={2}
+                dot={false}
+                name="Income tax change"
+              />
               <Line
                 type="monotone"
                 dataKey="net_income_change"

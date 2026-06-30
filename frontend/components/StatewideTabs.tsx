@@ -482,12 +482,12 @@ function DecileView({
 }) {
   const isRelative = distMode === 'relative';
 
-  // For relative, approximate % using decile income benchmarks (placeholder: use $50k average per decile)
-  // Since we don't have baseline income per decile, we'll show absolute $ for both modes
-  // but compute "relative" as share of total benefit
+  // Relative mode shows each decile's change in net income as a percentage of
+  // its baseline net income (relative_gain), matching PolicyEngine's standard
+  // relative distributional chart. Absolute mode shows the average $ change.
   const chartData = decileImpacts.map((d) => ({
     decile: String(d.decile),
-    value: isRelative ? d.share_of_total_benefit : d.average_gain,
+    value: isRelative ? (d.relative_gain ?? 0) * 100 : d.average_gain,
   }));
 
   const values = chartData.map((d) => d.value);
@@ -509,14 +509,14 @@ function DecileView({
                 color: distMode === mode ? 'white' : '#374151',
               }}
             >
-              {mode === 'absolute' ? 'Average $' : 'Share of benefits'}
+              {mode === 'absolute' ? 'Average $' : 'Relative change'}
             </button>
           ))}
         </div>
       </div>
       <p className="text-sm text-gray-600">
         {isRelative
-          ? 'Share of total reform benefits captured by each income decile (%).'
+          ? 'Change in household net income as a percentage of baseline net income, by decile.'
           : 'Average change in household income in dollars, by decile.'}
       </p>
       <ResponsiveContainer width="100%" height={400}>
@@ -544,7 +544,7 @@ function DecileView({
               : (v) => formatCurrencyWithSign(v)} />}
           />
           <ReferenceLine y={0} stroke="#9CA3AF" strokeWidth={1} />
-          <Bar dataKey="value" name={isRelative ? 'Share of benefits' : 'Average gain'} radius={[2, 2, 0, 0]}>
+          <Bar dataKey="value" name={isRelative ? 'Relative change' : 'Average gain'} radius={[2, 2, 0, 0]}>
             {values.map((v, i) => (
               <Cell key={i} fill={v >= 0 ? COLORS.positive : COLORS.negative} />
             ))}
@@ -666,17 +666,6 @@ function WinnersLosersView({
         </div>
       </div>
 
-      {/* Share of benefits */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Share of total benefits</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ShareBar label="Bottom 20%" pct={distributional.share_to_bottom_20_pct} color={COLORS.primary} />
-          <ShareBar label="Bottom 50%" pct={distributional.share_to_bottom_50_pct} color={COLORS.primary} />
-          <ShareBar label="Top 20%" pct={distributional.share_to_top_20_pct} color="#9CA3AF" />
-          <ShareBar label="Top 10%" pct={distributional.share_to_top_10_pct} color="#9CA3AF" />
-        </div>
-      </div>
-
       {/* Average gain summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
@@ -752,19 +741,3 @@ function LegendItem({ color, label }: { color: string; label: string }) {
   );
 }
 
-function ShareBar({ label, pct, color }: { label: string; pct: number; color: string }) {
-  return (
-    <div>
-      <div className="flex justify-between mb-2">
-        <span className="text-sm text-gray-700">{label}</span>
-        <span className="text-sm font-semibold" style={{ color }}>{pct.toFixed(1)}%</span>
-      </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ backgroundColor: color, width: `${Math.min(100, Math.max(0, pct))}%` }}
-        />
-      </div>
-    </div>
-  );
-}
