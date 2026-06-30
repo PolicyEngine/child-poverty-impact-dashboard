@@ -201,6 +201,46 @@ describe('buildReformDict', () => {
     expect(buildReformDict(['ma_ctc'], { ma_ctc: { amount: 440 } }, 2026)).toEqual({});
   });
 
+  it('emits the Massachusetts child age limit (no-op at the current limit of 13)', () => {
+    const reform = buildReformDict(['ma_ctc'], { ma_ctc: { age: 14 } }, 2026);
+    expect(reform['gov.states.ma.tax.income.credits.child_and_family.child_age_limit']).toBe(14);
+    // The amount and the age limit are independent inputs.
+    const both = buildReformDict(['ma_ctc'], { ma_ctc: { amount: 600, age: 14 } }, 2026);
+    expect(both['gov.states.ma.tax.income.credits.child_and_family.amount']).toBe(600);
+    expect(both['gov.states.ma.tax.income.credits.child_and_family.child_age_limit']).toBe(14);
+    expect(buildReformDict(['ma_ctc'], { ma_ctc: { age: 13 } }, 2026)).toEqual({});
+  });
+
+  it('edits New Jersey CTC bracket amounts AND income thresholds independently', () => {
+    const C = 'gov.states.nj.tax.income.credits.ctc.amount';
+    // A tier amount (bracket index → [i].amount).
+    expect(
+      buildReformDict(['nj_ctc'], { nj_ctc: { tier1: 1200 } }, 2026)[`${C}[0].amount`],
+    ).toBe(1200);
+    // The new top tier ($80k+) amount.
+    expect(
+      buildReformDict(['nj_ctc'], { nj_ctc: { tier6: 100 } }, 2026)[`${C}[5].amount`],
+    ).toBe(100);
+    // An income threshold between tiers (bracket index → [i].threshold).
+    expect(
+      buildReformDict(['nj_ctc'], { nj_ctc: { threshold2: 35000 } }, 2026)[`${C}[1].threshold`],
+    ).toBe(35000);
+    expect(
+      buildReformDict(['nj_ctc'], { nj_ctc: { threshold6: 90000 } }, 2026)[`${C}[5].threshold`],
+    ).toBe(90000);
+    // Amount and threshold together emit exactly those two params.
+    expect(
+      buildReformDict(['nj_ctc'], { nj_ctc: { tier3: 700, threshold3: 45000 } }, 2026),
+    ).toEqual({
+      [`${C}[2].amount`]: 700,
+      [`${C}[2].threshold`]: 45000,
+    });
+    // Unchanged values are a no-op.
+    expect(
+      buildReformDict(['nj_ctc'], { nj_ctc: { threshold2: 30000, tier1: 1000 } }, 2026),
+    ).toEqual({});
+  });
+
   it('sets a bracket-indexed amount for New Mexico', () => {
     const reform = buildReformDict(['nm_ctc'], { nm_ctc: { tier1: 1000 } }, 2026);
     expect(reform['gov.states.nm.tax.income.credits.ctc.amount[0].amount']).toBe(1000);

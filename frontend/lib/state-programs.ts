@@ -1401,6 +1401,11 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         unit: '$',
         description: 'Refundable credit per qualifying dependent. Current: $440.',
       },
+      AGE(
+        'gov.states.ma.tax.income.credits.child_and_family.child_age_limit',
+        13,
+        'Child eligible if under age',
+      ),
     ],
   },
   MD: {
@@ -1584,13 +1589,19 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   NJ: {
     name: 'New Jersey Child Tax Credit',
     description:
-      'Non-refundable credit for children under 6, stepping down with NJ taxable income ($1,000 down to $0). Edit each tier amount.',
+      'Non-refundable credit for children under 6, stepping down with NJ taxable income across six brackets. Edit each tier amount and the income thresholds between tiers.',
     params: [
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 0, 1000, 'Amount (income under $30k)'),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 1, 800, 'Amount ($30k–$40k)'),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 2, 600, 'Amount ($40k–$50k)'),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 3, 400, 'Amount ($50k–$60k)'),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 4, 200, 'Amount ($60k–$80k)'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 0, 1000, 'Tier 1 amount (lowest income)'),
+      DOLLAR('threshold2', 'Tier 2 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[1].threshold', 30000, 'NJ taxable income where the credit steps down to the tier-2 amount.', 200000),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 1, 800, 'Tier 2 amount'),
+      DOLLAR('threshold3', 'Tier 3 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[2].threshold', 40000, 'NJ taxable income where the credit steps down to the tier-3 amount.', 200000),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 2, 600, 'Tier 3 amount'),
+      DOLLAR('threshold4', 'Tier 4 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[3].threshold', 50000, 'NJ taxable income where the credit steps down to the tier-4 amount.', 200000),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 3, 400, 'Tier 4 amount'),
+      DOLLAR('threshold5', 'Tier 5 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[4].threshold', 60000, 'NJ taxable income where the credit steps down to the tier-5 amount.', 200000),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 4, 200, 'Tier 5 amount'),
+      DOLLAR('threshold6', 'Top tier income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[5].threshold', 80000, 'NJ taxable income at/above which the top-tier amount applies.', 200000),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 5, 0, 'Top tier amount (highest income)'),
       AGE('gov.states.nj.tax.income.credits.ctc.age_limit', 6),
     ],
   },
