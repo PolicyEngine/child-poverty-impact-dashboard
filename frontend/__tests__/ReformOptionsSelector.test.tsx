@@ -234,7 +234,9 @@ describe('ReformOptionsSelector', () => {
         onSelectionChange={() => {}}
       />
     );
-    // EITC is the default active tab
-    expect(screen.getByText(/No eitc options available/)).toBeInTheDocument();
+    // EITC is the default active tab; the message uses the tab's label.
+    expect(
+      screen.getByText(/No State EITC options available/),
+    ).toBeInTheDocument();
   });
 });
