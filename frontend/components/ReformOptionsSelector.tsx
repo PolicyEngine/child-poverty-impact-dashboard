@@ -291,7 +291,9 @@ function ReformOptionCard({
   // inputs as a wizard immediately (no card-click to expand) and use typed
   // input boxes rather than sliders.
   const wizardMode =
-    option.category === 'child_allowance' || option.category === 'state_ctc';
+    option.category === 'child_allowance' ||
+    option.category === 'state_ctc' ||
+    option.category === 'state_dependent_exemption';
 
   return (
     <div

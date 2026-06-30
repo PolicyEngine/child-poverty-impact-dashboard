@@ -702,13 +702,26 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
 interface DependentExtraParam {
   name: string;
   label: string;
-  path: string;
+  /** One or more parameter paths this input writes (an array fans the same
+   *  value out — e.g. MD's per-filing-status brackets share one schedule). */
+  path: string | string[];
   current_amount: number;
+  /** Display unit / control: '$' (default) for dollar amounts and AGI
+   *  thresholds, 'years' for an age threshold. */
+  unit?: string;
+  /** Input step (default 50). */
+  step?: number;
+  /** Max value override (default ~2x the current amount). */
+  max?: number;
+  /** A bracket threshold rather than an amount: it is NOT zeroed when the
+   *  user eliminates the exemption (only the amounts are), and is emitted
+   *  only when the user actually changes it. */
+  is_threshold?: boolean;
 }
 
 interface DependentExemptionEntry {
   mechanism: 'baseline' | 'contrib' | 'repeal';
-  amount_path?: string;
+  amount_path?: string | string[];
   in_effect?: string;
   amount?: string;
   repeal_flag?: string;
@@ -774,22 +787,27 @@ export function buildDependentExemptionReform(
     return reform;
   }
 
-  // baseline: set the scalar param(s) directly.
+  // baseline: set the scalar param(s) directly. A path can fan out to several
+  // params (e.g. MD's per-filing-status brackets share one schedule).
+  const emit = (path: string | string[], value: number) => {
+    for (const p of Array.isArray(path) ? path : [path]) reform[p] = value;
+  };
   if (entry.amount_path) {
-    if (eliminate) reform[entry.amount_path] = 0;
+    if (eliminate) emit(entry.amount_path, 0);
     else if (editedAmount !== undefined && editedAmount !== entry.current_amount)
-      reform[entry.amount_path] = editedAmount;
+      emit(entry.amount_path, editedAmount);
   }
-  // Additional dependent exemptions for the same state (e.g. NJ college
-  // dependents): eliminate zeroes them too; otherwise apply edited amounts.
+  // Additional per-bracket amounts (AL/AZ tiers, NJ college dependents) and
+  // bracket thresholds. Eliminate zeroes the amounts (not the thresholds);
+  // any param the user edits is applied.
   for (const extra of entry.extra_params ?? []) {
-    if (eliminate) {
-      reform[extra.path] = 0;
+    if (eliminate && !extra.is_threshold) {
+      emit(extra.path, 0);
     } else if (
       pv?.[extra.name] !== undefined &&
       pv[extra.name] !== extra.current_amount
     ) {
-      reform[extra.path] = pv[extra.name];
+      emit(extra.path, pv[extra.name]);
     }
   }
   return reform;
@@ -834,16 +852,23 @@ function buildDependentExemptionOptions(
       description: `Per-dependent ${kindLabel} amount. Current: $${entry.current_amount.toLocaleString()}. Lower it to partially repeal.`,
     });
     for (const extra of entry.extra_params ?? []) {
+      const unit = extra.unit ?? '$';
+      const fmt = (v: number) =>
+        unit === '$' ? `$${v.toLocaleString()}` : `${v}${unit ? ` ${unit}` : ''}`;
       params.push({
         name: extra.name,
         label: extra.label,
         min_value: 0,
-        max_value: Math.max(10000, Math.ceil((extra.current_amount * 2) / 100) * 100),
+        max_value:
+          extra.max ??
+          Math.max(10000, Math.ceil((extra.current_amount * 2) / 100) * 100),
         default_value: extra.current_amount,
-        step: 50,
-        unit: '$',
+        step: extra.step ?? 50,
+        unit,
         depends_on_off: 'eliminate',
-        description: `Current: $${extra.current_amount.toLocaleString()}. Set to $0 to drop just this piece, or use Eliminate to remove all of ${programs.state_name}'s ${kindLabel}.`,
+        description: extra.is_threshold
+          ? `Income/age threshold where this bracket applies. Current: ${fmt(extra.current_amount)}.`
+          : `Current: ${fmt(extra.current_amount)}. Set to 0 to drop just this piece, or use Eliminate to remove all of ${programs.state_name}'s ${kindLabel}.`,
       });
     }
   }

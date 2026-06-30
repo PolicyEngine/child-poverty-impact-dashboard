@@ -481,8 +481,24 @@ describe('buildReformDict', () => {
     expect(buildReformDict(['sc_dependent_exemption'], undefined, 2026)).toEqual({});
     // A repeal-only state ignores any amount value (it is not editable).
     expect(
-      buildReformDict(['ar_dependent_exemption'], { ar_dependent_exemption: { amount: 500 } }, 2026),
+      buildReformDict(['nc_dependent_exemption'], { nc_dependent_exemption: { amount: 500 } }, 2026),
     ).toEqual({});
+  });
+
+  it('edits a stepped dependent exemption bracket threshold and amount', () => {
+    // AL's per-dependent exemption is AGI-stepped; each tier amount AND the
+    // AGI cutoffs are now editable. Changing the middle-tier cutoff and the
+    // top-tier amount emits exactly those bracket params (others untouched).
+    expect(
+      buildReformDict(
+        ['al_dependent_exemption'],
+        { al_dependent_exemption: { threshold_mid: 30000, amount_high: 250 } },
+        2026,
+      ),
+    ).toEqual({
+      'gov.states.al.tax.income.exemptions.dependent[1].threshold': 30000,
+      'gov.states.al.tax.income.exemptions.dependent[2].amount': 250,
+    });
   });
 
   it('edits and eliminates AL across its three AGI brackets', () => {
