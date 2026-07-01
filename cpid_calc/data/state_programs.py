@@ -136,7 +136,7 @@ STATE_PROGRAMS: Dict[str, StatePrograms] = {
         ),
         eitc=StateEITC(
             name="Colorado EITC",
-            match_rate=0.50,  # As of 2024
+            match_rate=0.25,  # 25% for 2026-2028
             refundable=True,
             notes="Increased to 50% in 2024, declines to 10% by 2034",
             pe_variable="co_eitc",
@@ -547,7 +547,7 @@ STATE_PROGRAMS: Dict[str, StatePrograms] = {
         ),
         eitc=StateEITC(
             name="Rhode Island EITC",
-            match_rate=0.15,
+            match_rate=0.16,  # 16% from 2024
             refundable=True,
             pe_variable="ri_eitc",
         ),

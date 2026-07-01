@@ -61,7 +61,7 @@
     },
     "eitc": {
       "name": "Colorado EITC",
-      "match_rate": 0.5,
+      "match_rate": 0.25,
       "refundable": true,
       "has_childless_credit": true,
       "age_min": null,
@@ -631,7 +631,7 @@
     },
     "eitc": {
       "name": "Rhode Island EITC",
-      "match_rate": 0.15,
+      "match_rate": 0.16,
       "refundable": true,
       "has_childless_credit": true,
       "age_min": null,

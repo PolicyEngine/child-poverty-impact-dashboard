@@ -310,7 +310,16 @@ export default function ReportBuilderPage() {
                   {Object.entries(US_STATES).map(([code, name]) => {
                     const selected = config.states[0] === code;
                     const select = () =>
-                      setConfig((c) => ({ ...c, states: [code] }));
+                      setConfig((c) =>
+                        c.states[0] === code
+                          ? c
+                          : {
+                              ...c,
+                              states: [code],
+                              selectedReforms: [],
+                              parameterValues: {},
+                            },
+                      );
                     return (
                       <button
                         key={code}
