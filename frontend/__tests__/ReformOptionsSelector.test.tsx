@@ -33,6 +33,7 @@ const reformOptions: StateReformOptions = {
   ctc_options: [],
   eitc_options: [eitcOption],
   dependent_exemption_options: [],
+  grocery_credit_options: [],
   snap_options: [],
   child_allowance_options: [],
   federal_options: [],

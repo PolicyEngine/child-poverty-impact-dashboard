@@ -770,6 +770,112 @@ describe('buildReformDict', () => {
     // No-op at current law (both untouched).
     expect(buildReformDict(['sc_dependent_exemption'], undefined, 2026)).toEqual({});
   });
+
+  // ---- DE / MD dual-rate EITCs (structured) ------------------------------
+  it('wires both Delaware EITC rates (refundable + nonrefundable)', () => {
+    const reform = buildReformDict(
+      ['de_eitc'],
+      { de_eitc: { refundable_match: 10, nonrefundable_match: 30 } },
+      2026,
+    );
+    expect(reform['gov.states.de.tax.income.credits.eitc.refundable']).toBeCloseTo(0.1);
+    expect(reform['gov.states.de.tax.income.credits.eitc.non_refundable']).toBeCloseTo(0.3);
+    expect(
+      buildReformDict(['de_eitc'], { de_eitc: { refundable_match: 4.5, nonrefundable_match: 20 } }, 2026),
+    ).toEqual({});
+  });
+
+  it('wires both Maryland EITC rates (refundable + nonrefundable)', () => {
+    const reform = buildReformDict(
+      ['md_eitc'],
+      { md_eitc: { refundable_match: 60, nonrefundable_match: 70 } },
+      2026,
+    );
+    expect(
+      reform['gov.states.md.tax.income.credits.eitc.refundable.married_or_has_child.match'],
+    ).toBeCloseTo(0.6);
+    expect(
+      reform['gov.states.md.tax.income.credits.eitc.non_refundable.married_or_has_child.match'],
+    ).toBeCloseTo(0.7);
+    expect(
+      buildReformDict(['md_eitc'], { md_eitc: { refundable_match: 45, nonrefundable_match: 50 } }, 2026),
+    ).toEqual({});
+  });
+
+  it('wires the WA WFTC phase-out margins by child count', () => {
+    const W = 'gov.states.wa.tax.income.credits.working_families_tax_credit';
+    const reform = buildReformDict(
+      ['wa_eitc'],
+      { wa_eitc: { phaseout_start_below_none: 4000, phaseout_start_below_children: 15000 } },
+      2026,
+    );
+    expect(reform[`${W}.phase_out.start_below_eitc[0].amount`]).toBe(4000);
+    expect(reform[`${W}.phase_out.start_below_eitc[1].amount`]).toBe(15000);
+    expect(
+      buildReformDict(
+        ['wa_eitc'],
+        { wa_eitc: { phaseout_start_below_none: 2500, phaseout_start_below_children: 5000 } },
+        2026,
+      ),
+    ).toEqual({});
+  });
+
+  // ---- UT CTC refundable restructure --------------------------------------
+  it('applies the UT CTC restructure only when the toggle is on', () => {
+    const U = 'gov.contrib.states.ut.ctc';
+    // Toggle off: reform inputs are ignored even if edited.
+    expect(
+      buildReformDict(['ut_ctc'], { ut_ctc: { refundable_amount: 1000 } }, 2026),
+    ).toEqual({});
+    // Toggle on at defaults: just the in_effect flag (amounts are the enacted values).
+    expect(buildReformDict(['ut_ctc'], { ut_ctc: { make_refundable: 1 } }, 2026)).toEqual({
+      [`${U}.in_effect`]: true,
+    });
+    // Toggle on, fully refundable, larger credit.
+    const full = buildReformDict(
+      ['ut_ctc'],
+      { ut_ctc: { make_refundable: 1, refundable_amount: 1000, reform_amount: 1200 } },
+      2026,
+    );
+    expect(full[`${U}.in_effect`]).toBe(true);
+    expect(full[`${U}.refundable.amount`]).toBe(1000);
+    expect(full[`${U}.amount`]).toBe(1200);
+    // Baseline levers still work alongside the reform block.
+    const combo = buildReformDict(
+      ['ut_ctc'],
+      { ut_ctc: { make_refundable: 1, amount: 1500 } },
+      2026,
+    );
+    expect(combo['gov.states.ut.tax.income.credits.ctc.amount']).toBe(1500);
+    expect(combo[`${U}.in_effect`]).toBe(true);
+  });
+
+  // ---- Idaho grocery credit ------------------------------------------------
+  it('wires the Idaho grocery credit (per-person amount + seniors add-on restore)', () => {
+    const G = 'gov.states.id.tax.income.credits.grocery';
+    // No-op at current law.
+    expect(buildReformDict(['id_grocery_credit'], undefined, 2026)).toEqual({});
+    expect(
+      buildReformDict(['id_grocery_credit'], { id_grocery_credit: { amount: 155 } }, 2026),
+    ).toEqual({});
+    // Raise the per-person amount.
+    expect(
+      buildReformDict(
+        ['id_grocery_credit'],
+        { id_grocery_credit: { amount: 300 } },
+        2026,
+      )[`${G}.base.amount`],
+    ).toBe(300);
+    // Restore the seniors add-on (repealed 2025): flag plus only changed values.
+    const aged = buildReformDict(
+      ['id_grocery_credit'],
+      { id_grocery_credit: { restore_aged: 1, aged_amount: 50 } },
+      2026,
+    );
+    expect(aged[`${G}.aged.in_effect`]).toBe(true);
+    expect(aged[`${G}.aged.amount`]).toBe(50);
+    expect(aged[`${G}.aged.age_threshold`]).toBeUndefined();
+  });
 });
 
 describe('buildDependentExemptionSubReform', () => {
