@@ -407,6 +407,39 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
       },
     ],
   },
+  CT: {
+    name: 'Connecticut EITC',
+    description:
+      "Connecticut's earned income credit is a percentage of the federal EITC, plus a flat bonus for filers with at least one qualifying child. Set the match rate and the per-filer child bonus.",
+    kind: 'match',
+    requires_income_tax: true,
+    params: [
+      {
+        name: 'match_rate',
+        label: 'Match rate',
+        path: 'gov.states.ct.tax.income.credits.eitc.match',
+        default_value: 40,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description: 'Percentage of the federal EITC. Current: 40%.',
+      },
+      {
+        name: 'child_bonus',
+        label: 'Qualifying-child bonus',
+        path: 'gov.states.ct.tax.income.credits.eitc.qualifying_child_bonus.amount',
+        default_value: 250,
+        min_value: 0,
+        max_value: 2000,
+        step: 25,
+        unit: '$',
+        description:
+          'Flat additional credit for filers with at least one qualifying child (stacks on the match). Current: $250 (2025).',
+      },
+    ],
+  },
 };
 
 export function eitcStructured(stateCode: string): boolean {
@@ -1343,6 +1376,18 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         27425,
         'Earned income at which the credit starts phasing out.',
       ),
+      {
+        name: 'phaseout_amount',
+        label: 'Reduction per $100 earned income',
+        path: 'gov.states.ca.tax.income.credits.young_child.phase_out.amount',
+        default_value: 21.71,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '$',
+        description:
+          'Dollars of credit removed per $100 of earned income above the phase-out start. Current: $21.71 (2025).',
+      },
     ],
   },
   DC: {
@@ -1357,6 +1402,18 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       DOLLAR('threshold_hoh', 'Phase-out — head of household', 'gov.states.dc.tax.income.credits.ctc.income_threshold.HEAD_OF_HOUSEHOLD', 55000, 'DC taxable income where phase-out begins (HoH).'),
       DOLLAR('threshold_separate', 'Phase-out — separate', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SEPARATE', 35000, 'DC taxable income where phase-out begins (separate).'),
       DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SURVIVING_SPOUSE', 55000, 'DC taxable income where phase-out begins (surviving spouse).'),
+      {
+        name: 'phaseout_amount',
+        label: 'Reduction per $1,000 (DC taxable income)',
+        path: 'gov.states.dc.tax.income.credits.ctc.phase_out.amount',
+        default_value: 50,
+        min_value: 0,
+        max_value: 500,
+        step: 5,
+        unit: '$',
+        description:
+          'Dollars of credit lost per $1,000 of DC taxable income over the threshold. Current: $50 (2026).',
+      },
     ],
   },
   GA: {
@@ -1374,6 +1431,43 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     params: [
       AMT('gov.states.ri.tax.income.credits.ctc.amount', 330, 3000),
       AGE('gov.states.ri.tax.income.credits.ctc.age_limit', 18, 'Eligible if age or under'),
+      {
+        name: 'phaseout_start',
+        label: 'Phase-out start (AGI)',
+        paths: [
+          'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SINGLE',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SEPARATE',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.HEAD_OF_HOUSEHOLD',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.JOINT',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SURVIVING_SPOUSE',
+        ],
+        default_value: 88500,
+        min_value: 0,
+        max_value: 400000,
+        step: 5000,
+        unit: '$',
+        description:
+          'AGI where the credit starts phasing out (takes effect 2027). Current law varies by filing status (~$88,500 single to ~$110,640 joint); changing this sets the same threshold for all statuses.',
+      },
+      RATE('phaseout_rate', 'Phase-out rate', 'gov.states.ri.tax.income.credits.ctc.phase_out.rate', 20, 'Share of the credit removed for each income increment above the threshold. Current: 20%.'),
+      {
+        name: 'phaseout_increment',
+        label: 'Phase-out income increment',
+        paths: [
+          'gov.states.ri.tax.income.credits.ctc.phase_out.increment.SINGLE',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.increment.SEPARATE',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.increment.HEAD_OF_HOUSEHOLD',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.increment.JOINT',
+          'gov.states.ri.tax.income.credits.ctc.phase_out.increment.SURVIVING_SPOUSE',
+        ],
+        default_value: 2875,
+        min_value: 500,
+        max_value: 20000,
+        step: 500,
+        unit: '$',
+        description:
+          'AGI increment the phase-out rate applies per (takes effect 2027). Current law ~$2,875 single / $3,590 joint; changing this sets the same increment for all statuses.',
+      },
     ],
   },
   IL: {
@@ -1428,6 +1522,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         unit: '$',
         description: 'Dollars of credit lost per $1,000 of AGI over the threshold.',
       },
+      DOLLAR('phaseout_max_agi', 'Phase-out ends (AGI)', 'gov.states.md.tax.income.credits.ctc.phase_out.max_agi', 24001, 'Federal AGI at/above which the phased-out credit reaches $0 (2025+). Current: $24,001.', 100000),
     ],
   },
   ME: {
@@ -1457,6 +1552,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         unit: 'x',
         description: 'Multiplier on the credit for children under 6. Current: 2× (i.e. $610), new in 2025; set to 1 to remove the young-child boost.',
       },
+      AGE('gov.states.me.tax.income.credits.dependent_exemption.multiplier[1].threshold', 6, 'Young-child boost applies under age', 'young_child_age'),
       {
         name: 'phaseout_start',
         label: 'Phase-out start (AGI)',
@@ -1566,6 +1662,9 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       coTier(0, 1200, 'Tier 1 amount (lowest AGI)'),
       coTier(1, 600, 'Tier 2 amount (middle AGI)'),
       coTier(2, 200, 'Tier 3 amount (upper AGI)'),
+      coThreshold(1, 26000, 'Tier 2 income threshold (single filer)'),
+      coThreshold(2, 51000, 'Tier 3 income threshold (single filer)'),
+      coThreshold(3, 77000, 'Credit ends — income threshold (single filer)'),
       AGE('gov.states.co.tax.income.credits.ctc.age_threshold', 6),
     ],
   },
@@ -1617,6 +1716,12 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 4, 79, 'Amount ($100k–$200k)', 2000),
       bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 5, 53, 'Amount ($200k–$350k)', 2000),
       bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 6, 26, 'Amount ($350k+)', 2000),
+      DOLLAR('threshold1', 'Tier 2 income threshold', 'gov.states.nm.tax.income.credits.ctc.amount[1].threshold', 25000, 'Federal AGI where the credit steps down to the second tier.', 500000),
+      DOLLAR('threshold2', 'Tier 3 income threshold', 'gov.states.nm.tax.income.credits.ctc.amount[2].threshold', 50000, 'Federal AGI where the credit steps down to the third tier.', 500000),
+      DOLLAR('threshold3', 'Tier 4 income threshold', 'gov.states.nm.tax.income.credits.ctc.amount[3].threshold', 75001, 'Federal AGI where the credit steps down to the fourth tier.', 500000),
+      DOLLAR('threshold4', 'Tier 5 income threshold', 'gov.states.nm.tax.income.credits.ctc.amount[4].threshold', 100000, 'Federal AGI where the credit steps down to the fifth tier.', 500000),
+      DOLLAR('threshold5', 'Tier 6 income threshold', 'gov.states.nm.tax.income.credits.ctc.amount[5].threshold', 200000, 'Federal AGI where the credit steps down to the sixth tier.', 500000),
+      DOLLAR('threshold6', 'Top tier income threshold', 'gov.states.nm.tax.income.credits.ctc.amount[6].threshold', 350000, 'Federal AGI at/above which the lowest tier applies.', 500000),
     ],
   },
   // --- New York: handled specially (year-aware) by buildNyCtcReform.
@@ -1676,6 +1781,27 @@ function coTier(idx: number, def: number, label: string): CtcParam {
   };
 }
 
+// Colorado tier income threshold (AGI cutoff between tiers), applied to all
+// five filing-status scales at once. Current law's cutoffs differ by filing
+// status (single shown as the default); editing sets the same cutoff for all.
+function coThreshold(idx: number, def: number, label: string): CtcParam {
+  const statuses = ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse'];
+  return {
+    name: `threshold${idx}`,
+    label,
+    paths: statuses.map(
+      (s) => `gov.states.co.tax.income.credits.ctc.amount.${s}[${idx}].threshold`,
+    ),
+    default_value: def,
+    min_value: 0,
+    max_value: 200000,
+    step: 1000,
+    unit: '$',
+    description:
+      'Federal AGI where the per-child credit steps down to the next tier. Current law varies by filing status (single shown); editing sets the same cutoff for all statuses.',
+  };
+}
+
 // A single bracket-scale amount (e.g. ``...amount[2].amount``).
 function bracketAmt(
   scalePath: string,
@@ -1701,6 +1827,8 @@ function nyAgeParams(): AdjustableParameter[] {
   return [
     { name: 'young_amount', label: 'Amount — ages 0–3', min_value: 0, max_value: 5000, default_value: 1000, step: 50, unit: '$', description: 'Credit per child under age 4.' },
     { name: 'older_amount', label: 'Amount — ages 4–16', min_value: 0, max_value: 5000, default_value: 500, step: 50, unit: '$', description: 'Credit per child age 4–16.' },
+    { name: 'split_age', label: 'Older tier starts at age', min_value: 1, max_value: 18, default_value: 4, step: 1, unit: 'yr', description: 'Children under this age get the ages 0–3 amount; from this age up to the eligibility cap they get the ages 4–16 amount.' },
+    { name: 'max_age', label: 'Ineligible at age', min_value: 1, max_value: 19, default_value: 17, step: 1, unit: 'yr', description: 'Children this age or older receive no credit.' },
     { name: 'threshold_single', label: 'Phase-out — single', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (single).' },
     { name: 'threshold_joint', label: 'Phase-out — joint', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (joint).' },
     { name: 'threshold_hoh', label: 'Phase-out — head of household', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (HoH).' },
@@ -1810,6 +1938,8 @@ function buildNyCtcReform(
   const tSurv = pv?.threshold_surviving_spouse ?? 110000;
   const rate = pv?.rate ?? 16.5;
   const increment = pv?.increment ?? 1000;
+  const splitAge = pv?.split_age ?? 4;
+  const maxAge = pv?.max_age ?? 17;
 
   if (reverts) {
     // Post-2024 has reverted to $0/off. Without "extend", current law is the
@@ -1825,6 +1955,8 @@ function buildNyCtcReform(
     out[`${P}.in_effect`] = true;
     out[`${P}.amount[0].amount`] = young;
     out[`${P}.amount[1].amount`] = older;
+    out[`${P}.amount[1].threshold`] = splitAge;
+    out[`${P}.amount[2].threshold`] = maxAge;
     out[`${P}.phase_out.threshold.SINGLE`] = tSingle;
     out[`${P}.phase_out.threshold.JOINT`] = tJoint;
     out[`${P}.phase_out.threshold.HEAD_OF_HOUSEHOLD`] = tHoh;
@@ -1841,6 +1973,8 @@ function buildNyCtcReform(
   };
   set(`${P}.amount[0].amount`, young, 1000);
   set(`${P}.amount[1].amount`, older, 500);
+  set(`${P}.amount[1].threshold`, splitAge, 4);
+  set(`${P}.amount[2].threshold`, maxAge, 17);
   set(`${P}.phase_out.threshold.SINGLE`, tSingle, 75000);
   set(`${P}.phase_out.threshold.JOINT`, tJoint, 110000);
   set(`${P}.phase_out.threshold.HEAD_OF_HOUSEHOLD`, tHoh, 75000);
