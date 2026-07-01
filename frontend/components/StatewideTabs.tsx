@@ -178,7 +178,6 @@ export function StatewideOverview({ results, state, year }: TabProps) {
             title="Fiscal impact"
             rows={[
               { label: 'State revenue impact', value: formatBillions(-fiscal_cost.state_cost_billions) },
-              { label: 'Cost per child lifted', value: formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty) },
             ]}
           />
           <StatGroup
@@ -355,19 +354,6 @@ export function StatewideFiscal({ results, year }: TabProps) {
           <FiscalCard label="Total" value={totalImpact} />
           <FiscalCard label="Federal" value={federalImpact} />
           <FiscalCard label="State" value={stateImpact} />
-        </div>
-      </div>
-
-      {/* Cost effectiveness */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Cost effectiveness</h3>
-        <div className="grid grid-cols-1 gap-4">
-          <div className="rounded-lg p-5 border border-gray-200 bg-white">
-            <p className="text-sm text-gray-700 mb-2">Cost per child lifted from poverty</p>
-            <p className="text-2xl font-bold" style={{ color: COLORS.primary }}>
-              {formatCurrency(fiscal_cost.cost_per_child_lifted_from_poverty)}
-            </p>
-          </div>
         </div>
       </div>
 

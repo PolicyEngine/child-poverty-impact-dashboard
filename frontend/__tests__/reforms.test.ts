@@ -646,23 +646,26 @@ describe('buildReformDict', () => {
   });
 
   // ---- Review PR: newly-exposed CTC levers -----------------------------
-  it('emits the Rhode Island CTC phase-out threshold/rate/increment across filing statuses', () => {
+  it('emits the Rhode Island CTC per-filing-status phase-out starts, rate, and increment', () => {
     const P = 'gov.states.ri.tax.income.credits.ctc.phase_out';
     const reform = buildReformDict(
       ['ri_ctc'],
-      { ri_ctc: { phaseout_start: 100000, phaseout_rate: 30, phaseout_increment: 4000 } },
+      { ri_ctc: { threshold_single: 100000, threshold_joint: 120000, phaseout_rate: 30, phaseout_increment: 4000 } },
       2027,
     );
+    // Phase-out starts are set per filing status.
+    expect(reform[`${P}.threshold.SINGLE`]).toBe(100000);
+    expect(reform[`${P}.threshold.JOINT`]).toBe(120000);
+    // The increment still fans to all five filing statuses.
     for (const st of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'JOINT', 'SURVIVING_SPOUSE']) {
-      expect(reform[`${P}.threshold.${st}`]).toBe(100000);
       expect(reform[`${P}.increment.${st}`]).toBe(4000);
     }
     expect(reform[`${P}.rate`]).toBeCloseTo(0.3);
-    // Current-law (2027) defaults are a no-op.
+    // Current-law (2027) defaults are a no-op (single 88,500 / joint 110,640).
     expect(
       buildReformDict(
         ['ri_ctc'],
-        { ri_ctc: { phaseout_start: 88500, phaseout_rate: 20, phaseout_increment: 2875 } },
+        { ri_ctc: { threshold_single: 88500, threshold_joint: 110640, phaseout_rate: 20, phaseout_increment: 2875 } },
         2027,
       ),
     ).toEqual({});
