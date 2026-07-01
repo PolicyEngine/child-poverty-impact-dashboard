@@ -496,17 +496,22 @@ describe('buildReformDict', () => {
     expect(reform['gov.contrib.states.ri.dependent_exemption.amount']).toBe(2000);
   });
 
-  it('eliminates the South Carolina dependent exemption by zeroing its own amount (baseline)', () => {
+  it('eliminates the South Carolina dependent exemption AND its young-child deduction', () => {
     const reform = buildReformDict(
       ['sc_dependent_exemption'],
       { sc_dependent_exemption: { eliminate: 1 } },
       2026,
     );
-    // SC now has its own dependent-exemption param (PE-US 1.740.0), so it is
-    // amount-editable; eliminate zeroes it without touching the young-child deduction.
+    // SC stacks a dependent exemption (§12-6-1140) and a young-child deduction
+    // (§12-6-1160); a full repeal zeroes both amounts.
     expect(
       reform['gov.states.sc.tax.income.deductions.dependent_exemption.amount'],
     ).toBe(0);
+    expect(reform['gov.states.sc.tax.income.deductions.young_child.amount']).toBe(0);
+    // The young-child age limit is a threshold, so it is left untouched.
+    expect(
+      reform['gov.states.sc.tax.income.deductions.young_child.ineligible_age'],
+    ).toBeUndefined();
   });
 
   it('eliminates a bundled/shared dependent exemption via the broad repeal flag (UT)', () => {
@@ -638,6 +643,129 @@ describe('buildReformDict', () => {
     expect(
       reform['gov.states.nj.tax.income.exemptions.dependents.amount'],
     ).toBeUndefined();
+  });
+
+  // ---- Review PR: newly-exposed CTC levers -----------------------------
+  it('emits the Rhode Island CTC phase-out threshold/rate/increment across filing statuses', () => {
+    const P = 'gov.states.ri.tax.income.credits.ctc.phase_out';
+    const reform = buildReformDict(
+      ['ri_ctc'],
+      { ri_ctc: { phaseout_start: 100000, phaseout_rate: 30, phaseout_increment: 4000 } },
+      2027,
+    );
+    for (const st of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'JOINT', 'SURVIVING_SPOUSE']) {
+      expect(reform[`${P}.threshold.${st}`]).toBe(100000);
+      expect(reform[`${P}.increment.${st}`]).toBe(4000);
+    }
+    expect(reform[`${P}.rate`]).toBeCloseTo(0.3);
+    // Current-law (2027) defaults are a no-op.
+    expect(
+      buildReformDict(
+        ['ri_ctc'],
+        { ri_ctc: { phaseout_start: 88500, phaseout_rate: 20, phaseout_increment: 2875 } },
+        2027,
+      ),
+    ).toEqual({});
+  });
+
+  it('emits the California young-child phase-out reduction amount', () => {
+    const reform = buildReformDict(['ca_ctc'], { ca_ctc: { phaseout_amount: 40 } }, 2026);
+    expect(reform['gov.states.ca.tax.income.credits.young_child.phase_out.amount']).toBe(40);
+    expect(buildReformDict(['ca_ctc'], { ca_ctc: { phaseout_amount: 21.71 } }, 2026)).toEqual({});
+  });
+
+  it('emits the DC CTC phase-out reduction amount', () => {
+    const reform = buildReformDict(['dc_ctc'], { dc_ctc: { phaseout_amount: 100 } }, 2026);
+    expect(reform['gov.states.dc.tax.income.credits.ctc.phase_out.amount']).toBe(100);
+    expect(buildReformDict(['dc_ctc'], { dc_ctc: { phaseout_amount: 50 } }, 2026)).toEqual({});
+  });
+
+  it('emits the Maryland CTC phase-out end (max AGI) — the live lever in 2025+', () => {
+    // NOTE: MD's separate agi_cap ($15k) is vestigial from 2025 (the phase-out
+    // structure superseded the hard cliff), so it is deliberately NOT exposed;
+    // phase_out.max_agi is the live ceiling that truncates the credit.
+    const reform = buildReformDict(['md_ctc'], { md_ctc: { phaseout_max_agi: 40000 } }, 2026);
+    expect(reform['gov.states.md.tax.income.credits.ctc.phase_out.max_agi']).toBe(40000);
+    expect(
+      buildReformDict(['md_ctc'], { md_ctc: { phaseout_max_agi: 24001 } }, 2026),
+    ).toEqual({});
+  });
+
+  it('sets a Colorado tier income threshold across all five filing statuses', () => {
+    const reform = buildReformDict(['co_ctc'], { co_ctc: { threshold1: 30000 } }, 2026);
+    for (const st of ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse']) {
+      expect(reform[`gov.states.co.tax.income.credits.ctc.amount.${st}[1].threshold`]).toBe(30000);
+    }
+    expect(buildReformDict(['co_ctc'], { co_ctc: { threshold1: 26000 } }, 2026)).toEqual({});
+  });
+
+  it('edits a New Mexico bracket income threshold (no-op at current law)', () => {
+    const reform = buildReformDict(['nm_ctc'], { nm_ctc: { threshold1: 30000 } }, 2026);
+    expect(reform['gov.states.nm.tax.income.credits.ctc.amount[1].threshold']).toBe(30000);
+    expect(buildReformDict(['nm_ctc'], { nm_ctc: { threshold1: 25000 } }, 2026)).toEqual({});
+  });
+
+  it('emits the NY post-2024 age-tier boundaries (2026)', () => {
+    const P = 'gov.states.ny.tax.income.credits.ctc.post_2024';
+    const reform = buildReformDict(['ny_ctc'], { ny_ctc: { split_age: 5, max_age: 18 } }, 2026);
+    expect(reform[`${P}.amount[1].threshold`]).toBe(5);
+    expect(reform[`${P}.amount[2].threshold`]).toBe(18);
+    // Defaults (split at 4, ineligible at 17) are a no-op.
+    expect(buildReformDict(['ny_ctc'], { ny_ctc: { split_age: 4, max_age: 17 } }, 2026)).toEqual({});
+  });
+
+  it('restores the NY age-tier boundaries when extending post-2027', () => {
+    const P = 'gov.states.ny.tax.income.credits.ctc.post_2024';
+    const reform = buildReformDict(['ny_ctc'], { ny_ctc: { extend: 1, split_age: 5, max_age: 18 } }, 2028);
+    expect(reform[`${P}.amount[1].threshold`]).toBe(5);
+    expect(reform[`${P}.amount[2].threshold`]).toBe(18);
+  });
+
+  it('emits the Maine young-child boost age cutoff (no-op at 6)', () => {
+    const reform = buildReformDict(['me_ctc'], { me_ctc: { young_child_age: 8 } }, 2026);
+    expect(
+      reform['gov.states.me.tax.income.credits.dependent_exemption.multiplier[1].threshold'],
+    ).toBe(8);
+    expect(buildReformDict(['me_ctc'], { me_ctc: { young_child_age: 6 } }, 2026)).toEqual({});
+  });
+
+  // ---- Review PR: CT EITC (match + qualifying-child bonus) --------------
+  it('wires the Connecticut EITC match and qualifying-child bonus', () => {
+    const reform = buildReformDict(
+      ['ct_eitc'],
+      { ct_eitc: { match_rate: 50, child_bonus: 500 } },
+      2026,
+    );
+    expect(reform['gov.states.ct.tax.income.credits.eitc.match']).toBeCloseTo(0.5);
+    expect(
+      reform['gov.states.ct.tax.income.credits.eitc.qualifying_child_bonus.amount'],
+    ).toBe(500);
+    // Current law (40% match, $250 bonus) is a no-op.
+    expect(
+      buildReformDict(['ct_eitc'], { ct_eitc: { match_rate: 40, child_bonus: 250 } }, 2026),
+    ).toEqual({});
+  });
+
+  // ---- Review PR: SC young-child deduction (stacked lever) --------------
+  it('edits the SC young-child deduction amount and age limit independently', () => {
+    const editAmount = buildReformDict(
+      ['sc_dependent_exemption'],
+      { sc_dependent_exemption: { young_child_amount: 8000 } },
+      2026,
+    );
+    expect(editAmount['gov.states.sc.tax.income.deductions.young_child.amount']).toBe(8000);
+    // The main dependent exemption is left at current law.
+    expect(
+      editAmount['gov.states.sc.tax.income.deductions.dependent_exemption.amount'],
+    ).toBeUndefined();
+    const editAge = buildReformDict(
+      ['sc_dependent_exemption'],
+      { sc_dependent_exemption: { young_child_age: 5 } },
+      2026,
+    );
+    expect(editAge['gov.states.sc.tax.income.deductions.young_child.ineligible_age']).toBe(5);
+    // No-op at current law (both untouched).
+    expect(buildReformDict(['sc_dependent_exemption'], undefined, 2026)).toEqual({});
   });
 });
 
