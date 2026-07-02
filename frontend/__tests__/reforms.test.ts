@@ -876,6 +876,43 @@ describe('buildReformDict', () => {
     expect(aged[`${G}.aged.amount`]).toBe(50);
     expect(aged[`${G}.aged.age_threshold`]).toBeUndefined();
   });
+
+  // ---- OH / UT refundable-EITC activation (fixed in PE-US 1.755.x) --------
+  it('makes the OH EITC refundable only when the checkbox is set', () => {
+    const IN_EFFECT = 'gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.in_effect';
+    const MATCH = 'gov.states.oh.tax.income.credits.eitc.rate';
+    const refundable = buildReformDict(
+      ['oh_eitc'],
+      { oh_eitc: { make_refundable: 1, match_rate: 40 } },
+      2026,
+    );
+    expect(refundable[IN_EFFECT]).toBe(true);
+    expect(refundable[MATCH]).toBeCloseTo(0.4);
+    const stillNonrefundable = buildReformDict(
+      ['oh_eitc'],
+      { oh_eitc: { match_rate: 40 } },
+      2026,
+    );
+    expect(stillNonrefundable[IN_EFFECT]).toBeUndefined();
+    expect(stillNonrefundable[MATCH]).toBeCloseTo(0.4);
+  });
+
+  it('makes the UT EITC refundable only when the checkbox is set', () => {
+    const IN_EFFECT = 'gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.in_effect';
+    const MATCH = 'gov.states.ut.tax.income.credits.earned_income.rate';
+    const refundable = buildReformDict(
+      ['ut_eitc'],
+      { ut_eitc: { make_refundable: 1, match_rate: 25 } },
+      2026,
+    );
+    expect(refundable[IN_EFFECT]).toBe(true);
+    expect(refundable[MATCH]).toBeCloseTo(0.25);
+    // Without the checkbox the contrib flag is absent; the match is emitted at
+    // its current-law value (the builder's explicit no-op convention).
+    const noToggle = buildReformDict(['ut_eitc'], { ut_eitc: { match_rate: 20 } }, 2026);
+    expect(noToggle[IN_EFFECT]).toBeUndefined();
+    expect(noToggle[MATCH]).toBeCloseTo(0.2);
+  });
 });
 
 describe('buildDependentExemptionSubReform', () => {
