@@ -138,8 +138,8 @@
     "in_effect": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.states.mo.tax.income.credits.wftc.match",
     "current_rate": 0.20,
-    "refundable_ready": false,
-    "note": "MO WFTC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter. refundable_ready stays false until the upstream PE-US reform is fixed and released (see policyengine-us issue)."
+    "refundable_ready": true,
+    "note": "MO WFTC is nonrefundable by default; the contrib in_effect flag converts it to refundable (fixed in policyengine-us 1.755.x; verified: pays match x federal EITC as a refund). Match path is the existing baseline parameter."
   },
   "MT": {
     "type": "existing",
@@ -188,8 +188,8 @@
     "in_effect": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.states.oh.tax.income.credits.eitc.rate",
     "current_rate": 0.30,
-    "refundable_ready": false,
-    "note": "OH EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter. refundable_ready stays false until the upstream PE-US reform is fixed and released (see policyengine-us issue)."
+    "refundable_ready": true,
+    "note": "OH EITC is nonrefundable by default; the contrib in_effect flag converts it to refundable (fixed in policyengine-us 1.755.x; verified: pays match x federal EITC as a refund). Match path is the existing baseline parameter."
   },
   "OK": {
     "type": "existing",
@@ -230,8 +230,8 @@
     "in_effect": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.in_effect",
     "match": "gov.states.ut.tax.income.credits.earned_income.rate",
     "current_rate": 0.20,
-    "refundable_ready": false,
-    "note": "UT EITC is nonrefundable by default; contrib in_effect flag converts it to refundable. Match path is the existing baseline parameter. refundable_ready stays false until the upstream PE-US reform is fixed and released (see policyengine-us issue)."
+    "refundable_ready": true,
+    "note": "UT EITC is nonrefundable by default; the contrib in_effect flag converts it to refundable (fixed in policyengine-us 1.755.x; verified: pays match x federal EITC as a refund). Match path is the existing baseline parameter."
   },
   "VT": {
     "type": "existing",

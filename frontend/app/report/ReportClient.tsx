@@ -177,6 +177,7 @@ export default function ReportBuilderPage() {
           ...reformOptions.ctc_options,
           ...reformOptions.eitc_options,
           ...reformOptions.dependent_exemption_options,
+          ...reformOptions.grocery_credit_options,
           ...reformOptions.snap_options,
           ...reformOptions.child_allowance_options,
           ...reformOptions.federal_options,

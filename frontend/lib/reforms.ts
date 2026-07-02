@@ -217,6 +217,24 @@ function applyReformOption(
       }
       return;
     }
+    case 'id_grocery_credit': {
+      // Idaho grocery tax credit: refundable, per person (incl. children),
+      // prorated by months not on SNAP. Emit only values changed from current
+      // law; the aged add-on was repealed in 2025, so restoring it flips
+      // aged.in_effect, and only then are its amount/age emitted when edited.
+      const gpv = parameterValues?.['id_grocery_credit'];
+      const G = 'gov.states.id.tax.income.credits.grocery';
+      const perPerson = gpv?.amount ?? 155;
+      if (perPerson !== 155) reform[`${G}.base.amount`] = perPerson;
+      if (gpv?.restore_aged) {
+        reform[`${G}.aged.in_effect`] = true;
+        const agedAmount = gpv?.aged_amount ?? 20;
+        if (agedAmount !== 20) reform[`${G}.aged.amount`] = agedAmount;
+        const agedAge = gpv?.aged_age ?? 65;
+        if (agedAge !== 65) reform[`${G}.aged.age_threshold`] = agedAge;
+      }
+      return;
+    }
     case 'snap_reform': {
       // SNAP eligibility + generosity levers, mapped to real PolicyEngine-US
       // parameters. Emit only values the user changed from current law so an

@@ -40,7 +40,7 @@ export default function ReformOptionsSelector({
   isLoading = false,
 }: ReformOptionsSelectorProps) {
   const [activeTab, setActiveTab] = useState<
-    'ctc' | 'eitc' | 'depexempt' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc'
+    'ctc' | 'eitc' | 'depexempt' | 'grocery' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc'
   >('eitc');
 
   const toggleOption = (optionId: string) => {
@@ -52,6 +52,8 @@ export default function ReformOptionsSelector({
       ? [
           ...reformOptions.ctc_options,
           ...reformOptions.eitc_options,
+          ...reformOptions.dependent_exemption_options,
+          ...reformOptions.grocery_credit_options,
           ...reformOptions.snap_options,
           ...reformOptions.child_allowance_options,
           ...reformOptions.federal_options,
@@ -101,7 +103,7 @@ export default function ReformOptionsSelector({
     );
   }
 
-  type TabId = 'ctc' | 'eitc' | 'depexempt' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc';
+  type TabId = 'ctc' | 'eitc' | 'depexempt' | 'grocery' | 'snap' | 'allowance' | 'fedctc' | 'fedeitc';
   const federalCtc = reformOptions.federal_options.filter(
     (o) => o.category === 'federal_ctc',
   );
@@ -129,6 +131,16 @@ export default function ReformOptionsSelector({
       options: reformOptions.dependent_exemption_options,
       note: 'Adjust, partially repeal, or eliminate the state dependent exemption/credit. Combine it with a State EITC or Child Allowance option to model replacing it with a different provision.',
     },
+    ...(reformOptions.grocery_credit_options.length > 0
+      ? [
+          {
+            id: 'grocery' as TabId,
+            label: 'Grocery Credit',
+            options: reformOptions.grocery_credit_options,
+            note: "Idaho's refundable grocery tax credit: a per-person amount (including children), prorated by months not receiving SNAP.",
+          },
+        ]
+      : []),
     { id: 'snap', label: 'SNAP', options: reformOptions.snap_options },
     { id: 'allowance', label: 'Child Allowance', options: reformOptions.child_allowance_options },
     {

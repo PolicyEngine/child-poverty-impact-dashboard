@@ -327,6 +327,30 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
         description:
           'Minimum credit for an eligible filer with a nonzero benefit. Current: $50.',
       },
+      {
+        name: 'phaseout_start_below_none',
+        label: 'Phase-out margin (no children)',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.phase_out.start_below_eitc[0].amount',
+        default_value: 2500,
+        min_value: 0,
+        max_value: 30000,
+        step: 500,
+        unit: '$',
+        description:
+          'The credit starts phasing out this far below the federal EITC income limit for filers with no qualifying children. Current: $2,500. A larger margin starts the phase-out at lower incomes.',
+      },
+      {
+        name: 'phaseout_start_below_children',
+        label: 'Phase-out margin (with children)',
+        path: 'gov.states.wa.tax.income.credits.working_families_tax_credit.phase_out.start_below_eitc[1].amount',
+        default_value: 5000,
+        min_value: 0,
+        max_value: 30000,
+        step: 500,
+        unit: '$',
+        description:
+          'The credit starts phasing out this far below the federal EITC income limit for filers with qualifying children. Current: $5,000.',
+      },
     ],
   },
   WI: {
@@ -440,6 +464,76 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
       },
     ],
   },
+  DE: {
+    name: 'Delaware EITC',
+    description:
+      "Delaware offers two EITCs and filers claim whichever is larger: a refundable credit worth 4.5% of the federal EITC, or a nonrefundable one worth 20%. Set each rate.",
+    kind: 'match',
+    requires_income_tax: true,
+    params: [
+      {
+        name: 'refundable_match',
+        label: 'Refundable match rate',
+        path: 'gov.states.de.tax.income.credits.eitc.refundable',
+        default_value: 4.5,
+        min_value: 0,
+        max_value: 100,
+        step: 0.5,
+        unit: '%',
+        divide_by: 100,
+        description:
+          'Refundable percentage of the federal EITC. Current: 4.5%. Filers claim the larger of the refundable or nonrefundable credit.',
+      },
+      {
+        name: 'nonrefundable_match',
+        label: 'Nonrefundable match rate',
+        path: 'gov.states.de.tax.income.credits.eitc.non_refundable',
+        default_value: 20,
+        min_value: 0,
+        max_value: 100,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description:
+          'Nonrefundable percentage of the federal EITC. Current: 20%. Only offsets tax owed, so low-income filers usually do better with the refundable credit.',
+      },
+    ],
+  },
+  MD: {
+    name: 'Maryland EITC',
+    description:
+      "Maryland lets filers who are married or have a qualifying child claim either a refundable EITC (45% of the federal credit) or a larger nonrefundable one (50%). Set each rate. (The separate 100% nonrefundable childless credit is unchanged.)",
+    kind: 'match',
+    requires_income_tax: true,
+    params: [
+      {
+        name: 'refundable_match',
+        label: 'Refundable match rate',
+        path: 'gov.states.md.tax.income.credits.eitc.refundable.married_or_has_child.match',
+        default_value: 45,
+        min_value: 0,
+        max_value: 150,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description:
+          'Refundable percentage of the federal EITC for filers married or with a qualifying child. Current: 45%.',
+      },
+      {
+        name: 'nonrefundable_match',
+        label: 'Nonrefundable match rate',
+        path: 'gov.states.md.tax.income.credits.eitc.non_refundable.married_or_has_child.match',
+        default_value: 50,
+        min_value: 0,
+        max_value: 150,
+        step: 1,
+        unit: '%',
+        divide_by: 100,
+        description:
+          'Nonrefundable percentage of the federal EITC for the same filers; the credit paid is whichever of the two is larger. Current: 50%.',
+      },
+    ],
+  },
 };
 
 export function eitcStructured(stateCode: string): boolean {
@@ -481,7 +575,8 @@ export type ReformCategory =
   | 'federal_ctc'
   | 'federal_eitc'
   | 'snap'
-  | 'child_allowance';
+  | 'child_allowance'
+  | 'state_grocery_credit';
 
 export interface AdjustableParameter {
   name: string;
@@ -527,6 +622,7 @@ export interface StateReformOptions {
   ctc_options: ReformOption[];
   eitc_options: ReformOption[];
   dependent_exemption_options: ReformOption[];
+  grocery_credit_options: ReformOption[];
   snap_options: ReformOption[];
   child_allowance_options: ReformOption[];
   federal_options: ReformOption[];
@@ -587,6 +683,7 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
           unit: p.unit,
           description: p.description,
           ...(p.control ? { control: p.control } : {}),
+          ...(p.depends_on ? { depends_on: p.depends_on } : {}),
         })),
       },
     ];
@@ -1219,6 +1316,71 @@ function buildSnapOptions(): ReformOption[] {
   ];
 }
 
+/** Idaho's grocery tax credit: a refundable per-person credit (including
+ *  children) offsetting sales tax on groceries, prorated by months the person
+ *  is not receiving SNAP and not incarcerated. Only Idaho has one, so every
+ *  other state gets no options and no tab. */
+function buildGroceryCreditOptions(stateCode: string): ReformOption[] {
+  if (stateCode.toUpperCase() !== 'ID') return [];
+  return [
+    {
+      id: 'id_grocery_credit',
+      name: 'Idaho Grocery Credit',
+      description:
+        'Refundable credit per person, including children, offsetting sales tax on groceries ($155/person from 2025), prorated by months not receiving SNAP. Raise the per-person amount, or restore the seniors (65+) add-on repealed in 2025.',
+      category: 'state_grocery_credit',
+      is_configurable: true,
+      adjustable_params: [
+        {
+          name: 'amount',
+          label: 'Credit per person',
+          min_value: 0,
+          max_value: 1000,
+          default_value: 155,
+          step: 5,
+          unit: '$',
+          description:
+            'Annual refundable credit per person, including children. Current: $155 (2025+).',
+        },
+        {
+          name: 'restore_aged',
+          label: 'Restore the seniors (65+) add-on',
+          control: 'toggle',
+          min_value: 0,
+          max_value: 1,
+          default_value: 0,
+          step: 1,
+          unit: '',
+          description:
+            'Reinstate the additional amount for filers 65 and over, repealed in 2025 (H.B. 231).',
+        },
+        {
+          name: 'aged_amount',
+          label: 'Seniors add-on amount',
+          depends_on: 'restore_aged',
+          min_value: 0,
+          max_value: 500,
+          default_value: 20,
+          step: 5,
+          unit: '$',
+          description: 'Additional annual amount per person 65 and over. Was $20 before the 2025 repeal.',
+        },
+        {
+          name: 'aged_age',
+          label: 'Seniors add-on age threshold',
+          depends_on: 'restore_aged',
+          min_value: 50,
+          max_value: 80,
+          default_value: 65,
+          step: 1,
+          unit: 'yr',
+          description: 'Age at or above which the add-on applies. Current: 65.',
+        },
+      ],
+    },
+  ];
+}
+
 function buildFederalOptions(): ReformOption[] {
   return [
     {
@@ -1278,6 +1440,7 @@ interface CtcParam {
   description: string;
   divide_by?: number; // UI percent -> /1 rate when set to 100
   control?: 'toggle'; // render as a checkbox (stored 0/1)
+  depends_on?: string; // only render when the named sibling param is truthy
 }
 
 interface CtcRegistryEntry {
@@ -1667,6 +1830,44 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SURVIVING_SPOUSE', 54000, 'Income where phase-out begins (surviving spouse).'),
       DOLLAR('threshold_separate', 'Phase-out — separate', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SEPARATE', 27000, 'Income where phase-out begins (separate).'),
       RATE('phaseout_rate', 'Phase-out rate', 'gov.states.ut.tax.income.credits.ctc.reduction.rate', 10, 'Share of income above the threshold that reduces the credit.'),
+      {
+        name: 'make_refundable',
+        label: 'Make the credit (partially) refundable',
+        control: 'toggle',
+        path: '',
+        default_value: 0,
+        min_value: 0,
+        max_value: 1,
+        step: 1,
+        unit: '',
+        description:
+          "Apply Utah's CTC restructure (Utah Code 59-10-1047, from 2026): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
+      },
+      {
+        name: 'reform_amount',
+        label: 'Reform credit amount',
+        path: '',
+        default_value: 1000,
+        min_value: 0,
+        max_value: 5000,
+        step: 50,
+        unit: '$',
+        depends_on: 'make_refundable',
+        description: 'Per-child amount under the restructure. Current (2026 reform): $1,000.',
+      },
+      {
+        name: 'refundable_amount',
+        label: 'Refundable portion per child',
+        path: '',
+        default_value: 800,
+        min_value: 0,
+        max_value: 5000,
+        step: 50,
+        unit: '$',
+        depends_on: 'make_refundable',
+        description:
+          'Maximum refunded per child beyond tax owed. $800 under the 2026 reform; set it equal to the credit amount for a fully refundable credit, or 0 for nonrefundable.',
+      },
     ],
   },
   VT: {
@@ -1911,6 +2112,7 @@ export function buildStateCtcOptions(
           unit: p.unit,
           description: p.description,
           ...(p.control ? { control: p.control } : {}),
+          ...(p.depends_on ? { depends_on: p.depends_on } : {}),
         }));
   return [
     {
@@ -1936,6 +2138,7 @@ export function buildStateCtcReform(
 ): Record<string, number | boolean> {
   const code = stateCode.toUpperCase();
   if (code === 'NY') return buildNyCtcReform(paramValues, year);
+  if (code === 'UT') return buildUtCtcReform(paramValues);
   const entry = CTC_REFORMS[code];
   if (!entry) return {};
   const out: Record<string, number> = {};
@@ -2017,6 +2220,41 @@ function buildNyCtcReform(
   return out;
 }
 
+/** Utah CTC: baseline levers plus the 59-10-1047 restructure (gov.contrib.
+ *  states.ut.ctc), which is what makes the credit (partially) refundable. The
+ *  reform block only emits when its toggle is on; the reform amounts emit only
+ *  when changed from the enacted values, so the toggle alone is the clean
+ *  "apply the 2026 restructure" reform. */
+const UT_REFORM_PARAM_NAMES = new Set([
+  'make_refundable',
+  'reform_amount',
+  'refundable_amount',
+]);
+
+function buildUtCtcReform(
+  pv?: Record<string, number>,
+): Record<string, number | boolean> {
+  const entry = CTC_REFORMS.UT;
+  const out: Record<string, number | boolean> = {};
+  for (const p of entry.params) {
+    if (UT_REFORM_PARAM_NAMES.has(p.name)) continue;
+    const ui = pv?.[p.name];
+    if (ui === undefined || ui === p.default_value) continue;
+    const value = p.divide_by ? ui / p.divide_by : ui;
+    for (const path of p.paths ?? [p.path!]) out[path] = value;
+  }
+  if (pv?.make_refundable) {
+    out['gov.contrib.states.ut.ctc.in_effect'] = true;
+    const amount = pv?.reform_amount ?? 1000;
+    if (amount !== 1000) out['gov.contrib.states.ut.ctc.amount'] = amount;
+    const refundable = pv?.refundable_amount ?? 800;
+    if (refundable !== 800) {
+      out['gov.contrib.states.ut.ctc.refundable.amount'] = refundable;
+    }
+  }
+  return out;
+}
+
 /** State codes that have a wired current-law CTC. */
 export function stateHasCtc(stateCode: string): boolean {
   return CTC_REFORMS[stateCode.toUpperCase()] !== undefined;
@@ -2036,6 +2274,7 @@ export function getReformOptionsForState(
       ctc_options: [],
       eitc_options: [],
       dependent_exemption_options: [],
+      grocery_credit_options: buildGroceryCreditOptions(stateCode),
       snap_options: buildSnapOptions(),
       child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(),
@@ -2054,6 +2293,7 @@ export function getReformOptionsForState(
     ctc_options: buildStateCtcOptions(programs.state_code, year),
     eitc_options: buildEitcOptions(programs),
     dependent_exemption_options: buildDependentExemptionOptions(programs),
+    grocery_credit_options: buildGroceryCreditOptions(programs.state_code),
     snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(),

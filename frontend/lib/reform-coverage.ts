@@ -34,6 +34,7 @@ export function optionsByCategory(opts: StateReformOptions): ReformOption[][] {
     opts.ctc_options,
     opts.eitc_options,
     opts.dependent_exemption_options,
+    opts.grocery_credit_options,
     opts.snap_options,
     opts.child_allowance_options,
     opts.federal_options,

@@ -115,6 +115,7 @@ export interface StateReformOptions {
   ctc_options: ReformOption[];
   eitc_options: ReformOption[];
   dependent_exemption_options: ReformOption[];
+  grocery_credit_options: ReformOption[];
   snap_options: ReformOption[];
   child_allowance_options: ReformOption[];
   federal_options: ReformOption[];
