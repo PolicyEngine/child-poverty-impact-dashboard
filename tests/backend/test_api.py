@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 # Import will fail without proper setup, so we use try/except
 try:
     from app.main import app
+
     client = TestClient(app)
     API_AVAILABLE = True
 except ImportError:
@@ -63,7 +64,7 @@ class TestReformEndpoints:
         """Test validating a valid reform."""
         reform = {
             "name": "Test Reform",
-            "year": 2024,
+            "year": 2026,
             "ctc": {"enabled": True, "amount_young": 3600},
         }
         response = client.post("/api/reforms/validate", json=reform)
@@ -74,7 +75,7 @@ class TestReformEndpoints:
 
     def test_validate_reform_no_reforms(self):
         """Test validating a reform with no reforms enabled."""
-        reform = {"name": "Empty Reform", "year": 2024}
+        reform = {"name": "Empty Reform", "year": 2026}
         response = client.post("/api/reforms/validate", json=reform)
         assert response.status_code == 200
         data = response.json()
@@ -115,6 +116,7 @@ class TestReformModels:
     def test_ctc_config_defaults(self):
         """Test CTCRequest defaults."""
         from app.api.models.reforms import CTCRequest
+
         ctc = CTCRequest()
         assert not ctc.enabled
         assert ctc.amount_young == 0
@@ -123,10 +125,9 @@ class TestReformModels:
     def test_reform_request_example(self):
         """Test ReformRequest with example data."""
         from app.api.models.reforms import ReformRequest, CTCRequest
+
         reform = ReformRequest(
-            name="Test",
-            year=2024,
-            ctc=CTCRequest(enabled=True, amount_young=3600)
+            name="Test", year=2026, ctc=CTCRequest(enabled=True, amount_young=3600)
         )
         assert reform.name == "Test"
         assert reform.ctc.enabled
@@ -139,6 +140,7 @@ class TestResponseModels:
     def test_poverty_impact_response(self):
         """Test PovertyImpactResponse model."""
         from app.api.models.responses import PovertyImpactResponse
+
         response = PovertyImpactResponse(
             baseline_child_poverty_rate=12.5,
             reform_child_poverty_rate=8.5,
@@ -160,6 +162,7 @@ class TestResponseModels:
     def test_fiscal_cost_response(self):
         """Test FiscalCostResponse model."""
         from app.api.models.responses import FiscalCostResponse
+
         response = FiscalCostResponse(
             total_cost_billions=105.5,
             federal_cost_billions=100.0,

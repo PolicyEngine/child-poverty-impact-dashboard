@@ -21,8 +21,10 @@ class Settings(BaseSettings):
     ]
 
     # PolicyEngine settings
-    DATASET: str = "enhanced_cps_2024"
-    DEFAULT_YEAR: int = 2024
+    DATASET: str = (
+        "hf://policyengine/policyengine-us-data/enhanced_cps_2024.h5@1.110.12"
+    )
+    DEFAULT_YEAR: int = 2026
 
     # Cache settings
     CACHE_ENABLED: bool = True

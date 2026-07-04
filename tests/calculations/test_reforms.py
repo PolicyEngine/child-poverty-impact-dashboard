@@ -1,15 +1,10 @@
 """Tests for reform configuration and building."""
 
-import pytest
 from cpid_calc.reforms.config import (
     ReformConfig,
     CTCConfig,
     EITCConfig,
-    SNAPConfig,
-    UBIConfig,
-    StateCTCConfig,
     AgeEligibility,
-    IncomeBasis,
     PhaseoutStructure,
 )
 from cpid_calc.reforms.ctc import CTCReform
@@ -17,6 +12,7 @@ from cpid_calc.reforms.eitc import EITCReform
 from cpid_calc.reforms.snap import SNAPReform
 from cpid_calc.reforms.ubi import UBIReform
 from cpid_calc.reforms.state_ctc import StateCTCReform, EXISTING_STATE_CTCS
+from cpid_calc.reforms.builder import _build_ctc_reform, _build_eitc_reform
 
 
 class TestReformConfig:
@@ -26,7 +22,7 @@ class TestReformConfig:
         """Test default configuration values."""
         config = ReformConfig()
         assert config.name == "Custom Reform"
-        assert config.year == 2024
+        assert config.year == 2026
         assert len(config.states) == 0
         assert not config.ctc.enabled
         assert not config.eitc.enabled
@@ -97,6 +93,15 @@ class TestCTCReform:
         assert reform.config.amount_young == 4200
         assert reform.config.amount_older == 3000
 
+    def test_builder_creates_amount_changes(self):
+        """Test CTC configs create actual PolicyEngine parameter changes."""
+        config = ReformConfig(ctc=CTCReform.expanded_ctc().config)
+        reform_dict = _build_ctc_reform(config)
+
+        assert reform_dict["gov.irs.credits.ctc.amount.arpa[0].amount"] == 3600
+        assert reform_dict["gov.irs.credits.ctc.amount.arpa[1].amount"] == 3000
+        assert reform_dict["gov.irs.credits.ctc.phase_out.arpa.in_effect"]
+
 
 class TestEITCReform:
     """Test EITC reform factory methods."""
@@ -119,6 +124,16 @@ class TestEITCReform:
         assert reform.config.enabled
         assert reform.config.childless_expansion
 
+    def test_builder_creates_parameter_changes(self):
+        """Test EITC configs create actual PolicyEngine parameter changes."""
+        config = ReformConfig(eitc=EITCReform.booker_earned_income_boost().config)
+        reform_dict = _build_eitc_reform(config)
+
+        assert reform_dict["gov.irs.credits.eitc.eligibility.age.min"] == 19
+        assert reform_dict["gov.irs.credits.eitc.eligibility.age.max"] == 67
+        assert "gov.irs.credits.eitc.max[0].amount" in reform_dict
+        assert "gov.irs.credits.eitc.phase_in_rate[0].amount" in reform_dict
+
 
 class TestSNAPReform:
     """Test SNAP reform factory methods."""
@@ -132,8 +147,7 @@ class TestSNAPReform:
     def test_eligibility_expansion(self):
         """Test SNAP eligibility expansion."""
         reform = SNAPReform.eligibility_expansion(
-            income_limit_increase=30,
-            remove_asset_test=True
+            income_limit_increase=30, remove_asset_test=True
         )
         assert reform.config.enabled
         assert reform.config.expand_eligibility_percent == 30
@@ -159,9 +173,7 @@ class TestUBIReform:
     def test_means_tested_allowance(self):
         """Test means-tested child allowance."""
         reform = UBIReform.means_tested_child_allowance(
-            amount=4000,
-            phaseout_start=75000,
-            phaseout_rate=0.05
+            amount=4000, phaseout_start=75000, phaseout_rate=0.05
         )
         assert reform.config.enabled
         assert reform.config.phase_out_with_income
@@ -181,9 +193,7 @@ class TestStateCTCReform:
     def test_new_state_ctc(self):
         """Test creating a new state CTC."""
         reform = StateCTCReform.new_state_ctc(
-            state="TX",
-            amount_young=2000,
-            amount_older=1500
+            state="TX", amount_young=2000, amount_older=1500
         )
         assert reform.config.enabled
         assert reform.config.state == "TX"

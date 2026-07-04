@@ -2,8 +2,9 @@
 Reform builder - creates PolicyEngine reform objects from configuration.
 """
 
-from typing import Dict, Any, Optional
-from policyengine_us import Microsimulation
+from typing import Any, Dict, Optional
+
+import policyengine as pe
 from policyengine_core.reforms import Reform
 
 from cpid_calc.reforms.config import (
@@ -14,12 +15,17 @@ from cpid_calc.reforms.config import (
 )
 
 
+def _get_us_parameters():
+    """Return the PolicyEngine US parameter tree through policyengine.py."""
+    return pe.us.model._load_system().parameters
+
+
 def create_reform(config: ReformConfig) -> Optional[Reform]:
     """
     Create a PolicyEngine Reform object from a ReformConfig.
 
     This function builds the reform by composing all enabled policy changes
-    into a single Reform object that can be applied to a Microsimulation.
+    into a single Reform object that can be applied to a microsimulation.
 
     Args:
         config: ReformConfig containing all policy parameters
@@ -82,10 +88,29 @@ def _build_ctc_reform(config: ReformConfig) -> Dict[str, Any]:
     """Build CTC reform parameters using valid PolicyEngine paths."""
     ctc = config.ctc
     reform = {}
+    period = f"{config.year}-01-01"
+    parameters = _get_us_parameters()
+    current_base_amount = parameters.gov.irs.credits.ctc.amount.base[0].amount(period)
 
     # Set refundability - this is a valid parameter
     if ctc.refundable:
         reform["gov.irs.credits.ctc.refundable.fully_refundable"] = True
+
+    if ctc.refundable_amount is not None:
+        reform["gov.irs.credits.ctc.refundable.individual_max"] = (
+            ctc.refundable_amount
+        )
+
+    if ctc.amount_young or ctc.amount_older:
+        young_amount = ctc.amount_young or current_base_amount
+        older_amount = ctc.amount_older or current_base_amount
+
+        if young_amount == older_amount:
+            reform["gov.irs.credits.ctc.amount.base[0].amount"] = young_amount
+        else:
+            reform["gov.irs.credits.ctc.amount.arpa[0].amount"] = young_amount
+            reform["gov.irs.credits.ctc.amount.arpa[1].amount"] = older_amount
+            reform["gov.irs.credits.ctc.phase_out.arpa.in_effect"] = True
 
     # Set phaseout thresholds - these are valid parameters
     reform["gov.irs.credits.ctc.phase_out.threshold.SINGLE"] = ctc.phaseout_start_single
@@ -94,11 +119,6 @@ def _build_ctc_reform(config: ReformConfig) -> Dict[str, Any]:
     reform["gov.irs.credits.ctc.phase_out.threshold.SEPARATE"] = ctc.phaseout_start_single
     reform["gov.irs.credits.ctc.phase_out.threshold.SURVIVING_SPOUSE"] = ctc.phaseout_start_joint
 
-    # Note: CTC amounts use a ParameterScale structure (amount by age bracket)
-    # which requires more complex modification. For now, we focus on
-    # refundability and phaseout changes which have the biggest impact.
-    # Full amount changes would require modifying the scale brackets.
-
     return reform
 
 
@@ -106,18 +126,55 @@ def _build_eitc_reform(config: ReformConfig) -> Dict[str, Any]:
     """Build EITC reform parameters using valid PolicyEngine paths."""
     eitc = config.eitc
     reform = {}
+    period = f"{config.year}-01-01"
+    parameters = _get_us_parameters().gov.irs.credits.eitc
 
-    # EITC uses complex ParameterScale structures for max amounts and rates
-    # Most EITC parameters require modifying scale brackets, which is not
-    # straightforward with simple parameter updates.
-    #
-    # For now, EITC reforms through this builder are limited.
-    # The reform options system should provide accurate descriptions
-    # of what can actually be modified.
+    if eitc.age_floor_reduction:
+        reform["gov.irs.credits.eitc.eligibility.age.min"] = (
+            25 - eitc.age_floor_reduction
+        )
 
-    # Age eligibility changes could be done if the parameters exist:
-    # - gov.irs.credits.eitc.eligibility.age.min
-    # - gov.irs.credits.eitc.eligibility.age.max
+    if eitc.age_ceiling_increase:
+        reform["gov.irs.credits.eitc.eligibility.age.max"] = (
+            65 + eitc.age_ceiling_increase
+        )
+
+    expansion_factor = 1 + eitc.expansion_percent / 100
+    if eitc.expansion_percent:
+        for child_count in range(4):
+            reform[f"gov.irs.credits.eitc.max[{child_count}].amount"] = (
+                parameters.max[child_count].amount(period) * expansion_factor
+            )
+            reform[f"gov.irs.credits.eitc.phase_in_rate[{child_count}].amount"] = (
+                parameters.phase_in_rate[child_count].amount(period)
+                * expansion_factor
+            )
+
+    if eitc.childless_expansion:
+        reform.setdefault("gov.irs.credits.eitc.eligibility.age.min", 19)
+        reform.setdefault("gov.irs.credits.eitc.eligibility.age.max", 67)
+        reform["gov.irs.credits.eitc.max[0].amount"] = max(
+            reform.get(
+                "gov.irs.credits.eitc.max[0].amount",
+                parameters.max[0].amount(period),
+            ),
+            1_502,
+        )
+        reform["gov.irs.credits.eitc.phase_in_rate[0].amount"] = max(
+            reform.get(
+                "gov.irs.credits.eitc.phase_in_rate[0].amount",
+                parameters.phase_in_rate[0].amount(period),
+            ),
+            0.153,
+        )
+        reform["gov.irs.credits.eitc.phase_out.rate[0].amount"] = max(
+            parameters.phase_out.rate[0].amount(period),
+            0.153,
+        )
+        reform["gov.irs.credits.eitc.phase_out.start[0].amount"] = max(
+            parameters.phase_out.start[0].amount(period),
+            11_610,
+        )
 
     return reform
 

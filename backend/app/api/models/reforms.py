@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class AgeEligibility(str, Enum):
     """Age eligibility categories."""
+
     PRENATAL_3 = "prenatal_3"
     AGES_0_5 = "0_5"
     AGES_0_17 = "0_17"
@@ -17,6 +18,7 @@ class AgeEligibility(str, Enum):
 
 class IncomeBasis(str, Enum):
     """Income basis for benefits."""
+
     AGI = "agi"
     EARNED_INCOME = "earned"
     GROSS_INCOME = "gross"
@@ -24,6 +26,7 @@ class IncomeBasis(str, Enum):
 
 class PhaseoutStructure(str, Enum):
     """Phaseout structure types."""
+
     NONE = "none"
     SYMMETRIC = "symmetric"
     ASYMMETRIC = "asymmetric"
@@ -31,8 +34,11 @@ class PhaseoutStructure(str, Enum):
 
 class CTCRequest(BaseModel):
     """Child Tax Credit reform parameters."""
+
     enabled: bool = False
-    amount_young: float = Field(default=0, ge=0, description="Credit for children under 6")
+    amount_young: float = Field(
+        default=0, ge=0, description="Credit for children under 6"
+    )
     amount_older: float = Field(default=0, ge=0, description="Credit for children 6-17")
     age_eligibility: AgeEligibility = AgeEligibility.AGES_0_17
     income_basis: IncomeBasis = IncomeBasis.AGI
@@ -46,9 +52,14 @@ class CTCRequest(BaseModel):
 
 class EITCRequest(BaseModel):
     """EITC reform parameters."""
+
     enabled: bool = False
-    individualized: bool = Field(default=False, description="Individual vs household basis")
-    expansion_percent: float = Field(default=0, ge=0, description="Percentage expansion")
+    individualized: bool = Field(
+        default=False, description="Individual vs household basis"
+    )
+    expansion_percent: float = Field(
+        default=0, ge=0, description="Percentage expansion"
+    )
     childless_expansion: bool = False
     age_floor_reduction: int = Field(default=0, ge=0, le=10)
     age_ceiling_increase: int = Field(default=0, ge=0, le=20)
@@ -56,6 +67,7 @@ class EITCRequest(BaseModel):
 
 class DependentExemptionRequest(BaseModel):
     """Dependent exemption reform parameters."""
+
     enabled: bool = False
     amount_per_dependent: float = Field(default=0, ge=0)
     refundable: bool = False
@@ -65,6 +77,7 @@ class DependentExemptionRequest(BaseModel):
 
 class UBIRequest(BaseModel):
     """UBI/Child Allowance reform parameters."""
+
     enabled: bool = False
     amount_per_child: float = Field(default=0, ge=0)
     amount_per_adult: float = Field(default=0, ge=0)
@@ -76,6 +89,7 @@ class UBIRequest(BaseModel):
 
 class SNAPRequest(BaseModel):
     """SNAP reform parameters."""
+
     enabled: bool = False
     benefit_increase_percent: float = Field(default=0, ge=0)
     expand_eligibility_percent: float = Field(default=0, ge=0)
@@ -85,6 +99,7 @@ class SNAPRequest(BaseModel):
 
 class StateCTCRequest(BaseModel):
     """State CTC reform parameters."""
+
     enabled: bool = False
     state: str = Field(default="", max_length=2, description="Two-letter state code")
     amount_young: float = Field(default=0, ge=0)
@@ -98,6 +113,7 @@ class StateCTCRequest(BaseModel):
 
 class ReformRequest(BaseModel):
     """Complete reform configuration request."""
+
     name: str = Field(default="Custom Reform", max_length=100)
     description: str = Field(default="", max_length=500)
     year: int = Field(default=2026, ge=2026, le=2035)
@@ -106,7 +122,9 @@ class ReformRequest(BaseModel):
     # Individual reforms
     ctc: CTCRequest = Field(default_factory=CTCRequest)
     eitc: EITCRequest = Field(default_factory=EITCRequest)
-    dependent_exemption: DependentExemptionRequest = Field(default_factory=DependentExemptionRequest)
+    dependent_exemption: DependentExemptionRequest = Field(
+        default_factory=DependentExemptionRequest
+    )
     ubi: UBIRequest = Field(default_factory=UBIRequest)
     snap: SNAPRequest = Field(default_factory=SNAPRequest)
     state_ctc: StateCTCRequest = Field(default_factory=StateCTCRequest)
@@ -116,7 +134,7 @@ class ReformRequest(BaseModel):
             "example": {
                 "name": "Expanded CTC",
                 "description": "Expand the CTC to $3,600 for young children",
-                "year": 2024,
+                "year": 2026,
                 "states": [],
                 "ctc": {
                     "enabled": True,

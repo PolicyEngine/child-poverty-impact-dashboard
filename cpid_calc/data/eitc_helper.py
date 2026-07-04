@@ -5,9 +5,9 @@ Fetches state EITC rates and configuration directly from policyengine-us
 parameters, avoiding hardcoded values that can become stale.
 """
 
-from typing import Dict, List
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Dict, List
 
 
 @dataclass
@@ -32,8 +32,9 @@ STATES_USING_CONTRIB_PARAMS = [
 @lru_cache(maxsize=1)
 def _get_tax_benefit_system():
     """Get cached tax benefit system instance."""
-    from policyengine_us import CountryTaxBenefitSystem
-    return CountryTaxBenefitSystem()
+    import policyengine as pe
+
+    return pe.us.model._load_system()
 
 
 def get_state_eitc_info(state_code: str, year: int = 2026) -> StateEITCInfo:

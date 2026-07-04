@@ -6,8 +6,6 @@ Calculates child poverty rates and changes under baseline and reform scenarios.
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-import numpy as np
-from policyengine_us import Microsimulation
 
 from cpid_calc.reforms.config import ReformConfig
 from cpid_calc.calculations.microsim import (
@@ -15,15 +13,15 @@ from cpid_calc.calculations.microsim import (
     get_state_filter,
     get_child_filter,
     get_young_child_filter,
-    get_person_weight,
-    calculate_weighted_mean,
-    _to_numpy,
+    micro_mean,
+    micro_sum,
 )
 
 
 @dataclass
 class PovertyImpact:
     """Results of poverty impact calculation."""
+
     # Child poverty rates
     baseline_child_poverty_rate: float
     reform_child_poverty_rate: float
@@ -51,18 +49,34 @@ class PovertyImpact:
     def to_dict(self) -> Dict:
         """Convert to dictionary for serialization."""
         return {
-            "baseline_child_poverty_rate": round(self.baseline_child_poverty_rate * 100, 2),
+            "baseline_child_poverty_rate": round(
+                self.baseline_child_poverty_rate * 100, 2
+            ),
             "reform_child_poverty_rate": round(self.reform_child_poverty_rate * 100, 2),
             "child_poverty_change_pp": round(self.child_poverty_change * 100, 2),
-            "child_poverty_percent_change": round(self.child_poverty_percent_change * 100, 1),
-            "baseline_young_child_poverty_rate": round(self.baseline_young_child_poverty_rate * 100, 2),
-            "reform_young_child_poverty_rate": round(self.reform_young_child_poverty_rate * 100, 2),
-            "young_child_poverty_change_pp": round(self.young_child_poverty_change * 100, 2),
-            "young_child_poverty_percent_change": round(self.young_child_poverty_percent_change * 100, 1),
+            "child_poverty_percent_change": round(
+                self.child_poverty_percent_change * 100, 1
+            ),
+            "baseline_young_child_poverty_rate": round(
+                self.baseline_young_child_poverty_rate * 100, 2
+            ),
+            "reform_young_child_poverty_rate": round(
+                self.reform_young_child_poverty_rate * 100, 2
+            ),
+            "young_child_poverty_change_pp": round(
+                self.young_child_poverty_change * 100, 2
+            ),
+            "young_child_poverty_percent_change": round(
+                self.young_child_poverty_percent_change * 100, 1
+            ),
             "children_lifted_out_of_poverty": self.children_lifted_out_of_poverty,
             "young_children_lifted_out_of_poverty": self.young_children_lifted_out_of_poverty,
-            "baseline_deep_child_poverty_rate": round(self.baseline_deep_child_poverty_rate * 100, 2),
-            "reform_deep_child_poverty_rate": round(self.reform_deep_child_poverty_rate * 100, 2),
+            "baseline_deep_child_poverty_rate": round(
+                self.baseline_deep_child_poverty_rate * 100, 2
+            ),
+            "reform_deep_child_poverty_rate": round(
+                self.reform_deep_child_poverty_rate * 100, 2
+            ),
             "deep_poverty_change_pp": round(self.deep_poverty_change * 100, 2),
             "state": self.state,
         }
@@ -103,72 +117,60 @@ def calculate_poverty_impact(
         children = state_filter & child_filter
         young_children = state_filter & young_child_filter
 
-    # Get weights
-    weights = get_person_weight(baseline, year)
-
     # Calculate poverty status (use person-level poverty indicator)
-    baseline_in_poverty = baseline.calculate("person_in_poverty", period=year)
-    reform_in_poverty = reform.calculate("person_in_poverty", period=year)
+    baseline_in_poverty = baseline.calc(
+        "person_in_poverty", period=year, map_to="person"
+    )
+    reform_in_poverty = reform.calc("person_in_poverty", period=year, map_to="person")
 
-    # Deep poverty - use person-level indicator if available, else map from spm_unit
-    try:
-        baseline_in_deep_poverty = baseline.calculate("person_in_deep_poverty", period=year)
-        reform_in_deep_poverty = reform.calculate("person_in_deep_poverty", period=year)
-    except Exception:
-        # Fall back to assuming same shape as regular poverty (may need proper mapping)
-        baseline_in_deep_poverty = baseline_in_poverty * 0  # placeholder
-        reform_in_deep_poverty = reform_in_poverty * 0
+    baseline_in_deep_poverty = baseline.calc(
+        "in_deep_poverty", period=year, map_to="person"
+    )
+    reform_in_deep_poverty = reform.calc(
+        "in_deep_poverty", period=year, map_to="person"
+    )
 
     # Child poverty rates
-    baseline_child_poverty_rate = calculate_weighted_mean(
-        baseline_in_poverty, weights, children
-    )
-    reform_child_poverty_rate = calculate_weighted_mean(
-        reform_in_poverty, weights, children
-    )
+    baseline_child_poverty_rate = micro_mean(baseline_in_poverty, children)
+    reform_child_poverty_rate = micro_mean(reform_in_poverty, children)
 
     # Young child poverty rates
-    baseline_young_child_poverty_rate = calculate_weighted_mean(
-        baseline_in_poverty, weights, young_children
+    baseline_young_child_poverty_rate = micro_mean(
+        baseline_in_poverty, young_children
     )
-    reform_young_child_poverty_rate = calculate_weighted_mean(
-        reform_in_poverty, weights, young_children
-    )
+    reform_young_child_poverty_rate = micro_mean(reform_in_poverty, young_children)
 
     # Deep poverty rates
-    baseline_deep_child_poverty_rate = calculate_weighted_mean(
-        baseline_in_deep_poverty, weights, children
+    baseline_deep_child_poverty_rate = micro_mean(
+        baseline_in_deep_poverty, children
     )
-    reform_deep_child_poverty_rate = calculate_weighted_mean(
-        reform_in_deep_poverty, weights, children
-    )
+    reform_deep_child_poverty_rate = micro_mean(reform_in_deep_poverty, children)
 
     # Count children lifted out of poverty
-    # Convert MicroSeries to numpy arrays for boolean operations
-    baseline_poverty_arr = _to_numpy(baseline_in_poverty)
-    reform_poverty_arr = _to_numpy(reform_in_poverty)
-    children_arr = _to_numpy(children)
-    young_children_arr = _to_numpy(young_children)
-    weights_arr = _to_numpy(weights)
-
-    lifted_out = baseline_poverty_arr & ~reform_poverty_arr
-    children_lifted = int(np.sum(lifted_out[children_arr] * weights_arr[children_arr]))
-    young_children_lifted = int(np.sum(lifted_out[young_children_arr] * weights_arr[young_children_arr]))
+    lifted_out = baseline_in_poverty & ~reform_in_poverty
+    children_lifted = int(micro_sum(lifted_out, children))
+    young_children_lifted = int(micro_sum(lifted_out, young_children))
 
     # Calculate changes
     child_poverty_change = reform_child_poverty_rate - baseline_child_poverty_rate
     child_poverty_pct_change = (
         child_poverty_change / baseline_child_poverty_rate
-        if baseline_child_poverty_rate > 0 else 0
+        if baseline_child_poverty_rate > 0
+        else 0
     )
 
-    young_child_poverty_change = reform_young_child_poverty_rate - baseline_young_child_poverty_rate
+    young_child_poverty_change = (
+        reform_young_child_poverty_rate - baseline_young_child_poverty_rate
+    )
     young_child_poverty_pct_change = (
         young_child_poverty_change / baseline_young_child_poverty_rate
-        if baseline_young_child_poverty_rate > 0 else 0
+        if baseline_young_child_poverty_rate > 0
+        else 0
     )
 
-    deep_poverty_change = reform_deep_child_poverty_rate - baseline_deep_child_poverty_rate
+    deep_poverty_change = (
+        reform_deep_child_poverty_rate - baseline_deep_child_poverty_rate
+    )
 
     return PovertyImpact(
         baseline_child_poverty_rate=baseline_child_poverty_rate,
@@ -208,14 +210,19 @@ def calculate_poverty_impact_by_state(
     baseline, reform = run_microsimulation(config)
 
     results = {}
-    weights = get_person_weight(baseline, year)
-    child_filter = get_child_filter(baseline)
-    young_child_filter = get_young_child_filter(baseline)
+    child_filter = get_child_filter(baseline, year=year)
+    young_child_filter = get_young_child_filter(baseline, year=year)
 
-    baseline_in_poverty = baseline.calculate("in_poverty", period=year)
-    reform_in_poverty = reform.calculate("in_poverty", period=year)
-    baseline_in_deep_poverty = baseline.calculate("in_deep_poverty", period=year)
-    reform_in_deep_poverty = reform.calculate("in_deep_poverty", period=year)
+    baseline_in_poverty = baseline.calc(
+        "person_in_poverty", period=year, map_to="person"
+    )
+    reform_in_poverty = reform.calc("person_in_poverty", period=year, map_to="person")
+    baseline_in_deep_poverty = baseline.calc(
+        "in_deep_poverty", period=year, map_to="person"
+    )
+    reform_in_deep_poverty = reform.calc(
+        "in_deep_poverty", period=year, map_to="person"
+    )
 
     for state in ALL_STATES:
         state_filter = get_state_filter(baseline, [state])
@@ -223,45 +230,41 @@ def calculate_poverty_impact_by_state(
         young_children = state_filter & young_child_filter
 
         # Child poverty rates
-        baseline_child_poverty_rate = calculate_weighted_mean(
-            baseline_in_poverty, weights, children
-        )
-        reform_child_poverty_rate = calculate_weighted_mean(
-            reform_in_poverty, weights, children
-        )
+        baseline_child_poverty_rate = micro_mean(baseline_in_poverty, children)
+        reform_child_poverty_rate = micro_mean(reform_in_poverty, children)
 
         # Young child poverty rates
-        baseline_young_child_poverty_rate = calculate_weighted_mean(
-            baseline_in_poverty, weights, young_children
+        baseline_young_child_poverty_rate = micro_mean(
+            baseline_in_poverty, young_children
         )
-        reform_young_child_poverty_rate = calculate_weighted_mean(
-            reform_in_poverty, weights, young_children
+        reform_young_child_poverty_rate = micro_mean(
+            reform_in_poverty, young_children
         )
 
         # Deep poverty
-        baseline_deep = calculate_weighted_mean(
-            baseline_in_deep_poverty, weights, children
-        )
-        reform_deep = calculate_weighted_mean(
-            reform_in_deep_poverty, weights, children
-        )
+        baseline_deep = micro_mean(baseline_in_deep_poverty, children)
+        reform_deep = micro_mean(reform_in_deep_poverty, children)
 
         # Counts
         lifted_out = baseline_in_poverty & ~reform_in_poverty
-        children_lifted = int(np.sum(lifted_out[children] * weights[children]))
-        young_children_lifted = int(np.sum(lifted_out[young_children] * weights[young_children]))
+        children_lifted = int(micro_sum(lifted_out, children))
+        young_children_lifted = int(micro_sum(lifted_out, young_children))
 
         # Changes
         child_poverty_change = reform_child_poverty_rate - baseline_child_poverty_rate
         child_pct_change = (
             child_poverty_change / baseline_child_poverty_rate
-            if baseline_child_poverty_rate > 0 else 0
+            if baseline_child_poverty_rate > 0
+            else 0
         )
 
-        young_child_change = reform_young_child_poverty_rate - baseline_young_child_poverty_rate
+        young_child_change = (
+            reform_young_child_poverty_rate - baseline_young_child_poverty_rate
+        )
         young_child_pct_change = (
             young_child_change / baseline_young_child_poverty_rate
-            if baseline_young_child_poverty_rate > 0 else 0
+            if baseline_young_child_poverty_rate > 0
+            else 0
         )
 
         results[state] = PovertyImpact(

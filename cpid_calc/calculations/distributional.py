@@ -5,17 +5,14 @@ Calculates how policy reforms affect different income groups.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
-import numpy as np
-from policyengine_us import Microsimulation
+from typing import Any, Dict, List, Optional
 
 from cpid_calc.reforms.config import ReformConfig
 from cpid_calc.calculations.microsim import (
     run_microsimulation,
     get_state_filter,
-    get_household_weight,
-    calculate_weighted_sum,
-    calculate_weighted_mean,
+    micro_sum,
+    micro_mean,
 )
 
 
@@ -92,40 +89,17 @@ class DistributionalImpact:
 
 
 def calculate_gini(
-    incomes: np.ndarray,
-    weights: np.ndarray,
+    incomes,
 ) -> float:
-    """
-    Calculate weighted Gini coefficient.
-
-    Args:
-        incomes: Array of income values
-        weights: Array of weights
-
-    Returns:
-        Gini coefficient (0-1)
-    """
-    # Sort by income
-    sorted_indices = np.argsort(incomes)
-    sorted_incomes = incomes[sorted_indices]
-    sorted_weights = weights[sorted_indices]
-
-    # Cumulative weights and income
-    cum_weights = np.cumsum(sorted_weights)
-    cum_weights = cum_weights / cum_weights[-1]  # Normalize
-
-    cum_income = np.cumsum(sorted_incomes * sorted_weights)
-    cum_income = cum_income / cum_income[-1]  # Normalize
-
-    # Calculate Gini using trapezoidal rule
-    gini = 1 - 2 * np.trapz(cum_income, cum_weights)
-    return float(gini)
+    """Calculate a Gini coefficient using MicroSeries metadata."""
+    count = float((incomes * 0 + 1).sum())
+    return float(incomes.gini()) if count > 0 else 0.0
 
 
 def get_income_decile(
-    sim: Microsimulation,
+    sim: Any,
     year: int,
-) -> np.ndarray:
+):
     """
     Get household income decile assignment.
 
@@ -134,32 +108,9 @@ def get_income_decile(
         year: Year for income calculation
 
     Returns:
-        Array of decile assignments (1-10)
+        MicroSeries of decile assignments (1-10)
     """
-    household_income = sim.calculate("household_net_income", period=year)
-    weights = sim.calculate("household_weight", period=year)
-
-    # Calculate weighted decile cutoffs
-    sorted_indices = np.argsort(household_income)
-    sorted_income = household_income[sorted_indices]
-    sorted_weights = weights[sorted_indices]
-
-    cum_weights = np.cumsum(sorted_weights)
-    total_weight = cum_weights[-1]
-
-    # Find decile cutoffs
-    decile_cutoffs = []
-    for i in range(1, 10):
-        target = (i / 10) * total_weight
-        idx = np.searchsorted(cum_weights, target)
-        decile_cutoffs.append(sorted_income[min(idx, len(sorted_income) - 1)])
-
-    # Assign deciles
-    deciles = np.ones(len(household_income), dtype=int)
-    for i, cutoff in enumerate(decile_cutoffs):
-        deciles[household_income > cutoff] = i + 2
-
-    return deciles
+    return sim.calc("household_income_decile", period=year, map_to="household")
 
 
 def calculate_distributional_impact(
@@ -182,30 +133,41 @@ def calculate_distributional_impact(
     state = states[0] if states and len(states) == 1 else None
     baseline, reform = run_microsimulation(config, state=state)
 
-    # Get weights
-    weights = get_household_weight(baseline, year)
+    household_filter = (
+        None
+        if state is not None
+        else get_state_filter(baseline, states or [], map_to="household")
+    )
 
     # Calculate income change
-    baseline_income = baseline.calculate("household_net_income", period=year)
-    reform_income = reform.calculate("household_net_income", period=year)
+    baseline_income = baseline.calc(
+        "household_net_income", period=year, map_to="household"
+    )
+    reform_income = reform.calc(
+        "household_net_income", period=year, map_to="household"
+    )
     income_change = reform_income - baseline_income
 
     # Get deciles
     deciles = get_income_decile(baseline, year)
+    if household_filter is not None:
+        baseline_income = baseline_income[household_filter]
+        reform_income = reform_income[household_filter]
+        income_change = income_change[household_filter]
+        deciles = deciles[household_filter]
 
     # Calculate decile impacts
-    total_benefit = calculate_weighted_sum(income_change, weights)
+    total_benefit = micro_sum(income_change)
     decile_impacts = []
 
     for d in range(1, 11):
         decile_mask = deciles == d
-        decile_weights = weights[decile_mask]
         decile_changes = income_change[decile_mask]
 
-        avg_gain = calculate_weighted_mean(decile_changes, decile_weights)
-        pct_gaining = float(np.sum((decile_changes > 0.01) * decile_weights) / np.sum(decile_weights))
-        pct_losing = float(np.sum((decile_changes < -0.01) * decile_weights) / np.sum(decile_weights))
-        decile_total = calculate_weighted_sum(decile_changes, decile_weights)
+        avg_gain = micro_mean(decile_changes)
+        pct_gaining = micro_mean(decile_changes > 0.01)
+        pct_losing = micro_mean(decile_changes < -0.01)
+        decile_total = micro_sum(decile_changes)
         share = decile_total / total_benefit if total_benefit != 0 else 0
 
         decile_impacts.append(DecileImpact(
@@ -218,17 +180,13 @@ def calculate_distributional_impact(
         ))
 
     # Summary statistics
-    avg_gain_all = calculate_weighted_mean(income_change, weights)
+    avg_gain_all = micro_mean(income_change)
 
     bottom_50_mask = deciles <= 5
-    avg_gain_bottom_50 = calculate_weighted_mean(
-        income_change[bottom_50_mask], weights[bottom_50_mask]
-    )
+    avg_gain_bottom_50 = micro_mean(income_change, bottom_50_mask)
 
     top_10_mask = deciles == 10
-    avg_gain_top_10 = calculate_weighted_mean(
-        income_change[top_10_mask], weights[top_10_mask]
-    )
+    avg_gain_top_10 = micro_mean(income_change, top_10_mask)
 
     # Shares of benefits
     bottom_20_benefit = sum(d.total_benefit for d in decile_impacts[:2])
@@ -242,13 +200,12 @@ def calculate_distributional_impact(
     share_top_10 = top_10_benefit / total_benefit if total_benefit != 0 else 0
 
     # Gini coefficients
-    baseline_gini = calculate_gini(baseline_income, weights)
-    reform_gini = calculate_gini(reform_income, weights)
+    baseline_gini = calculate_gini(baseline_income)
+    reform_gini = calculate_gini(reform_income)
 
     # Percent gaining/losing
-    total_weight = np.sum(weights)
-    pct_gaining = float(np.sum((income_change > 0.01) * weights) / total_weight)
-    pct_losing = float(np.sum((income_change < -0.01) * weights) / total_weight)
+    pct_gaining = micro_mean(income_change > 0.01)
+    pct_losing = micro_mean(income_change < -0.01)
     pct_unchanged = 1 - pct_gaining - pct_losing
 
     return DistributionalImpact(
