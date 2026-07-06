@@ -566,6 +566,62 @@ describe('buildReformDict', () => {
     });
   });
 
+  // ---- us#8816 age gates (PE-US 1.756.0): 12 new states + AR ---------------
+  it('age-gates a flat baseline dependent exemption via the new contrib (NY)', () => {
+    const C = 'gov.contrib.states.ny.dependent_exemption';
+    expect(
+      buildReformDict(
+        ['ny_dependent_exemption'],
+        { ny_dependent_exemption: { age_limit_enabled: 1, age_limit_age: 17 } },
+        2026,
+      ),
+    ).toEqual({
+      [`${C}.in_effect`]: true,
+      [`${C}.age_limit.in_effect`]: true,
+      [`${C}.age_limit.threshold`]: 17,
+    });
+  });
+
+  it('age-gates a stepped state without flattening its untouched brackets (AL)', () => {
+    const C = 'gov.contrib.states.al.dependent_exemption';
+    // No amount edit: the contrib amount stays at its -1 sentinel (baseline
+    // AGI-stepped schedule), so only the gate params emit.
+    expect(
+      buildReformDict(
+        ['al_dependent_exemption'],
+        { al_dependent_exemption: { age_limit_enabled: 1 } },
+        2026,
+      ),
+    ).toEqual({
+      [`${C}.in_effect`]: true,
+      [`${C}.age_limit.in_effect`]: true,
+      [`${C}.age_limit.threshold`]: 18,
+    });
+    // Baseline bracket edits still compose (read through the sentinel).
+    const combo = buildReformDict(
+      ['al_dependent_exemption'],
+      { al_dependent_exemption: { age_limit_enabled: 1, amount_mid: 400 } },
+      2026,
+    );
+    expect(combo['gov.states.al.tax.income.exemptions.dependent[1].amount']).toBe(400);
+    expect(combo[`${C}.amount`]).toBeUndefined();
+  });
+
+  it('age-gates the AR dependent credit through its existing contrib', () => {
+    const C = 'gov.contrib.states.ar.dependent_credit';
+    expect(
+      buildReformDict(
+        ['ar_dependent_exemption'],
+        { ar_dependent_exemption: { age_limit_enabled: 1, age_limit_age: 6 } },
+        2026,
+      ),
+    ).toEqual({
+      [`${C}.in_effect`]: true,
+      [`${C}.age_limit.in_effect`]: true,
+      [`${C}.age_limit.threshold`]: 6,
+    });
+  });
+
   it('edits and eliminates AL across its three AGI brackets', () => {
     const D = 'gov.states.al.tax.income.exemptions.dependent';
     const elim = buildReformDict(
@@ -912,6 +968,64 @@ describe('buildReformDict', () => {
     const noToggle = buildReformDict(['ut_eitc'], { ut_eitc: { match_rate: 20 } }, 2026);
     expect(noToggle[IN_EFFECT]).toBeUndefined();
     expect(noToggle[MATCH]).toBeCloseTo(0.2);
+  });
+
+  // ---- ID CTC revival + GA refundable CTC (PE-US 1.756.0, us#8856) --------
+  it('revives the expired Idaho CTC on selection alone', () => {
+    const C = 'gov.contrib.states.id.ctc';
+    // Selecting the option IS the reform: unlike live-credit states there is
+    // no current law to no-op against, so the revival flag always emits.
+    expect(buildReformDict(['id_ctc'], undefined, 2026)).toEqual({
+      [`${C}.in_effect`]: true,
+    });
+    expect(buildReformDict(['id_ctc'], { id_ctc: { amount: 205 } }, 2026)).toEqual({
+      [`${C}.in_effect`]: true,
+    });
+    // Amount edits go to the still-live baseline param, which the revival reads.
+    const bigger = buildReformDict(['id_ctc'], { id_ctc: { amount: 500 } }, 2026);
+    expect(bigger[`${C}.in_effect`]).toBe(true);
+    expect(bigger['gov.states.id.tax.income.credits.ctc.amount']).toBe(500);
+  });
+
+  it('adds the Idaho refundable top-up only when the checkbox is set', () => {
+    const C = 'gov.contrib.states.id.ctc';
+    const refundable = buildReformDict(['id_ctc'], { id_ctc: { make_refundable: 1 } }, 2026);
+    expect(refundable[`${C}.in_effect`]).toBe(true);
+    expect(refundable[`${C}.refundable.in_effect`]).toBe(true);
+    // $205 is the enacted refundable cap, so it is not re-emitted.
+    expect(refundable[`${C}.refundable.amount`]).toBeUndefined();
+    const capped = buildReformDict(
+      ['id_ctc'],
+      { id_ctc: { make_refundable: 1, refundable_amount: 300 } },
+      2026,
+    );
+    expect(capped[`${C}.refundable.amount`]).toBe(300);
+    // Refundable inputs are ignored while the toggle is off.
+    expect(
+      buildReformDict(['id_ctc'], { id_ctc: { refundable_amount: 300 } }, 2026),
+    ).toEqual({ [`${C}.in_effect`]: true });
+  });
+
+  it('makes the GA CTC refundable only when the checkbox is set', () => {
+    const C = 'gov.contrib.states.ga.ctc';
+    // Baseline levers unchanged, no toggle: still a no-op.
+    expect(buildReformDict(['ga_ctc'], undefined, 2026)).toEqual({});
+    expect(
+      buildReformDict(['ga_ctc'], { ga_ctc: { refundable_amount: 500 } }, 2026),
+    ).toEqual({});
+    // Toggle on at the enacted $250 cap: just the flag.
+    expect(buildReformDict(['ga_ctc'], { ga_ctc: { make_refundable: 1 } }, 2026)).toEqual({
+      [`${C}.refundable.in_effect`]: true,
+    });
+    // Toggle on with a raised cap and a raised baseline credit.
+    const full = buildReformDict(
+      ['ga_ctc'],
+      { ga_ctc: { make_refundable: 1, refundable_amount: 500, amount: 500 } },
+      2026,
+    );
+    expect(full[`${C}.refundable.in_effect`]).toBe(true);
+    expect(full[`${C}.refundable.amount`]).toBe(500);
+    expect(full['gov.states.ga.tax.income.credits.ctc.amount']).toBe(500);
   });
 });
 

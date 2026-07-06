@@ -866,10 +866,10 @@ interface DependentExemptionEntry {
    *  (e.g. AL's AGI brackets, AZ's age brackets). Each gets its own editable
    *  input; "eliminate" zeroes them all. */
   extra_params?: DependentExtraParam[];
-  /** Optional age cap (us#8696 contrib `age_limit`): restrict the edit to
-   *  dependents under a chosen age. Activating it turns on the contrib reform
-   *  (which reads any edited baseline brackets) and applies the amount/eliminate
-   *  only to under-age dependents; older dependents keep the baseline. */
+  /** Optional age cap (us#8696/us#8816 contrib `age_limit`): restrict the
+   *  exemption/credit to dependents under a chosen age. Activating it turns on
+   *  the contrib reform (which reads any edited baseline brackets); dependents
+   *  at or above the age no longer qualify at all. */
   age_limit?: {
     /** contrib `…age_limit.in_effect` flag. */
     in_effect: string;
@@ -919,9 +919,10 @@ export function buildDependentExemptionReform(
     for (const p of Array.isArray(path) ? path : [path]) reform[p] = value;
   };
 
-  // Age cap: restrict the edit to dependents under a chosen age (older keep the
-  // baseline). Routes through the contrib reform, which reads any edited
-  // baseline brackets, so per-bracket edits still compose.
+  // Age cap: restrict the exemption/credit to dependents under a chosen age
+  // (older dependents no longer qualify). Routes through the contrib reform,
+  // which reads any edited baseline brackets, so per-bracket edits still
+  // compose.
   if (pv?.age_limit_enabled && entry.age_limit) {
     const al = entry.age_limit;
     reform[al.reform_in_effect] = true;
@@ -1045,8 +1046,8 @@ function buildDependentExemptionOptions(
     }
   }
 
-  // Age cap (states with the us#8696 contrib age_limit): apply the change only
-  // to dependents under a chosen age; older dependents keep the baseline.
+  // Age cap (states with the us#8696/us#8816 contrib age_limit): restrict the
+  // exemption/credit to dependents under a chosen age.
   if (entry.age_limit) {
     params.push({
       name: 'age_limit_enabled',
@@ -1057,7 +1058,7 @@ function buildDependentExemptionOptions(
       default_value: 0,
       step: 1,
       unit: '',
-      description: `Apply the change above only to dependents under the age below; older dependents keep ${programs.state_name}'s baseline ${kindLabel}.`,
+      description: `Limit the ${kindLabel} to dependents under the age below; dependents at or above that age no longer receive it. Combine with the amount above to re-target the ${kindLabel} by age.`,
     });
     params.push({
       name: 'age_limit_age',
@@ -1068,7 +1069,7 @@ function buildDependentExemptionOptions(
       step: 1,
       unit: 'years',
       depends_on: 'age_limit_enabled',
-      description: `Dependents under this age are affected by the edit above; dependents this age or older keep the baseline ${kindLabel}.`,
+      description: `Only dependents under this age receive the ${kindLabel}; dependents this age or older get none.`,
     });
   }
 
@@ -1607,6 +1608,66 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     params: [
       AMT('gov.states.ga.tax.income.credits.ctc.amount', 250, 3000),
       AGE('gov.states.ga.tax.income.credits.ctc.age_threshold', 6),
+      {
+        name: 'make_refundable',
+        label: 'Make the credit refundable',
+        control: 'toggle',
+        path: '',
+        default_value: 0,
+        min_value: 0,
+        max_value: 1,
+        step: 1,
+        unit: '',
+        description:
+          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below (us#8856 contributed reform).',
+      },
+      {
+        name: 'refundable_amount',
+        label: 'Refundable portion per child',
+        path: '',
+        default_value: 250,
+        min_value: 0,
+        max_value: 3000,
+        step: 50,
+        unit: '$',
+        depends_on: 'make_refundable',
+        description:
+          'Maximum refunded per child beyond tax owed. Defaults to $250 (the full current credit); raise it alongside the credit amount for a fully refundable higher credit.',
+      },
+    ],
+  },
+  ID: {
+    name: 'Idaho Child Tax Credit (expired) — revive',
+    description:
+      "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026 (us#8856 contributed reform); optionally adjust the amount or add a refundable portion.",
+    params: [
+      AMT('gov.states.id.tax.income.credits.ctc.amount', 205, 3000),
+      {
+        name: 'make_refundable',
+        label: 'Make the revived credit refundable',
+        control: 'toggle',
+        path: '',
+        default_value: 0,
+        min_value: 0,
+        max_value: 1,
+        step: 1,
+        unit: '',
+        description:
+          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below.',
+      },
+      {
+        name: 'refundable_amount',
+        label: 'Refundable portion per child',
+        path: '',
+        default_value: 205,
+        min_value: 0,
+        max_value: 3000,
+        step: 5,
+        unit: '$',
+        depends_on: 'make_refundable',
+        description:
+          'Maximum refunded per child beyond tax owed. Defaults to $205 (the full credit); raise it alongside the credit amount for a fully refundable higher credit.',
+      },
     ],
   },
   RI: {
@@ -2139,6 +2200,8 @@ export function buildStateCtcReform(
   const code = stateCode.toUpperCase();
   if (code === 'NY') return buildNyCtcReform(paramValues, year);
   if (code === 'UT') return buildUtCtcReform(paramValues);
+  if (code === 'GA') return buildGaCtcReform(paramValues);
+  if (code === 'ID') return buildIdCtcReform(paramValues);
   const entry = CTC_REFORMS[code];
   if (!entry) return {};
   const out: Record<string, number> = {};
@@ -2255,7 +2318,67 @@ function buildUtCtcReform(
   return out;
 }
 
-/** State codes that have a wired current-law CTC. */
+/** Georgia CTC: baseline levers plus the us#8856 refundable top-up
+ *  (gov.contrib.states.ga.ctc.refundable). The refundable block only emits
+ *  when its toggle is on; its amount emits only when changed from the enacted
+ *  $250, so the toggle alone is the clean "make it refundable" reform. */
+const GA_REFORM_PARAM_NAMES = new Set(['make_refundable', 'refundable_amount']);
+
+function buildGaCtcReform(
+  pv?: Record<string, number>,
+): Record<string, number | boolean> {
+  const entry = CTC_REFORMS.GA;
+  const out: Record<string, number | boolean> = {};
+  for (const p of entry.params) {
+    if (GA_REFORM_PARAM_NAMES.has(p.name)) continue;
+    const ui = pv?.[p.name];
+    if (ui === undefined || ui === p.default_value) continue;
+    const value = p.divide_by ? ui / p.divide_by : ui;
+    for (const path of p.paths ?? [p.path!]) out[path] = value;
+  }
+  if (pv?.make_refundable) {
+    out['gov.contrib.states.ga.ctc.refundable.in_effect'] = true;
+    const refundable = pv?.refundable_amount ?? 250;
+    if (refundable !== 250) {
+      out['gov.contrib.states.ga.ctc.refundable.amount'] = refundable;
+    }
+  }
+  return out;
+}
+
+/** Idaho CTC revival (us#8856): the credit expired end-2025, so selecting the
+ *  option itself emits the revival flag — unlike other states there is no
+ *  current-law credit to no-op against. The baseline $205 amount param still
+ *  exists (only the credit-list entry lapsed), so amount edits set it
+ *  directly and the contrib reads it. The refundable top-up works like UT/GA. */
+const ID_REFORM_PARAM_NAMES = new Set(['make_refundable', 'refundable_amount']);
+
+function buildIdCtcReform(
+  pv?: Record<string, number>,
+): Record<string, number | boolean> {
+  const entry = CTC_REFORMS.ID;
+  const out: Record<string, number | boolean> = {
+    'gov.contrib.states.id.ctc.in_effect': true,
+  };
+  for (const p of entry.params) {
+    if (ID_REFORM_PARAM_NAMES.has(p.name)) continue;
+    const ui = pv?.[p.name];
+    if (ui === undefined || ui === p.default_value) continue;
+    const value = p.divide_by ? ui / p.divide_by : ui;
+    for (const path of p.paths ?? [p.path!]) out[path] = value;
+  }
+  if (pv?.make_refundable) {
+    out['gov.contrib.states.id.ctc.refundable.in_effect'] = true;
+    const refundable = pv?.refundable_amount ?? 205;
+    if (refundable !== 205) {
+      out['gov.contrib.states.id.ctc.refundable.amount'] = refundable;
+    }
+  }
+  return out;
+}
+
+/** State codes with a wired CTC card (current-law credits, plus ID's
+ *  expired-credit revival). */
 export function stateHasCtc(stateCode: string): boolean {
   return CTC_REFORMS[stateCode.toUpperCase()] !== undefined;
 }
