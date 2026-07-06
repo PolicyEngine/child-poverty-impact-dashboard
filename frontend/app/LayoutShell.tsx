@@ -50,6 +50,11 @@ export default function LayoutShell({
                   </Link>
                 </li>
                 <li>
+                  <Link href="/state-credits" className="text-sm text-pe-gray-500 hover:text-pe-teal-600 transition-colors">
+                    State Credits Map
+                  </Link>
+                </li>
+                <li>
                   <Link href="/about" className="text-sm text-pe-gray-500 hover:text-pe-teal-600 transition-colors">
                     Methodology
                   </Link>
