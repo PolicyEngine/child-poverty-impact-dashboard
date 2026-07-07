@@ -71,34 +71,96 @@ export default function AboutPage() {
           <div>
             <h3 className="font-semibold text-gray-800">State CTCs</h3>
             <p className="text-gray-600">
-              Create or expand state-level child tax credits. Currently 15 states have
-              existing state CTCs, and the dashboard allows modeling new programs in any state.
+              Adjust the 21 existing state child tax credits (amounts, age limits,
+              phase-outs, refundability), revive Idaho&apos;s expired credit, or create a
+              new credit in any state.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">State EITCs</h3>
+            <p className="text-gray-600">
+              Adjust the 31 existing state earned income tax credits (match rates,
+              refundability, structured credits like Washington&apos;s WFTC and
+              Minnesota&apos;s Working Family Credit) or create one where none exists.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">Dependent Exemptions & Credits</h3>
+            <p className="text-gray-600">
+              Adjust, age-restrict, or eliminate the per-dependent exemptions and
+              credits in 26 states — including AGI-stepped schedules — plus
+              Idaho&apos;s grocery credit.
             </p>
           </div>
         </div>
+        <p className="text-gray-600 mt-4">
+          The <a href="/state-credits" className="text-pe-teal-500 hover:underline">state
+          credits map</a> shows the existing programs these reforms start from.
+        </p>
       </section>
 
       <section className="card" aria-labelledby="methodology-heading">
         <h2 id="methodology-heading" className="section-title">Methodology</h2>
         <div className="space-y-4 text-gray-700">
           <p>
-            <strong>Data Source:</strong> The dashboard uses the Enhanced Current Population
-            Survey (CPS) microdata, which provides detailed information on household
-            demographics, income, and program participation.
+            <strong>Data Source:</strong> The dashboard runs on{' '}
+            <a href="https://github.com/PolicyEngine/populace" className="text-pe-teal-500 hover:underline">Populace</a>,
+            PolicyEngine&apos;s calibrated national microdata file (
+            <a href="https://huggingface.co/datasets/policyengine/populace-us" className="text-pe-teal-500 hover:underline">policyengine/populace-us</a>
+            ) — roughly 57,000 households built from the Current Population Survey and
+            IRS Public Use File, selected and reweighted with{' '}
+            <a href="https://populace.dev/papers/l0" className="text-pe-teal-500 hover:underline">
+              sparse L0 calibration
+            </a>{' '}
+            against thousands of administrative targets (IRS collections by state and
+            income bracket, program totals, and demographics). One file covers all 50
+            states and DC: each analysis simulates the full national file and slices
+            results to the selected state&apos;s households. Both the dataset revision and
+            the PolicyEngine US model version are pinned per deployment (shown at the
+            backend&apos;s health endpoint) and bumped deliberately.
           </p>
           <p>
-            <strong>Microsimulation:</strong> PolicyEngine&apos;s tax-benefit microsimulation model
-            calculates taxes and benefits for each household in the dataset under both
-            baseline and reform scenarios.
+            <strong>Microsimulation:</strong> PolicyEngine&apos;s open-source tax-benefit
+            model computes federal and state taxes and benefit programs for every
+            household under current law and under your reform; every reported impact is
+            the difference between those two simulations for the analysis year.
           </p>
           <p>
-            <strong>Poverty Measurement:</strong> We use the Supplemental Poverty Measure (SPM),
-            which accounts for geographic cost-of-living differences and includes the value
-            of government benefits.
+            <strong>Poverty Measurement:</strong> We use the Supplemental Poverty Measure
+            (SPM), which accounts for geographic cost-of-living differences, taxes, and
+            the value of government benefits. Populace&apos;s national SPM rates track the
+            Census Bureau&apos;s published figures closely (within about half a point
+            overall); state-level SPM rates are still being refined — see Validation
+            below.
           </p>
           <p>
             <strong>Fiscal Cost:</strong> Costs are calculated as the difference in total
-            government spending and tax revenue between baseline and reform scenarios.
+            government spending and tax revenue between baseline and reform scenarios,
+            split into federal tax, state tax, and benefit-outlay components, with
+            per-program attributions for the credits the dashboard models.
+          </p>
+        </div>
+      </section>
+
+      <section className="card" aria-labelledby="validation-heading">
+        <h2 id="validation-heading" className="section-title">Validation</h2>
+        <div className="space-y-4 text-gray-700">
+          <p>
+            Every Populace release is scored against benchmarks it was <em>not</em>{' '}
+            calibrated to, published on PolicyEngine&apos;s calibration dashboard:
+            out-of-sample federal provisions scored by the Joint Committee on Taxation,
+            official state budget outlays for existing state EITC and CTC programs, and
+            Census state-level SPM poverty rates (overall and child, 2022&ndash;2024
+            three-year averages). Nationally, simulated SPM poverty sits within about
+            half a percentage point of the Census 2024 figures; state EITC totals
+            typically land within roughly ten percent of official outlays.
+          </p>
+          <p>
+            State-level poverty rates are the active work-in-progress: some states run
+            high or low against the Census benchmarks, and young-child credits (for
+            example California&apos;s YCTC) currently overshoot official totals. These gaps
+            are tracked per release so improvements — and regressions — are visible
+            before they reach this dashboard.
           </p>
         </div>
       </section>
@@ -161,8 +223,11 @@ export default function AboutPage() {
             Actual participation may be lower.
           </li>
           <li>
-            <strong>State-Level Precision:</strong> Small state estimates may have higher
-            uncertainty due to smaller sample sizes.
+            <strong>State-Level Precision:</strong> State poverty <em>levels</em> are
+            still being calibrated against Census benchmarks (see Validation); reform
+            <em> impacts</em> — the changes the dashboard reports — are less sensitive
+            to level error than the rates themselves. Small states carry additional
+            sampling noise.
           </li>
         </ul>
       </section>
