@@ -51,8 +51,29 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-07-06-pe-us-1.765.0"})
+    .env({"CPID_BUILD_REV": "2026-07-07-populace-2024+pe-us-1.765.0"})
 )
+
+# Populace: PolicyEngine's single national calibrated dataset (replaces the 51
+# per-state ECPS files — PE is standardizing every project on it). The pinned
+# revision is the L0-pruned ~57k-household file; each request runs the
+# national simulation and slices every extracted array to the requested
+# state. Revision-pinned like the policyengine-us version: bump deliberately
+# with a build-rev change.
+POPULACE_REPO = "policyengine/populace-us"
+POPULACE_FILE = "populace_us_2024.h5"
+POPULACE_REVISION = "053baf6cf56aaf1160e2f1bfe7631c6924d46b2e"  # 2026-07-01
+
+
+def _populace_path() -> str:
+    from huggingface_hub import hf_hub_download
+
+    return hf_hub_download(
+        POPULACE_REPO,
+        POPULACE_FILE,
+        repo_type="dataset",
+        revision=POPULACE_REVISION,
+    )
 
 
 def _build_core_reform_dict(reform: dict | None, year: int) -> dict | None:
@@ -391,7 +412,7 @@ def compute_household_sweep(payload: dict) -> dict:
 # --- statewide economy --------------------------------------------------
 
 
-@app.function(image=image, timeout=1800, memory=16384)
+@app.function(image=image, timeout=1800, memory=32768, cpu=4.0)
 def compute_economy(payload: dict) -> dict:
     """Compute statewide microsim impact (poverty, fiscal, distributional)."""
     import time
@@ -409,37 +430,52 @@ def compute_economy(payload: dict) -> dict:
     if not state_code:
         raise ValueError("`state` is required.")
 
-    # State-specific calibrated CPS dataset (uppercase code). Same dataset
-    # the SC / MO / RCC dashboards use — _not_ the national ECPS, which
-    # would be slower and less accurate for state-level totals.
-    state_dataset = (
-        f"hf://policyengine/policyengine-us-data/states/{state_code.upper()}.h5"
-    )
+    # Populace: one national calibrated file. The simulation runs national;
+    # every array extracted below is immediately sliced to this state's rows
+    # (households or persons), so all downstream math is state-scoped exactly
+    # as it was with the retired per-state files.
+    state = state_code.upper()
+    dataset_path = _populace_path()
 
     reform_payload = payload.get("reform")
     reform_dict = _build_core_reform_dict(reform_payload, year)
     reform = Reform.from_dict(reform_dict) if reform_dict else None
     _log(
         f"reform loaded (params={len(reform_dict) if reform_dict else 0}) "
-        f"on dataset={state_dataset}"
+        f"on dataset={POPULACE_FILE}@{POPULACE_REVISION[:8]}"
     )
 
-    sim_baseline = Microsimulation(dataset=state_dataset)
+    sim_baseline = Microsimulation(dataset=dataset_path)
     sim_reform = (
-        Microsimulation(dataset=state_dataset, reform=reform)
+        Microsimulation(dataset=dataset_path, reform=reform)
         if reform is not None
         else sim_baseline
     )
     _log("microsims built")
 
+    # State masks. Row order is identical across sims built from the same
+    # dataset, so baseline masks slice reform arrays too.
+    hh_mask = (
+        np.array(sim_baseline.calculate("state_code", period=year)).astype(str)
+        == state
+    )
+    person_mask = (
+        np.array(
+            sim_baseline.calculate("state_code", period=year, map_to="person")
+        ).astype(str)
+        == state
+    )
+    if not hh_mask.any():
+        raise ValueError(f"No households found for state {state!r}.")
+
     household_weight = np.array(
         sim_baseline.calculate("household_weight", period=year)
-    )
+    )[hh_mask]
 
-    # State-specific .h5 already contains only this state's households,
-    # so sums run unmasked across the whole sim.
     def _hh_sum(sim, name: str) -> float:
-        arr = np.array(sim.calculate(name, period=year, map_to="household"))
+        arr = np.array(sim.calculate(name, period=year, map_to="household"))[
+            hh_mask
+        ]
         return float((arr * household_weight).sum())
 
     # Per-program fiscal breakdown. The grant deliverable lists CTC,
@@ -483,38 +519,36 @@ def compute_economy(payload: dict) -> dict:
     # only when the option is used.
     dependent_exemption_change = 0.0
     dep_payload = payload.get("dependent_exemption_reform")
-    if dep_payload:
-        dep_dict = _build_core_reform_dict(dep_payload, year)
-        if dep_dict:
-            dep_reform = Reform.from_dict(dep_dict)
-            sim_dep = Microsimulation(dataset=state_dataset, reform=dep_reform)
-            dependent_exemption_change = _hh_sum(
-                sim_baseline, "state_income_tax"
-            ) - _hh_sum(sim_dep, "state_income_tax")
-        _log("dependent-exemption isolation done")
+    dep_dict = (
+        _build_core_reform_dict(dep_payload, year) if dep_payload else None
+    )
+    # The isolation sub-simulation is deferred to the end of the request so
+    # the third national sim is built only after the baseline/reform sims are
+    # released (three concurrent national sims would strain even 32GB).
+    baseline_state_tax_total = _hh_sum(sim_baseline, "state_income_tax")
 
     # ---- Poverty: overall, children, young children (0-3), deep child poverty.
-    age_arr = np.array(sim_baseline.calculate("age", period=year))
+    age_arr = np.array(sim_baseline.calculate("age", period=year))[person_mask]
     person_weight = np.array(
         sim_baseline.calculate("person_weight", period=year)
-    )
+    )[person_mask]
     pov_bl_arr = np.array(
         sim_baseline.calculate("in_poverty", period=year, map_to="person")
-    ).astype(bool)
+    )[person_mask].astype(bool)
     pov_rf_arr = np.array(
         sim_reform.calculate("in_poverty", period=year, map_to="person")
-    ).astype(bool)
+    )[person_mask].astype(bool)
     try:
         deep_bl_arr = np.array(
             sim_baseline.calculate(
                 "in_deep_poverty", period=year, map_to="person"
             )
-        ).astype(bool)
+        )[person_mask].astype(bool)
         deep_rf_arr = np.array(
             sim_reform.calculate(
                 "in_deep_poverty", period=year, map_to="person"
             )
-        ).astype(bool)
+        )[person_mask].astype(bool)
     except Exception:
         deep_bl_arr = np.zeros_like(pov_bl_arr)
         deep_rf_arr = np.zeros_like(pov_rf_arr)
@@ -548,19 +582,19 @@ def compute_economy(payload: dict) -> dict:
         sim_baseline.calculate(
             "household_net_income", period=year, map_to="person"
         )
-    )
+    )[person_mask]
     person_net_reform = np.array(
         sim_reform.calculate(
             "household_net_income", period=year, map_to="person"
         )
-    )
+    )[person_mask]
     person_gain = person_net_reform - person_net_baseline
     # Per-person equivalised baseline (used to cut deciles and compute
     # relative gain). Equivalised = household net / sqrt(household size),
     # standard PolicyEngine convention.
     person_hh_size = np.array(
         sim_baseline.calculate("household_size", period=year, map_to="person")
-    )
+    )[person_mask]
     person_equiv_baseline = person_net_baseline / np.sqrt(
         np.maximum(person_hh_size, 1)
     )
@@ -732,6 +766,28 @@ def compute_economy(payload: dict) -> dict:
 
     _log("distributional done")
 
+    # Dependent exemption/credit cost — isolated. A dependent exemption only
+    # moves state income tax, and that delta overlaps with state CTC/EITC
+    # changes in the combined reform, so attribute it via a separate
+    # baseline-vs-(dependent-only) sub-simulation. Reported as a benefit-value
+    # delta (baseline tax - reform tax) to match the sign of the credit rows.
+    # Runs last, after the baseline/reform sims are released — three
+    # concurrent national Populace sims would strain the container.
+    if dep_dict:
+        import gc
+
+        del sim_reform, sim_baseline
+        gc.collect()
+        sim_dep = Microsimulation(
+            dataset=dataset_path, reform=Reform.from_dict(dep_dict)
+        )
+        dependent_exemption_change = baseline_state_tax_total - _hh_sum(
+            sim_dep, "state_income_tax"
+        )
+        del sim_dep
+        gc.collect()
+        _log("dependent-exemption isolation done")
+
     return {
         "state": state_code,
         "year": year,
@@ -846,6 +902,11 @@ def web():
             pe_us = version("policyengine-us")
         except Exception:  # pragma: no cover
             pe_us = None
-        return {"ok": True, "policyengine_us": pe_us, "build_rev": os.environ.get("CPID_BUILD_REV")}
+        return {
+            "ok": True,
+            "policyengine_us": pe_us,
+            "dataset": f"{POPULACE_REPO}/{POPULACE_FILE}@{POPULACE_REVISION[:8]}",
+            "build_rev": os.environ.get("CPID_BUILD_REV"),
+        }
 
     return api

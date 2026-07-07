@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'State EITCs & CTCs Map',
@@ -20,6 +21,15 @@ const TOOL_URL = 'https://policyengine.github.io/us-state-eitcs-ctcs/';
 export default function StateCreditsPage() {
   return (
     <article className="max-w-7xl mx-auto px-6 py-10 space-y-8">
+      <Link
+        href="/"
+        className="text-pe-gray-500 hover:text-pe-teal-600 text-sm inline-flex items-center gap-1"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Home
+      </Link>
       <div className="text-center max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Existing state EITCs and CTCs
