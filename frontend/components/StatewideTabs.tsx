@@ -293,14 +293,17 @@ export function StatewidePoverty({ results }: TabProps) {
             <tbody className="divide-y divide-gray-200">
               {metrics.map((m, i) => {
                 const changePp = (m.reform - m.baseline) * 100;
+                // Below display precision: a grey 0 reads better than "+0.00pp"
+                // colored as if something moved.
+                const noChange = Math.abs(changePp) < 0.005;
                 return (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-900">{m.label} rate</td>
                     <td className="px-4 py-3 text-gray-700 text-right">{(m.baseline * 100).toFixed(1)}%</td>
                     <td className="px-4 py-3 text-gray-700 text-right">{(m.reform * 100).toFixed(1)}%</td>
                     <td className="px-4 py-3 font-semibold text-right"
-                      style={{ color: changePp <= 0 ? COLORS.positive : COLORS.negative }}>
-                      {changePp >= 0 ? '+' : ''}{changePp.toFixed(2)}pp
+                      style={{ color: noChange ? '#9CA3AF' : changePp < 0 ? COLORS.positive : COLORS.negative }}>
+                      {noChange ? '0' : `${changePp > 0 ? '+' : ''}${changePp.toFixed(2)}pp`}
                     </td>
                   </tr>
                 );
