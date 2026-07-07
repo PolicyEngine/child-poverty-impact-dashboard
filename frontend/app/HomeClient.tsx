@@ -133,6 +133,9 @@ export default function HomePage() {
                   />
                 </svg>
               </Link>
+              <Link href="/state-credits" className="btn btn-ghost btn-lg">
+                <span>Explore existing state credits</span>
+              </Link>
             </div>
           </div>
         </div>
