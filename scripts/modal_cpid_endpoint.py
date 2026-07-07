@@ -515,14 +515,39 @@ def compute_economy(payload: dict) -> dict:
         except Exception:
             return 0.0
 
+    def _reform_only_sum(name: str) -> float:
+        """Total of a variable the reform CREATES.
+
+        The create-state-credit contribs (e.g. gov.contrib.states.ms.
+        child_poverty_impact_dashboard.eitc) define new {st}_eitc /
+        {st}_refundable_ctc variables that the gov.states.household
+        registries — and therefore the state_eitc / state_ctc aggregates —
+        do not include, so _delta() misses them entirely. A variable absent
+        from baseline law contributes its whole reform-side total as the
+        change."""
+        if (
+            name in sim_baseline.tax_benefit_system.variables
+            or name not in sim_reform.tax_benefit_system.variables
+        ):
+            return 0.0
+        try:
+            return _hh_sum(sim_reform, name)
+        except Exception:
+            return 0.0
+
+    st_l = state.lower()
     federal_tax_change = _delta("income_tax")
     state_tax_change = _delta("state_income_tax")
     benefit_change = _delta("household_benefits")
     ctc_change = _delta("ctc")
     eitc_change = _delta("eitc")
     snap_change = _delta("snap")
-    state_ctc_change = _delta("state_ctc")
-    state_eitc_change = _delta("state_eitc")
+    state_ctc_change = (
+        _delta("state_ctc")
+        + _reform_only_sum(f"{st_l}_ctc")
+        + _reform_only_sum(f"{st_l}_refundable_ctc")
+    )
+    state_eitc_change = _delta("state_eitc") + _reform_only_sum(f"{st_l}_eitc")
     # ubi_center basic income — the child allowance / baby bonus reforms.
     ubi_change = _delta("basic_income")
     _log("fiscal done")

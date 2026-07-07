@@ -121,30 +121,18 @@ function PovertyImpactSection({ results }: { results: AnalysisResponse }) {
         <div className="space-y-4">
           <h3 className="font-medium text-gray-700">Key Metrics</h3>
 
-          <MetricRow
-            label="Child Poverty Rate Change"
-            value={`${poverty_impact.child_poverty_change_pp > 0 ? '+' : ''}${poverty_impact.child_poverty_change_pp.toFixed(2)} pp`}
-            positive={poverty_impact.child_poverty_change_pp < 0}
-          />
-          <MetricRow
-            label="Young Child Poverty Change"
-            value={`${poverty_impact.young_child_poverty_change_pp > 0 ? '+' : ''}${poverty_impact.young_child_poverty_change_pp.toFixed(2)} pp`}
-            positive={poverty_impact.young_child_poverty_change_pp < 0}
-          />
-          <MetricRow
-            label="Deep Poverty Change"
-            value={`${poverty_impact.deep_poverty_change_pp > 0 ? '+' : ''}${poverty_impact.deep_poverty_change_pp.toFixed(2)} pp`}
-            positive={poverty_impact.deep_poverty_change_pp < 0}
-          />
+          <MetricRow label="Child Poverty Rate Change" {...ppChange(poverty_impact.child_poverty_change_pp)} />
+          <MetricRow label="Young Child Poverty Change" {...ppChange(poverty_impact.young_child_poverty_change_pp)} />
+          <MetricRow label="Deep Poverty Change" {...ppChange(poverty_impact.deep_poverty_change_pp)} />
           <MetricRow
             label="Children Lifted (All)"
             value={Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
-            positive={poverty_impact.children_lifted_out_of_poverty > 0}
+            positive={poverty_impact.children_lifted_out_of_poverty > 0 ? true : undefined}
           />
           <MetricRow
             label="Young Children Lifted"
             value={Math.round(poverty_impact.young_children_lifted_out_of_poverty).toLocaleString()}
-            positive={poverty_impact.young_children_lifted_out_of_poverty > 0}
+            positive={poverty_impact.young_children_lifted_out_of_poverty > 0 ? true : undefined}
           />
         </div>
       </div>
@@ -333,6 +321,13 @@ function DistributionalSection({ results }: { results: AnalysisResponse }) {
   );
 }
 
+/** pp-change display: below display precision renders as a grey 0 rather
+ *  than a colored "+0.00 pp". */
+function ppChange(x: number): { value: string; positive?: boolean } {
+  if (Math.abs(x) < 0.005) return { value: '0' };
+  return { value: `${x > 0 ? '+' : ''}${x.toFixed(2)} pp`, positive: x < 0 };
+}
+
 function MetricRow({
   label,
   value,
@@ -351,6 +346,8 @@ function MetricRow({
             ? 'text-green-600'
             : positive === false
             ? 'text-red-600'
+            : value === '0'
+            ? 'text-gray-400'
             : 'text-gray-900'
         }`}
       >

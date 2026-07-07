@@ -109,7 +109,7 @@ interface ReportConfig {
 }
 
 /** One-line description of the household example (e.g. "Single, Age 23,
- *  Child 1 age 5, Child 2 age 8, Employment income $40,000"). The first
+ *  Child 1 Age 5, Child 2 Age 8, Employment income $40,000"). The first
  *  word of each comma-separated segment is capitalized. */
 function householdSummary(h: HouseholdInput): string {
   const parts: string[] = [];
@@ -117,7 +117,7 @@ function householdSummary(h: HouseholdInput): string {
   const ages = (h.adults ?? []).map((a) => a.age);
   parts.push(filing);
   if (ages.length) parts.push(`age ${ages.join(' & ')}`);
-  (h.children ?? []).forEach((c, i) => parts.push(`child ${i + 1} age ${c.age}`));
+  (h.children ?? []).forEach((c, i) => parts.push(`child ${i + 1} Age ${c.age}`));
   parts.push(`employment income $${(h.income?.employment_income ?? 0).toLocaleString()}`);
   return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(', ');
 }
