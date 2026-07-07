@@ -51,29 +51,37 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-07-07-populace-2024+pe-us-1.765.0"})
+    .env({"CPID_BUILD_REV": "2026-07-07-populace-slices+pe-us-1.765.0"})
 )
 
 # Populace: PolicyEngine's single national calibrated dataset (replaces the 51
-# per-state ECPS files — PE is standardizing every project on it). The pinned
-# revision is the L0-pruned ~57k-household file; each request runs the
-# national simulation and slices every extracted array to the requested
-# state. Revision-pinned like the policyengine-us version: bump deliberately
-# with a build-rev change.
+# per-state ECPS files — PE is standardizing every project on it). A national
+# simulation costs ~5.3 min regardless of the requested state, so each pinned
+# revision is pre-sliced into 51 per-state files on the cpid-populace-slices
+# Volume (scripts/build_populace_state_slices.py — run it once per revision
+# bump). Slice sums are verified to match the national state-masked values,
+# so results are exactly Populace's at a fraction of the runtime.
 POPULACE_REPO = "policyengine/populace-us"
 POPULACE_FILE = "populace_us_2024.h5"
 POPULACE_REVISION = "053baf6cf56aaf1160e2f1bfe7631c6924d46b2e"  # 2026-07-01
 
+slices_volume = modal.Volume.from_name(
+    "cpid-populace-slices", create_if_missing=True
+)
 
-def _populace_path() -> str:
-    from huggingface_hub import hf_hub_download
 
-    return hf_hub_download(
-        POPULACE_REPO,
-        POPULACE_FILE,
-        repo_type="dataset",
-        revision=POPULACE_REVISION,
-    )
+def _state_slice_path(state: str) -> str:
+    import os
+
+    path = f"/slices/{POPULACE_REVISION[:8]}/{state}.h5"
+    if not os.path.exists(path):
+        raise RuntimeError(
+            f"No Populace slice for {state} at revision "
+            f"{POPULACE_REVISION[:8]} — run "
+            "`modal run scripts/build_populace_state_slices.py` after a "
+            "revision bump."
+        )
+    return path
 
 
 def _build_core_reform_dict(reform: dict | None, year: int) -> dict | None:
@@ -412,7 +420,9 @@ def compute_household_sweep(payload: dict) -> dict:
 # --- statewide economy --------------------------------------------------
 
 
-@app.function(image=image, timeout=1800, memory=32768, cpu=4.0)
+@app.function(
+    image=image, timeout=1800, memory=16384, cpu=2.0, volumes={"/slices": slices_volume}
+)
 def compute_economy(payload: dict) -> dict:
     """Compute statewide microsim impact (poverty, fiscal, distributional)."""
     import time
@@ -430,31 +440,36 @@ def compute_economy(payload: dict) -> dict:
     if not state_code:
         raise ValueError("`state` is required.")
 
-    # Populace: one national calibrated file. The simulation runs national;
-    # every array extracted below is immediately sliced to this state's rows
-    # (households or persons), so all downstream math is state-scoped exactly
-    # as it was with the retired per-state files.
+    # Pre-built per-state slice of the pinned Populace revision (verified to
+    # reproduce the national state-masked values exactly). The masks below are
+    # trivially all-true on a slice; they stay as a guard so a mis-built slice
+    # (wrong state's households) fails loudly instead of silently.
+    from policyengine_us.data import USSingleYearDataset
+
     state = state_code.upper()
-    dataset_path = _populace_path()
+    dataset_path = _state_slice_path(state)
+
+    def _dataset():
+        return USSingleYearDataset(file_path=dataset_path)
 
     reform_payload = payload.get("reform")
     reform_dict = _build_core_reform_dict(reform_payload, year)
     reform = Reform.from_dict(reform_dict) if reform_dict else None
     _log(
         f"reform loaded (params={len(reform_dict) if reform_dict else 0}) "
-        f"on dataset={POPULACE_FILE}@{POPULACE_REVISION[:8]}"
+        f"on slice {state}@{POPULACE_REVISION[:8]}"
     )
 
-    sim_baseline = Microsimulation(dataset=dataset_path)
+    sim_baseline = Microsimulation(dataset=_dataset())
     sim_reform = (
-        Microsimulation(dataset=dataset_path, reform=reform)
+        Microsimulation(dataset=_dataset(), reform=reform)
         if reform is not None
         else sim_baseline
     )
     _log("microsims built")
 
-    # State masks. Row order is identical across sims built from the same
-    # dataset, so baseline masks slice reform arrays too.
+    # Row order is identical across sims built from the same dataset, so
+    # baseline masks slice reform arrays too.
     hh_mask = (
         np.array(sim_baseline.calculate("state_code", period=year)).astype(str)
         == state
@@ -465,8 +480,11 @@ def compute_economy(payload: dict) -> dict:
         ).astype(str)
         == state
     )
-    if not hh_mask.any():
-        raise ValueError(f"No households found for state {state!r}.")
+    if not hh_mask.all():
+        raise ValueError(
+            f"Slice for {state!r} contains other states' households — "
+            "rebuild the slices."
+        )
 
     household_weight = np.array(
         sim_baseline.calculate("household_weight", period=year)
@@ -779,7 +797,7 @@ def compute_economy(payload: dict) -> dict:
         del sim_reform, sim_baseline
         gc.collect()
         sim_dep = Microsimulation(
-            dataset=dataset_path, reform=Reform.from_dict(dep_dict)
+            dataset=_dataset(), reform=Reform.from_dict(dep_dict)
         )
         dependent_exemption_change = baseline_state_tax_total - _hh_sum(
             sim_dep, "state_income_tax"
@@ -905,7 +923,10 @@ def web():
         return {
             "ok": True,
             "policyengine_us": pe_us,
-            "dataset": f"{POPULACE_REPO}/{POPULACE_FILE}@{POPULACE_REVISION[:8]}",
+            "dataset": (
+                f"{POPULACE_REPO}/{POPULACE_FILE}@{POPULACE_REVISION[:8]}"
+                " (per-state slices)"
+            ),
             "build_rev": os.environ.get("CPID_BUILD_REV"),
         }
 
