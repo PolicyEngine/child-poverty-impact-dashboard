@@ -139,6 +139,126 @@ def verify_slice(st: str) -> dict:
     }
 
 
+CTC_2021_REFORM = {
+    "gov.irs.credits.ctc.amount.arpa[0].amount": {"2026-01-01": 3600},
+    "gov.irs.credits.ctc.amount.arpa[1].amount": {"2026-01-01": 3000},
+    "gov.irs.credits.ctc.refundable.fully_refundable": {"2026-01-01": True},
+    "gov.irs.credits.ctc.phase_out.arpa.in_effect": {"2026-01-01": True},
+}
+VERIFY_YEAR = 2026
+
+
+def _state_metrics(sim_base, sim_reform, year, person_mask, hh_mask):
+    """Per-state comparison metrics from baseline+reform sims, masked to a
+    state (all-true masks on a slice)."""
+    import numpy as np
+
+    pw = np.array(sim_base.calculate("person_weight", period=year))[person_mask]
+    age = np.array(sim_base.calculate("age", period=year))[person_mask]
+    pov_b = np.array(
+        sim_base.calculate("in_poverty", period=year, map_to="person")
+    )[person_mask].astype(bool)
+    pov_r = np.array(
+        sim_reform.calculate("in_poverty", period=year, map_to="person")
+    )[person_mask].astype(bool)
+    hw = np.array(sim_base.calculate("household_weight", period=year))[hh_mask]
+    nin_b = np.array(
+        sim_base.calculate("household_net_income", period=year, map_to="household")
+    )[hh_mask]
+    nin_r = np.array(
+        sim_reform.calculate("household_net_income", period=year, map_to="household")
+    )[hh_mask]
+    child = age < 18
+
+    def rate(p, m):
+        w = pw[m]
+        return float((p[m] * w).sum() / w.sum() * 100) if w.sum() else 0.0
+
+    return {
+        "population": float(pw.sum()),
+        "child_pov_base": rate(pov_b, child),
+        "child_pov_reform": rate(pov_r, child),
+        "overall_pov_base": rate(pov_b, np.ones_like(child, bool)),
+        "transfer_total": float(((nin_r - nin_b) * hw).sum()),
+    }
+
+
+@app.function(image=image, timeout=3600, memory=32768, cpu=4.0)
+def national_metrics() -> dict:
+    """The 2021-CTC reform on the FULL national file, masked per state."""
+    import numpy as np
+    from huggingface_hub import hf_hub_download
+    from policyengine_core.reforms import Reform
+    from policyengine_us import Microsimulation
+
+    path = hf_hub_download(
+        POPULACE_REPO, POPULACE_FILE, repo_type="dataset", revision=POPULACE_REVISION
+    )
+    base = Microsimulation(dataset=path)
+    reform = Microsimulation(
+        dataset=path, reform=Reform.from_dict(CTC_2021_REFORM, country_id="us")
+    )
+    hh_states = np.array(base.calculate("state_code", period=VERIFY_YEAR)).astype(str)
+    p_states = np.array(
+        base.calculate("state_code", period=VERIFY_YEAR, map_to="person")
+    ).astype(str)
+    return {
+        st: _state_metrics(base, reform, VERIFY_YEAR, p_states == st, hh_states == st)
+        for st in STATE_FIPS
+    }
+
+
+@app.function(image=image, timeout=1800, memory=8192, volumes={"/slices": volume})
+def slice_metrics(st: str) -> tuple:
+    """The same reform on the state's slice."""
+    import numpy as np
+    from policyengine_core.reforms import Reform
+    from policyengine_us import Microsimulation
+    from policyengine_us.data import USSingleYearDataset
+
+    path = f"/slices/{POPULACE_REVISION[:8]}/{st}.h5"
+    base = Microsimulation(dataset=USSingleYearDataset(file_path=path))
+    reform = Microsimulation(
+        dataset=USSingleYearDataset(file_path=path),
+        reform=Reform.from_dict(CTC_2021_REFORM, country_id="us"),
+    )
+    n_persons = len(np.array(base.calculate("person_weight", period=VERIFY_YEAR)))
+    n_hh = len(np.array(base.calculate("household_weight", period=VERIFY_YEAR)))
+    ones_p = np.ones(n_persons, dtype=bool)
+    ones_h = np.ones(n_hh, dtype=bool)
+    return st, _state_metrics(base, reform, VERIFY_YEAR, ones_p, ones_h)
+
+
+@app.local_entrypoint()
+def verify_vs_national():
+    """Compare every slice against the national file, all 51 states.
+
+    Same federal reform (2021 CTC restoration) both ways; every metric must
+    agree to float noise. Run after build_slices when bumping the revision.
+    """
+    national = national_metrics.remote()
+    worst = {}
+    failures = []
+    for st, sl in slice_metrics.map(list(STATE_FIPS)):
+        nat = national[st]
+        for key in nat:
+            a, b = nat[key], sl[key]
+            denom = max(abs(a), abs(b), 1e-9)
+            rel = abs(a - b) / denom
+            if rel > worst.get(key, (0, ""))[0]:
+                worst[key] = (rel, st)
+            tol = 1e-6 if key in ("population", "transfer_total") else 1e-4
+            if rel > tol:
+                failures.append(f"{st}.{key}: national={a} slice={b} rel={rel:.2e}")
+        print(f"{st}: ok", flush=True)
+    print("worst relative differences:")
+    for key, (rel, st) in sorted(worst.items()):
+        print(f"  {key}: {rel:.2e} ({st})")
+    if failures:
+        raise SystemExit('MISMATCHES:\n' + '\n'.join(failures))
+    print("ALL 51 STATES MATCH")
+
+
 @app.local_entrypoint()
 def main():
     report = build_slices.remote()
