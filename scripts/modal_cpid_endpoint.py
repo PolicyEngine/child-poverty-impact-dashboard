@@ -107,6 +107,20 @@ def _cache_put(key: str, value: dict) -> None:
         pass
 
 
+def _progress_put(stage: str) -> None:
+    """Best-effort stage marker for the polling UI, keyed by this call's id.
+
+    The status endpoint surfaces it while the job is computing so the 1-2
+    minute statewide wait shows real progress instead of a bare spinner.
+    Never allowed to fail a compute."""
+    try:
+        call_id = modal.current_function_call_id()
+        if call_id:
+            results_cache[f"progress:{call_id}"] = stage
+    except Exception:
+        pass
+
+
 def _state_slice_path(state: str) -> str:
     import os
 
@@ -325,6 +339,7 @@ def compute_household_sweep(payload: dict) -> dict:
 
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
+        _progress_put(stage)
 
     year = int(payload["year"])
     incomes = list(payload.get("income_range", []))
@@ -473,6 +488,7 @@ def compute_economy(payload: dict) -> dict:
 
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
+        _progress_put(stage)
 
     year = int(payload["year"])
     state_code = payload.get("state")
@@ -978,10 +994,17 @@ def web():
         try:
             call = modal.FunctionCall.from_id(job_id)
             result = call.get(timeout=0)
+            try:
+                results_cache.pop(f"progress:{job_id}")
+            except Exception:
+                pass
             return {"status": "ok", "result": result}
         except modal.exception.OutputExpiredError:
             raise HTTPException(status_code=410, detail="Result expired.")
         except TimeoutError:
+            stage = _cache_get(f"progress:{job_id}")
+            if stage:
+                return {"status": "computing", "stage": stage}
             return {"status": "computing"}
         except Exception as exc:
             return {"status": "error", "message": str(exc)}

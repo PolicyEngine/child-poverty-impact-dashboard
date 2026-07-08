@@ -264,6 +264,12 @@ export default function ReportResultsPage() {
   const [comparisonResults, setComparisonResults] = useState<Record<string, AnalysisResponse>>({});
   const [comparisonErrors, setComparisonErrors] = useState<Record<string, string>>({});
 
+  // Live backend stage for the primary state's statewide run, shown in the
+  // loading skeletons so the 1-2 minute wait reads as progress.
+  const [computeStage, setComputeStage] = useState<string | null>(null);
+  // Bumping the nonce re-fires the compute effect after a failed leg.
+  const [retryNonce, setRetryNonce] = useState(0);
+
   // Read config on the client: the URL deep link (?c=…) wins so shared
   // links work in a fresh browser; sessionStorage is the same-tab fallback
   // for older flows. Whichever source supplies it, the URL ends up carrying
@@ -344,6 +350,7 @@ export default function ReportResultsPage() {
         config.year,
         config.selectedReforms,
         config.parameterValues,
+        index === 0 ? setComputeStage : undefined,
       )
         .then((results) => {
           setComparisonResults((m) => ({ ...m, [stateCode]: results }));
@@ -398,7 +405,10 @@ export default function ReportResultsPage() {
         })
         .finally(() => setSweepLoading(false));
     }
-  }, [config]);
+    // retryNonce re-fires every leg after a failure; legs that already
+    // succeeded are served from the Modal result cache in ~a second.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, retryNonce]);
 
   // configReady distinguishes "haven't hit useEffect yet" from "loaded and
   // confirmed missing". Before configReady, render the tab shell so SSR
@@ -409,6 +419,30 @@ export default function ReportResultsPage() {
   if (configReady && !config) {
     return <ErrorState error="No results available" />;
   }
+
+  // Backend stage markers -> human-readable progress for the skeleton hint.
+  const STAGE_LABELS: Array<[string, string]> = [
+    ['reform loaded', 'Loading the state data and reform…'],
+    ['microsims built', 'Simulations built — computing taxes and benefits…'],
+    ['fiscal done', 'Fiscal totals done — computing poverty impacts…'],
+    ['poverty done', 'Poverty done — computing distributional impacts…'],
+    ['distributional done', 'Finalizing…'],
+    ['dependent-exemption', 'Isolating the dependent-exemption effect…'],
+    ['sweep done', 'Finalizing…'],
+  ];
+  const stageHint = computeStage
+    ? STAGE_LABELS.find(([prefix]) => computeStage.startsWith(prefix))?.[1] ??
+      'Running the microsimulation on Modal — this can take a few minutes.'
+    : 'Running the microsimulation on Modal — this can take a few minutes.';
+
+  const retryLeg = () => {
+    setStatewideError(null);
+    setComparisonErrors({});
+    setHouseholdError(null);
+    setSweepError(null);
+    setComputeStage(null);
+    setRetryNonce((n) => n + 1);
+  };
 
   return (
     <div className="min-h-screen bg-pe-gray-50/30">
@@ -564,11 +598,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing statewide impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : activeTab === 'poverty' ? (
@@ -579,11 +613,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing poverty impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : activeTab === 'fiscal' ? (
@@ -594,11 +628,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing fiscal impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : activeTab === 'distributional' ? (
@@ -609,11 +643,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing distributional impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : null}
@@ -656,7 +690,7 @@ function TabSkeleton({ title, hint }: { title: string; hint: string }) {
 
 // Per-tab error — replaces the page-level error state so one failing leg
 // (statewide or household) doesn't take down the rest of the report.
-function TabError({ message }: { message: string }) {
+function TabError({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="card border-red-200 bg-red-50">
       <div className="flex items-start gap-3">
@@ -665,9 +699,14 @@ function TabError({ message }: { message: string }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="text-red-800 font-semibold text-sm">Analysis failed for this tab</h3>
           <p className="text-red-600 text-sm mt-0.5 break-words">{message}</p>
+          {onRetry && (
+            <button onClick={onRetry} className="btn btn-outline mt-3 text-sm">
+              Retry analysis
+            </button>
+          )}
         </div>
       </div>
     </div>
