@@ -218,7 +218,8 @@ export async function runAnalysisFromOptions(
   state: string,
   year: number,
   reformOptionIds: string[],
-  parameterValues?: Record<string, Record<string, number>>
+  parameterValues?: Record<string, Record<string, number>>,
+  onStage?: (stage: string) => void,
 ): Promise<AnalysisResponse> {
   // Modal is the only supported path; the PE-direct fallbacks used to
   // fan out hundreds of calls against api.policyengine.org and have
@@ -244,6 +245,7 @@ export async function runAnalysisFromOptions(
         state,
         undefined,
         depReform,
+        onStage,
       );
       return mapEconomyToAnalysisResponse(economy, state, year);
     } catch (err) {

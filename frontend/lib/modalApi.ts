@@ -114,6 +114,8 @@ interface StatusResponse<T> {
   status: 'ok' | 'computing' | 'error';
   result?: T;
   message?: string;
+  /** Backend compute stage while computing (e.g. "microsims built"). */
+  stage?: string;
 }
 
 const POLL_INTERVAL_MS = 10000;
@@ -145,6 +147,7 @@ async function spawnAndPoll<T>(
   route: 'economy' | 'household',
   body: Record<string, unknown>,
   signal?: AbortSignal,
+  onStage?: (stage: string) => void,
 ): Promise<T> {
   const { job_id } = await fetchJson<StartResponse>(
     `${base}/${route}/start`,
@@ -171,6 +174,7 @@ async function spawnAndPoll<T>(
     if (status.status === 'error') {
       throw new Error(status.message ?? `Modal ${route} job failed.`);
     }
+    if (status.stage && onStage) onStage(status.stage);
     await new Promise<void>((resolve, reject) => {
       const t = setTimeout(resolve, POLL_INTERVAL_MS);
       signal?.addEventListener(
@@ -191,6 +195,7 @@ export async function runEconomyOnModal(
   state: string | null,
   signal?: AbortSignal,
   dependentExemptionReform: ReformDict | null = null,
+  onStage?: (stage: string) => void,
 ): Promise<EconomyImpactResult> {
   const base = modalCpidUrl();
   if (!base) throw new Error('NEXT_PUBLIC_MODAL_CPID_URL is not set.');
@@ -205,6 +210,7 @@ export async function runEconomyOnModal(
       dependent_exemption_reform: dependentExemptionReform,
     },
     signal,
+    onStage,
   );
 }
 

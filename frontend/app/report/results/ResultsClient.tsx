@@ -12,6 +12,7 @@ import type {
   IncomeSweepResponse,
 } from '@/lib/household-types';
 import type { AnalysisResponse } from '@/lib/types';
+import { SHARE_PARAM, decodeReportConfig, encodeReportConfig, shareUrl } from '@/lib/share-link';
 import { US_STATES } from '@/lib/household-types';
 import {
   LineChart,
@@ -111,6 +112,33 @@ interface ReportConfig {
 /** One-line description of the household example (e.g. "Single, Age 23,
  *  Child 1 Age 5, Child 2 Age 8, Employment income $40,000"). The first
  *  word of each comma-separated segment is capitalized. */
+/** Copies the deep link for the current report to the clipboard. The URL
+ *  already carries the encoded config; this is the explicit affordance. */
+function ShareButton({ config }: { config: ReportConfig | null }) {
+  const [copied, setCopied] = useState(false);
+  if (!config) return null;
+  return (
+    <button
+      className="btn btn-ghost"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl(config));
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch {
+          // Clipboard can be unavailable (permissions, http); the URL bar
+          // still carries the same link.
+        }
+      }}
+    >
+      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+      </svg>
+      {copied ? 'Link copied!' : 'Share'}
+    </button>
+  );
+}
+
 function householdSummary(h: HouseholdInput): string {
   const parts: string[] = [];
   const filing = h.filing_status?.startsWith('married') ? 'married' : 'single';
@@ -236,26 +264,64 @@ export default function ReportResultsPage() {
   const [comparisonResults, setComparisonResults] = useState<Record<string, AnalysisResponse>>({});
   const [comparisonErrors, setComparisonErrors] = useState<Record<string, string>>({});
 
-  // Read config from sessionStorage as soon as we hit the client.
+  // Live backend stage for the primary state's statewide run, shown in the
+  // loading skeletons so the 1-2 minute wait reads as progress.
+  const [computeStage, setComputeStage] = useState<string | null>(null);
+  // Bumping the nonce re-fires the compute effect after a failed leg.
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  // Read config on the client: the URL deep link (?c=…) wins so shared
+  // links work in a fresh browser; sessionStorage is the same-tab fallback
+  // for older flows. Whichever source supplies it, the URL ends up carrying
+  // the encoded config so the address bar is always shareable.
   useEffect(() => {
+    const adopt = (parsed: ReportConfig): boolean => {
+      const parsedStates = normaliseStates(parsed);
+      if (parsedStates.length === 0) return false;
+      setConfig(parsed);
+      if (parsedStates.length >= 2) {
+        setActiveTab('compare');
+      } else if (parsed.populationType === 'household' && parsed.household) {
+        setActiveTab('household');
+      }
+      return true;
+    };
+
+    const encoded = new URLSearchParams(window.location.search).get(SHARE_PARAM);
+    if (encoded) {
+      const fromUrl = decodeReportConfig<ReportConfig>(encoded);
+      if (fromUrl && adopt(fromUrl)) {
+        // Same-tab navigation elsewhere (e.g. "New Report") keeps working
+        // off sessionStorage, so mirror the shared config into it.
+        sessionStorage.setItem('reportConfig', JSON.stringify(fromUrl));
+        setConfigReady(true);
+        return;
+      }
+      // A malformed link falls through to sessionStorage before erroring.
+    }
+
     const stored = sessionStorage.getItem('reportConfig');
     if (!stored) {
-      setConfigError('No report configuration found. Please start a new report.');
+      setConfigError(
+        encoded
+          ? 'This share link could not be read. Please ask for a fresh link.'
+          : 'No report configuration found. Please start a new report.',
+      );
       setConfigReady(true);
       return;
     }
     try {
       const parsed: ReportConfig = JSON.parse(stored);
-      const parsedStates = normaliseStates(parsed);
-      if (parsedStates.length === 0) {
-        setConfigError('Invalid report configuration. Please start a new report.');
+      if (adopt(parsed)) {
+        // Direct navigation without ?c=: put the encoded config in the URL
+        // so copying the address bar shares this exact report.
+        window.history.replaceState(
+          null,
+          '',
+          `${window.location.pathname}?${SHARE_PARAM}=${encodeReportConfig(parsed)}`,
+        );
       } else {
-        setConfig(parsed);
-        if (parsedStates.length >= 2) {
-          setActiveTab('compare');
-        } else if (parsed.populationType === 'household' && parsed.household) {
-          setActiveTab('household');
-        }
+        setConfigError('Invalid report configuration. Please start a new report.');
       }
     } catch {
       setConfigError('Could not read report configuration. Please start a new report.');
@@ -284,6 +350,7 @@ export default function ReportResultsPage() {
         config.year,
         config.selectedReforms,
         config.parameterValues,
+        index === 0 ? setComputeStage : undefined,
       )
         .then((results) => {
           setComparisonResults((m) => ({ ...m, [stateCode]: results }));
@@ -338,7 +405,10 @@ export default function ReportResultsPage() {
         })
         .finally(() => setSweepLoading(false));
     }
-  }, [config]);
+    // retryNonce re-fires every leg after a failure; legs that already
+    // succeeded are served from the Modal result cache in ~a second.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, retryNonce]);
 
   // configReady distinguishes "haven't hit useEffect yet" from "loaded and
   // confirmed missing". Before configReady, render the tab shell so SSR
@@ -349,6 +419,30 @@ export default function ReportResultsPage() {
   if (configReady && !config) {
     return <ErrorState error="No results available" />;
   }
+
+  // Backend stage markers -> human-readable progress for the skeleton hint.
+  const STAGE_LABELS: Array<[string, string]> = [
+    ['reform loaded', 'Loading the state data and reform…'],
+    ['microsims built', 'Simulations built — computing taxes and benefits…'],
+    ['fiscal done', 'Fiscal totals done — computing poverty impacts…'],
+    ['poverty done', 'Poverty done — computing distributional impacts…'],
+    ['distributional done', 'Finalizing…'],
+    ['dependent-exemption', 'Isolating the dependent-exemption effect…'],
+    ['sweep done', 'Finalizing…'],
+  ];
+  const stageHint = computeStage
+    ? STAGE_LABELS.find(([prefix]) => computeStage.startsWith(prefix))?.[1] ??
+      'Running the microsimulation on Modal — this can take a few minutes.'
+    : 'Running the microsimulation on Modal — this can take a few minutes.';
+
+  const retryLeg = () => {
+    setStatewideError(null);
+    setComparisonErrors({});
+    setHouseholdError(null);
+    setSweepError(null);
+    setComputeStage(null);
+    setRetryNonce((n) => n + 1);
+  };
 
   return (
     <div className="min-h-screen bg-pe-gray-50/30">
@@ -413,6 +507,8 @@ export default function ReportResultsPage() {
                 </div>
               )}
             </div>
+            <div className="flex items-center gap-2">
+            <ShareButton config={config} />
             <button
               onClick={() => router.push('/report')}
               className="btn btn-ghost"
@@ -422,6 +518,7 @@ export default function ReportResultsPage() {
               </svg>
               Start Over
             </button>
+            </div>
           </div>
         </div>
       </div>
@@ -501,11 +598,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing statewide impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : activeTab === 'poverty' ? (
@@ -516,11 +613,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing poverty impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : activeTab === 'fiscal' ? (
@@ -531,11 +628,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing fiscal impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : activeTab === 'distributional' ? (
@@ -546,11 +643,11 @@ export default function ReportResultsPage() {
               year={config!.year}
             />
           ) : statewideError ? (
-            <TabError message={statewideError} />
+            <TabError message={statewideError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing distributional impact"
-              hint="Running the microsimulation on Modal — this can take a few minutes."
+              hint={stageHint}
             />
           )
         ) : null}
@@ -593,7 +690,7 @@ function TabSkeleton({ title, hint }: { title: string; hint: string }) {
 
 // Per-tab error — replaces the page-level error state so one failing leg
 // (statewide or household) doesn't take down the rest of the report.
-function TabError({ message }: { message: string }) {
+function TabError({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="card border-red-200 bg-red-50">
       <div className="flex items-start gap-3">
@@ -602,9 +699,14 @@ function TabError({ message }: { message: string }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="text-red-800 font-semibold text-sm">Analysis failed for this tab</h3>
           <p className="text-red-600 text-sm mt-0.5 break-words">{message}</p>
+          {onRetry && (
+            <button onClick={onRetry} className="btn btn-outline mt-3 text-sm">
+              Retry analysis
+            </button>
+          )}
         </div>
       </div>
     </div>

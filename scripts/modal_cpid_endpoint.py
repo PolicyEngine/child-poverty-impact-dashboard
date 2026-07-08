@@ -70,6 +70,57 @@ slices_volume = modal.Volume.from_name(
 )
 
 
+# Results cache: identical (payload, build) pairs return the stored result
+# instead of re-simulating. The build rev pins policyengine-us, the Populace
+# revision, and the compute code, so entries are immutable — a new deploy
+# with a bumped CPID_BUILD_REV starts a fresh keyspace and old entries just
+# age out unused. This is what makes shared deep links populate instantly
+# once anyone has run the same report on the current build (and the seam a
+# durable store like Supabase can later replace).
+results_cache = modal.Dict.from_name("cpid-results-cache", create_if_missing=True)
+
+
+def _cache_key(kind: str, payload: dict) -> str:
+    import hashlib
+    import json
+    import os
+
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    build = os.environ.get("CPID_BUILD_REV", "dev")
+    digest = hashlib.sha256(f"{build}|{kind}|{canonical}".encode()).hexdigest()
+    return f"{kind}:{build}:{digest[:32]}"
+
+
+def _cache_get(key: str):
+    try:
+        return results_cache[key]
+    except KeyError:
+        return None
+    except Exception:  # cache is best-effort, never a failure source
+        return None
+
+
+def _cache_put(key: str, value: dict) -> None:
+    try:
+        results_cache[key] = value
+    except Exception:
+        pass
+
+
+def _progress_put(stage: str) -> None:
+    """Best-effort stage marker for the polling UI, keyed by this call's id.
+
+    The status endpoint surfaces it while the job is computing so the 1-2
+    minute statewide wait shows real progress instead of a bare spinner.
+    Never allowed to fail a compute."""
+    try:
+        call_id = modal.current_function_call_id()
+        if call_id:
+            results_cache[f"progress:{call_id}"] = stage
+    except Exception:
+        pass
+
+
 def _state_slice_path(state: str) -> str:
     import os
 
@@ -288,6 +339,7 @@ def compute_household_sweep(payload: dict) -> dict:
 
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
+        _progress_put(stage)
 
     year = int(payload["year"])
     incomes = list(payload.get("income_range", []))
@@ -409,12 +461,14 @@ def compute_household_sweep(payload: dict) -> dict:
 
     _log(f"sweep done ({len(incomes)} points)")
 
-    return {
+    result = {
         "state": payload.get("state"),
         "year": year,
         "data_points": data_points,
         "baseline_data_points": baseline_data_points,
     }
+    _cache_put(_cache_key("household", payload), result)
+    return result
 
 
 # --- statewide economy --------------------------------------------------
@@ -434,6 +488,7 @@ def compute_economy(payload: dict) -> dict:
 
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
+        _progress_put(stage)
 
     year = int(payload["year"])
     state_code = payload.get("state")
@@ -831,7 +886,7 @@ def compute_economy(payload: dict) -> dict:
         gc.collect()
         _log("dependent-exemption isolation done")
 
-    return {
+    result = {
         "state": state_code,
         "year": year,
         "fiscal": {
@@ -878,6 +933,8 @@ def compute_economy(payload: dict) -> dict:
             "percent_unchanged": pct_unchanged_all,
         },
     }
+    _cache_put(_cache_key("economy", payload), result)
+    return result
 
 
 # --- spawn-and-poll FastAPI surface ------------------------------------
@@ -904,11 +961,17 @@ def web():
     # detection doesn't trip over the polymorphic reform field.
     @api.post("/economy/start")
     def economy_start(payload: dict) -> dict:
+        key = _cache_key("economy", payload)
+        if _cache_get(key) is not None:
+            return {"job_id": f"cache:{key}"}
         call = compute_economy.spawn(payload)
         return {"job_id": call.object_id}
 
     @api.post("/household/start")
     def household_start(payload: dict) -> dict:
+        key = _cache_key("household", payload)
+        if _cache_get(key) is not None:
+            return {"job_id": f"cache:{key}"}
         call = compute_household_sweep.spawn(payload)
         return {"job_id": call.object_id}
 
@@ -921,13 +984,27 @@ def web():
         return _status(job_id)
 
     def _status(job_id: str) -> dict:
+        # Cache-backed pseudo-jobs: the start endpoint found a stored result
+        # for this exact (payload, build) pair, so there is no FunctionCall.
+        if job_id.startswith("cache:"):
+            cached = _cache_get(job_id[len("cache:"):])
+            if cached is not None:
+                return {"status": "ok", "result": cached, "cached": True}
+            return {"status": "error", "message": "Cached result expired; retry."}
         try:
             call = modal.FunctionCall.from_id(job_id)
             result = call.get(timeout=0)
+            try:
+                results_cache.pop(f"progress:{job_id}")
+            except Exception:
+                pass
             return {"status": "ok", "result": result}
         except modal.exception.OutputExpiredError:
             raise HTTPException(status_code=410, detail="Result expired.")
         except TimeoutError:
+            stage = _cache_get(f"progress:{job_id}")
+            if stage:
+                return {"status": "computing", "stage": stage}
             return {"status": "computing"}
         except Exception as exc:
             return {"status": "error", "message": str(exc)}
