@@ -12,6 +12,7 @@ import type {
   IncomeSweepResponse,
 } from '@/lib/household-types';
 import type { AnalysisResponse } from '@/lib/types';
+import { SHARE_PARAM, decodeReportConfig, encodeReportConfig, shareUrl } from '@/lib/share-link';
 import { US_STATES } from '@/lib/household-types';
 import {
   LineChart,
@@ -111,6 +112,33 @@ interface ReportConfig {
 /** One-line description of the household example (e.g. "Single, Age 23,
  *  Child 1 Age 5, Child 2 Age 8, Employment income $40,000"). The first
  *  word of each comma-separated segment is capitalized. */
+/** Copies the deep link for the current report to the clipboard. The URL
+ *  already carries the encoded config; this is the explicit affordance. */
+function ShareButton({ config }: { config: ReportConfig | null }) {
+  const [copied, setCopied] = useState(false);
+  if (!config) return null;
+  return (
+    <button
+      className="btn btn-ghost"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl(config));
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch {
+          // Clipboard can be unavailable (permissions, http); the URL bar
+          // still carries the same link.
+        }
+      }}
+    >
+      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+      </svg>
+      {copied ? 'Link copied!' : 'Share'}
+    </button>
+  );
+}
+
 function householdSummary(h: HouseholdInput): string {
   const parts: string[] = [];
   const filing = h.filing_status?.startsWith('married') ? 'married' : 'single';
@@ -236,26 +264,58 @@ export default function ReportResultsPage() {
   const [comparisonResults, setComparisonResults] = useState<Record<string, AnalysisResponse>>({});
   const [comparisonErrors, setComparisonErrors] = useState<Record<string, string>>({});
 
-  // Read config from sessionStorage as soon as we hit the client.
+  // Read config on the client: the URL deep link (?c=…) wins so shared
+  // links work in a fresh browser; sessionStorage is the same-tab fallback
+  // for older flows. Whichever source supplies it, the URL ends up carrying
+  // the encoded config so the address bar is always shareable.
   useEffect(() => {
+    const adopt = (parsed: ReportConfig): boolean => {
+      const parsedStates = normaliseStates(parsed);
+      if (parsedStates.length === 0) return false;
+      setConfig(parsed);
+      if (parsedStates.length >= 2) {
+        setActiveTab('compare');
+      } else if (parsed.populationType === 'household' && parsed.household) {
+        setActiveTab('household');
+      }
+      return true;
+    };
+
+    const encoded = new URLSearchParams(window.location.search).get(SHARE_PARAM);
+    if (encoded) {
+      const fromUrl = decodeReportConfig<ReportConfig>(encoded);
+      if (fromUrl && adopt(fromUrl)) {
+        // Same-tab navigation elsewhere (e.g. "New Report") keeps working
+        // off sessionStorage, so mirror the shared config into it.
+        sessionStorage.setItem('reportConfig', JSON.stringify(fromUrl));
+        setConfigReady(true);
+        return;
+      }
+      // A malformed link falls through to sessionStorage before erroring.
+    }
+
     const stored = sessionStorage.getItem('reportConfig');
     if (!stored) {
-      setConfigError('No report configuration found. Please start a new report.');
+      setConfigError(
+        encoded
+          ? 'This share link could not be read. Please ask for a fresh link.'
+          : 'No report configuration found. Please start a new report.',
+      );
       setConfigReady(true);
       return;
     }
     try {
       const parsed: ReportConfig = JSON.parse(stored);
-      const parsedStates = normaliseStates(parsed);
-      if (parsedStates.length === 0) {
-        setConfigError('Invalid report configuration. Please start a new report.');
+      if (adopt(parsed)) {
+        // Direct navigation without ?c=: put the encoded config in the URL
+        // so copying the address bar shares this exact report.
+        window.history.replaceState(
+          null,
+          '',
+          `${window.location.pathname}?${SHARE_PARAM}=${encodeReportConfig(parsed)}`,
+        );
       } else {
-        setConfig(parsed);
-        if (parsedStates.length >= 2) {
-          setActiveTab('compare');
-        } else if (parsed.populationType === 'household' && parsed.household) {
-          setActiveTab('household');
-        }
+        setConfigError('Invalid report configuration. Please start a new report.');
       }
     } catch {
       setConfigError('Could not read report configuration. Please start a new report.');
@@ -413,6 +473,8 @@ export default function ReportResultsPage() {
                 </div>
               )}
             </div>
+            <div className="flex items-center gap-2">
+            <ShareButton config={config} />
             <button
               onClick={() => router.push('/report')}
               className="btn btn-ghost"
@@ -422,6 +484,7 @@ export default function ReportResultsPage() {
               </svg>
               Start Over
             </button>
+            </div>
           </div>
         </div>
       </div>

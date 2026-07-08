@@ -12,6 +12,7 @@ import type {
 } from '@/lib/household-types';
 import type { ParameterValues } from '@/components/ReformOptionsSelector';
 import { US_STATES } from '@/lib/household-types';
+import { SHARE_PARAM, encodeReportConfig } from '@/lib/share-link';
 import {
   getStatePrograms,
   getReformOptions,
@@ -219,7 +220,9 @@ export default function ReportBuilderPage() {
       reformLabels,
     };
     sessionStorage.setItem('reportConfig', JSON.stringify(payload));
-    router.push('/report/results');
+    // The encoded config in the URL makes the results page shareable as a
+    // deep link; sessionStorage stays as the same-tab fallback.
+    router.push(`/report/results?${SHARE_PARAM}=${encodeReportConfig(payload)}`);
   };
 
   const canProceedToHousehold = config.selectedReforms.length > 0;
