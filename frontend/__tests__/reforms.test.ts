@@ -332,7 +332,7 @@ describe('buildReformDict', () => {
 
   it('is a no-op when WI/OR rates are left at current law', () => {
     expect(buildReformDict(['wi_eitc'], { wi_eitc: { match_3_children: 34 } }, 2026)).toEqual({});
-    expect(buildReformDict(['or_eitc'], { or_eitc: { match_young_child: 12 } }, 2026)).toEqual({});
+    expect(buildReformDict(['or_eitc'], { or_eitc: { match_young_child: 17 } }, 2026)).toEqual({});
   });
 
   it('makes a nonrefundable EITC refundable only when the checkbox is set', () => {

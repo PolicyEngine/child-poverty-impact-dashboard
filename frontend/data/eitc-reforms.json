@@ -199,7 +199,7 @@
   "OR": {
     "type": "existing",
     "match": "gov.states.or.tax.income.credits.eitc.match.no_young_child",
-    "current_rate": 0.09,
+    "current_rate": 0.14,
     "note": "OR has different rates with/without young children; slider adjusts the no-young-child rate."
   },
   "PA": {
