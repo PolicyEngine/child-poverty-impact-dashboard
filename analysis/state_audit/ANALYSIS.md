@@ -45,13 +45,16 @@ for refundable-match states (the user-approved "easy math"); match rates
 **verified against PolicyEngine-US parameters**. Most states land within
 ±10%, validating the EITC modeling:
 
-> HI +1%, RI +1%, WI +0%, IL −2%, KS −4%, MA −5%, PA −6%, IA −6%, LA −6%,
-> MI −6%, NE −7%, IN −10%, CT +10%, CA +12%, CO +13%, VT +19%
+> HI +1%, RI +1%, WI +0%, IL −2%, KS −4%, MA −5%, MT +6%, PA −6%, IA −6%,
+> LA −6%, MI −6%, NE −7%, IN −10%, CT +10%, CA +12%, CO +13%, VT +19%
 
 **Flags:**
-- **MT +604%** — PolicyEngine-US uses a **20%** EITC match for Montana, but
-  the statutory rate (CBPP) is **3%**. Likely a PE-US parameter error worth
-  fixing.
+- **MT — resolved during review (originally flagged +604%)** — the first-pass
+  target used CBPP's stale 3% match. Montana's statutory match is 10% for
+  TY2024–25 (Mont. Code § 15-30-2318, 2023 amendment; confirmed in the 2025
+  Form 2 instructions) and **20% from TY2026 under HB 337 (2025)** — exactly
+  what PE-US encodes. With the corrected 20% target, MT lands at **+6%**,
+  in line with the other flat-match states above.
 - **MN WFC +88%** — target is an approximate 20% split of the combined
   $724.8M CWFC; PE's standalone WFC is larger. Partly a definition issue.
 - **DC +81%, DE +100%** — DC's credit (generous childless-worker component,
@@ -80,7 +83,9 @@ UT +4%, VT +10%, MA +11%, OK +13%, NM +19%, CA +24%.
   with limited or fast-moving cost data.
 
 ## Actionable data-quality flags
-1. **MT state EITC match = 20% in PE-US vs 3% statutory** — verify/fix upstream.
+1. ~~MT state EITC match~~ — **verified correct, no upstream fix needed**:
+   PE-US's 20% match for 2026 matches HB 337 (2025); the original 3% figure
+   was a stale CBPP entry. Target corrected in this audit (MT now +6%).
 2. **PE SPM child-poverty estimates run ~+25% above the Census target (median)**
    — investigate (vintage / measure / calibration before concluding it's a
    PE error); consider adding a state child-poverty calibration target.
