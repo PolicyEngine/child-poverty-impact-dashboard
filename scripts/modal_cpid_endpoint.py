@@ -80,6 +80,102 @@ slices_volume = modal.Volume.from_name(
 results_cache = modal.Dict.from_name("cpid-results-cache", create_if_missing=True)
 
 
+# --- Supabase durable store (dark until launch week) -------------------
+#
+# A second, durable layer behind the Modal Dict: same cache key, same
+# immutable-per-build contract, but survives Dict eviction and lets us
+# pre-warm all default reports before launch. Modal stays the source of
+# truth — Supabase is a pure cache and the dashboard works identically
+# with it off.
+#
+# Dark by default: reads env from the optional `cpid-supabase` Modal
+# secret, which is only attached when the deploy opts in
+# (CPID_ATTACH_SUPABASE=1 modal deploy ...). Without the secret every
+# helper is a no-op. To activate (launch week, after the dataset lock):
+#   1. Apply supabase/schema.sql to the project.
+#   2. modal secret create cpid-supabase SUPABASE_URL=... \
+#        SUPABASE_SERVICE_ROLE_KEY=... CPID_SUPABASE_ENABLED=1
+#   3. CPID_ATTACH_SUPABASE=1 PYTHONUTF8=1 modal deploy scripts/modal_cpid_endpoint.py
+# See docs/SUPABASE.md.
+
+
+def _optional_supabase_secrets() -> list:
+    """Deploy-time opt-in so a missing secret can't fail today's deploys."""
+    import os
+
+    if os.environ.get("CPID_ATTACH_SUPABASE") == "1":
+        return [modal.Secret.from_name("cpid-supabase")]
+    return []
+
+
+def _supabase_cfg():
+    """(url, service_key) when configured AND enabled, else None."""
+    import os
+
+    if os.environ.get("CPID_SUPABASE_ENABLED") != "1":
+        return None
+    url = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or ""
+    if not url or not key:
+        return None
+    return url, key
+
+
+def _supabase_get(key: str):
+    cfg = _supabase_cfg()
+    if cfg is None:
+        return None
+    url, service_key = cfg
+    try:
+        import requests
+
+        resp = requests.get(
+            f"{url}/rest/v1/impact_results",
+            params={"cache_key": f"eq.{key}", "select": "result"},
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+            },
+            timeout=5,
+        )
+        rows = resp.json() if resp.ok else []
+        return rows[0]["result"] if rows else None
+    except Exception:  # best-effort, never a failure source
+        return None
+
+
+def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
+    cfg = _supabase_cfg()
+    if cfg is None:
+        return
+    url, service_key = cfg
+    try:
+        import os
+
+        import requests
+
+        requests.post(
+            f"{url}/rest/v1/impact_results",
+            json={
+                "cache_key": key,
+                "kind": kind,
+                "build_rev": os.environ.get("CPID_BUILD_REV", "dev"),
+                "state": payload.get("state"),
+                "year": payload.get("year"),
+                "payload": payload,
+                "result": result,
+            },
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+                "Prefer": "resolution=merge-duplicates",
+            },
+            timeout=10,
+        )
+    except Exception:
+        pass
+
+
 def _cache_key(kind: str, payload: dict) -> str:
     import hashlib
     import json
@@ -95,9 +191,16 @@ def _cache_get(key: str):
     try:
         return results_cache[key]
     except KeyError:
-        return None
+        pass
     except Exception:  # cache is best-effort, never a failure source
         return None
+    # Durable fallback for result keys only (progress: keys stay Dict-only).
+    if key.startswith(("economy:", "household:")):
+        stored = _supabase_get(key)
+        if stored is not None:
+            _cache_put(key, stored)  # backfill the fast layer
+            return stored
+    return None
 
 
 def _cache_put(key: str, value: dict) -> None:
@@ -105,6 +208,13 @@ def _cache_put(key: str, value: dict) -> None:
         results_cache[key] = value
     except Exception:
         pass
+
+
+def _result_store_put(kind: str, payload: dict, result: dict) -> None:
+    """Write a finished result to both cache layers."""
+    key = _cache_key(kind, payload)
+    _cache_put(key, result)
+    _supabase_put(key, kind, payload, result)
 
 
 def _progress_put(stage: str) -> None:
@@ -327,7 +437,9 @@ def _household_point(
     return {"baseline": base_row, "reform": reform_row}
 
 
-@app.function(image=image, timeout=600, memory=2048)
+@app.function(
+    image=image, timeout=600, memory=2048, secrets=_optional_supabase_secrets()
+)
 def compute_household_sweep(payload: dict) -> dict:
     """Run a household income sweep on Modal."""
     import time
@@ -467,7 +579,7 @@ def compute_household_sweep(payload: dict) -> dict:
         "data_points": data_points,
         "baseline_data_points": baseline_data_points,
     }
-    _cache_put(_cache_key("household", payload), result)
+    _result_store_put("household", payload, result)
     return result
 
 
@@ -475,7 +587,12 @@ def compute_household_sweep(payload: dict) -> dict:
 
 
 @app.function(
-    image=image, timeout=1800, memory=16384, cpu=2.0, volumes={"/slices": slices_volume}
+    image=image,
+    timeout=1800,
+    memory=16384,
+    cpu=2.0,
+    volumes={"/slices": slices_volume},
+    secrets=_optional_supabase_secrets(),
 )
 def compute_economy(payload: dict) -> dict:
     """Compute statewide microsim impact (poverty, fiscal, distributional)."""
@@ -933,14 +1050,16 @@ def compute_economy(payload: dict) -> dict:
             "percent_unchanged": pct_unchanged_all,
         },
     }
-    _cache_put(_cache_key("economy", payload), result)
+    _result_store_put("economy", payload, result)
     return result
 
 
 # --- spawn-and-poll FastAPI surface ------------------------------------
 
 
-@app.function(image=image, timeout=300, memory=512)
+@app.function(
+    image=image, timeout=300, memory=512, secrets=_optional_supabase_secrets()
+)
 @modal.asgi_app()
 def web():
     from fastapi import FastAPI, HTTPException
@@ -1030,6 +1149,7 @@ def web():
                 " (per-state slices)"
             ),
             "build_rev": os.environ.get("CPID_BUILD_REV"),
+            "supabase": "enabled" if _supabase_cfg() else "disabled",
         }
 
     return api
