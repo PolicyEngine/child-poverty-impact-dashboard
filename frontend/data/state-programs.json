@@ -407,7 +407,7 @@
     "has_income_tax": true,
     "ctc": {
       "name": "New Jersey Child Tax Credit",
-      "max_amount": 1000,
+      "max_amount": 1250,
       "amount_young": null,
       "amount_older": null,
       "age_limit": 5,

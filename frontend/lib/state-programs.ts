@@ -1251,10 +1251,12 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  max allotment (AK/HI higher), the regional standard deduction, and the
  *  DC/MD/NJ minimum-allotment overrides — and these levers overlay on top of it.
  *
- *  Caveats: (1) PE-US does NOT model state broad-based categorical eligibility
- *  (BBCE), so the modeled baseline gross-income limit is the federal 130% in
- *  every state — the gross-limit lever therefore models a uniform federal change
- *  (a superset of state BBCE). Per-state BBCE would need upstream PE-US work.
+ *  Caveats: (1) On the pinned PE-US (1.768.5) state broad-based categorical
+ *  eligibility (BBCE) is NOT modeled — the baseline gross-income limit is the
+ *  federal 130% in every state, so the gross-limit lever models a uniform
+ *  federal change (a superset of state BBCE). PE-US ≥1.794.1 DOES model
+ *  per-state BBCE limits (incl. AZ's 200% FPL from Mar 2026) — rewrite this
+ *  caveat and re-verify the lever's semantics when the pin is bumped.
  *  (2) "Remove the net income test" sets gov.contrib.snap.abolish_net_income_test
  *  .in_effect, a structural reform PE-US auto-derives from the parameter (same
  *  mechanism as the AFA / SC refundable-EITC reforms). (3) A literal "% benefit
@@ -1869,7 +1871,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         unit: '',
         description: 'Maximum number of children the credit covers.',
       },
-      DOLLAR('phaseout_start', 'Phase-out start (OR AGI)', 'gov.states.or.tax.income.credits.ctc.reduction.start', 26550, 'Oregon AGI where the credit starts phasing out.', 200000),
+      DOLLAR('phaseout_start', 'Phase-out start (OR AGI)', 'gov.states.or.tax.income.credits.ctc.reduction.start', 27250, 'Oregon AGI where the credit starts phasing out ($27,250 for 2026 under ORS 315.273(5); PE-US ≥1.775.2 pins this exactly, the current 1.768.5 pin uprates to $27,152).', 200000),
       DOLLAR('phaseout_width', 'Phase-out width', 'gov.states.or.tax.income.credits.ctc.reduction.width', 5000, 'Income range over which the credit phases to $0.', 100000),
     ],
   },
@@ -1984,17 +1986,17 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   NJ: {
     name: 'New Jersey Child Tax Credit',
     description:
-      'Non-refundable credit for children under 6, stepping down with NJ taxable income across six brackets. Edit each tier amount and the income thresholds between tiers.',
+      'Refundable credit for children under 6, stepping down with NJ taxable income across six brackets. Tier amounts reflect the 25% increase P.L.2026 c.26 enacted for TY2026-2028. Edit each tier amount and the income thresholds between tiers.',
     params: [
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 0, 1000, 'Tier 1 amount (lowest income)'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 0, 1250, 'Tier 1 amount (lowest income)'),
       DOLLAR('threshold2', 'Tier 2 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[1].threshold', 30000, 'NJ taxable income where the credit steps down to the tier-2 amount.', 200000),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 1, 800, 'Tier 2 amount'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 1, 1000, 'Tier 2 amount'),
       DOLLAR('threshold3', 'Tier 3 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[2].threshold', 40000, 'NJ taxable income where the credit steps down to the tier-3 amount.', 200000),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 2, 600, 'Tier 3 amount'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 2, 750, 'Tier 3 amount'),
       DOLLAR('threshold4', 'Tier 4 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[3].threshold', 50000, 'NJ taxable income where the credit steps down to the tier-4 amount.', 200000),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 3, 400, 'Tier 4 amount'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 3, 500, 'Tier 4 amount'),
       DOLLAR('threshold5', 'Tier 5 income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[4].threshold', 60000, 'NJ taxable income where the credit steps down to the tier-5 amount.', 200000),
-      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 4, 200, 'Tier 5 amount'),
+      bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 4, 250, 'Tier 5 amount'),
       DOLLAR('threshold6', 'Top tier income threshold', 'gov.states.nj.tax.income.credits.ctc.amount[5].threshold', 80000, 'NJ taxable income at/above which the top-tier amount applies.', 200000),
       bracketAmt('gov.states.nj.tax.income.credits.ctc.amount', 5, 0, 'Top tier amount (highest income)'),
       AGE('gov.states.nj.tax.income.credits.ctc.age_limit', 6),
