@@ -235,9 +235,10 @@ describe('buildReformDict', () => {
       [`${C}[2].amount`]: 700,
       [`${C}[2].threshold`]: 45000,
     });
-    // Unchanged values are a no-op.
+    // Unchanged values are a no-op (tier 1 default is the enacted
+    // P.L.2026 c.26 amount, $1,250).
     expect(
-      buildReformDict(['nj_ctc'], { nj_ctc: { threshold2: 30000, tier1: 1000 } }, 2026),
+      buildReformDict(['nj_ctc'], { nj_ctc: { threshold2: 30000, tier1: 1250 } }, 2026),
     ).toEqual({});
   });
 
