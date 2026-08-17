@@ -12,10 +12,17 @@ Outputs
 
 Each output carries a pct_diff = (pe - target) / target * 100 wherever a
 target is available; blank otherwise.
+
+Optional args, for auditing a different dataset against the same targets
+(e.g. the production Populace slices from state_audit_populace_modal.py)
+without clobbering an earlier run's deliverables::
+
+    python build_csvs.py --raw state_audit_populace_raw.json --suffix _populace
 """
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import os
@@ -51,8 +58,8 @@ def _read_csv(path):
         return list(csv.DictReader(f))
 
 
-def load_pe():
-    with open(os.path.join(OUT, "state_audit_raw.json"), encoding="utf-8") as f:
+def load_pe(raw_name: str = "state_audit_raw.json"):
+    with open(os.path.join(OUT, raw_name), encoding="utf-8") as f:
         rows = json.load(f)
     return {r["state"].upper(): r for r in rows}
 
@@ -95,15 +102,15 @@ def load_cost_targets():
     return out
 
 
-def build():
-    pe = load_pe()
+def build(raw_name: str = "state_audit_raw.json", suffix: str = ""):
+    pe = load_pe(raw_name)
     pop_t = load_pop_targets()
     spm_t = load_spm_targets()
     cost_t = load_cost_targets()
     states = sorted(pe)
 
     # --- CSV 1: populations + poverty ---
-    pop_path = os.path.join(OUT, "state_populations_poverty.csv")
+    pop_path = os.path.join(OUT, f"state_populations_poverty{suffix}.csv")
     with open(pop_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow([
@@ -146,7 +153,7 @@ def build():
     print(f"wrote {pop_path}")
 
     # --- CSV 2: state EITC/CTC cost (repeal budgetary impact) ---
-    cost_path = os.path.join(OUT, "state_credit_costs.csv")
+    cost_path = os.path.join(OUT, f"state_credit_costs{suffix}.csv")
     with open(cost_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow([
@@ -174,4 +181,8 @@ def build():
 
 
 if __name__ == "__main__":
-    build()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--raw", default="state_audit_raw.json")
+    parser.add_argument("--suffix", default="")
+    args = parser.parse_args()
+    build(raw_name=args.raw, suffix=args.suffix)
