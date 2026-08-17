@@ -1251,12 +1251,14 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  max allotment (AK/HI higher), the regional standard deduction, and the
  *  DC/MD/NJ minimum-allotment overrides — and these levers overlay on top of it.
  *
- *  Caveats: (1) On the pinned PE-US (1.768.5) state broad-based categorical
- *  eligibility (BBCE) is NOT modeled — the baseline gross-income limit is the
- *  federal 130% in every state, so the gross-limit lever models a uniform
- *  federal change (a superset of state BBCE). PE-US ≥1.794.1 DOES model
- *  per-state BBCE limits (incl. AZ's 200% FPL from Mar 2026) — rewrite this
- *  caveat and re-verify the lever's semantics when the pin is bumped.
+ *  Caveats: (1) The baseline gross-income LIMIT is the federal 130% FPG in
+ *  every state (gov.usda.snap.income.limit.gross is a single federal factor
+ *  on the pinned 1.808.0 — no per-state BBCE limit schedule exists), so the
+ *  gross-limit lever models a uniform federal change. State BBCE enters the
+ *  model only through TANF-based categorical eligibility: units receiving
+ *  TANF (incl. BBCE-TANF noncash) bypass the gross/net/asset tests entirely
+ *  via meets_snap_categorical_eligibility, so for those units the lever is
+ *  moot rather than binding.
  *  (2) "Remove the net income test" sets gov.contrib.snap.abolish_net_income_test
  *  .in_effect, a structural reform PE-US auto-derives from the parameter (same
  *  mechanism as the AFA / SC refundable-EITC reforms). (3) A literal "% benefit
@@ -1871,7 +1873,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         unit: '',
         description: 'Maximum number of children the credit covers.',
       },
-      DOLLAR('phaseout_start', 'Phase-out start (OR AGI)', 'gov.states.or.tax.income.credits.ctc.reduction.start', 27250, 'Oregon AGI where the credit starts phasing out ($27,250 for 2026 under ORS 315.273(5); PE-US ≥1.775.2 pins this exactly, the current 1.768.5 pin uprates to $27,152).', 200000),
+      DOLLAR('phaseout_start', 'Phase-out start (OR AGI)', 'gov.states.or.tax.income.credits.ctc.reduction.start', 27250, 'Oregon AGI where the credit starts phasing out ($27,250 for 2026 under ORS 315.273(5), encoded exactly in the pinned PE-US).', 200000),
       DOLLAR('phaseout_width', 'Phase-out width', 'gov.states.or.tax.income.credits.ctc.reduction.width', 5000, 'Income range over which the credit phases to $0.', 100000),
     ],
   },

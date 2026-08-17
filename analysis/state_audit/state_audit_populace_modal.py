@@ -29,7 +29,7 @@ app = modal.App("state-dataset-audit-populace")
 
 # Pins match scripts/modal_cpid_endpoint.py exactly — this audits the
 # production build, so the two must move together.
-PE_US_PIN = "1.768.5"
+PE_US_PIN = "1.808.0"
 POPULACE_REVISION = "053baf6cf56aaf1160e2f1bfe7631c6924d46b2e"  # 2026-07-01
 
 image = (
