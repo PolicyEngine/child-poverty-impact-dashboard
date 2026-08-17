@@ -26,7 +26,7 @@ class TestReformConfig:
         """Test default configuration values."""
         config = ReformConfig()
         assert config.name == "Custom Reform"
-        assert config.year == 2024
+        assert config.year == 2026
         assert len(config.states) == 0
         assert not config.ctc.enabled
         assert not config.eitc.enabled
