@@ -95,18 +95,16 @@ export default function HouseholdForm({
     });
   };
 
-  const addChild = () => {
-    setHousehold((prev) => ({
-      ...prev,
-      children: [...prev.children, { age: 5 }],
-    }));
-  };
-
-  const removeChild = (index: number) => {
-    setHousehold((prev) => ({
-      ...prev,
-      children: prev.children.filter((_, i) => i !== index),
-    }));
+  // Count-driven children editing (matches the RCC wizard): growing the
+  // count appends 5-year-olds, shrinking truncates from the end.
+  const setChildCount = (count: number) => {
+    const clamped = Math.max(0, Math.min(10, count));
+    setHousehold((prev) => {
+      const children: ChildInput[] = [...prev.children];
+      while (children.length < clamped) children.push({ age: 5 });
+      children.length = clamped;
+      return { ...prev, children };
+    });
   };
 
   const updateChild = (index: number, updates: Partial<ChildInput>) => {
@@ -240,13 +238,16 @@ export default function HouseholdForm({
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="input pl-7"
-                value={household.income.employment_income}
-                min={0}
-                onChange={(e) =>
-                  updateIncome({ employment_income: parseInt(e.target.value) || 0 })
-                }
+                value={(household.income.employment_income || 0).toLocaleString('en-US')}
+                onChange={(e) => {
+                  const n = Number(e.target.value.replace(/,/g, ''));
+                  if (!isNaN(n) && n >= 0) {
+                    updateIncome({ employment_income: n });
+                  }
+                }}
               />
             </div>
           </div>
@@ -256,13 +257,16 @@ export default function HouseholdForm({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   className="input pl-7"
-                  value={household.income.spouse_employment_income || 0}
-                  min={0}
-                  onChange={(e) =>
-                    updateIncome({ spouse_employment_income: parseInt(e.target.value) || 0 })
-                  }
+                  value={(household.income.spouse_employment_income || 0).toLocaleString('en-US')}
+                  onChange={(e) => {
+                    const n = Number(e.target.value.replace(/,/g, ''));
+                    if (!isNaN(n) && n >= 0) {
+                      updateIncome({ spouse_employment_income: n });
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -279,8 +283,13 @@ export default function HouseholdForm({
                 className="input"
                 value={household.adults[0]?.age ?? 30}
                 min={18}
-                max={120}
-                onChange={(e) => updateAdultAge(0, parseInt(e.target.value) || 30)}
+                max={100}
+                onChange={(e) =>
+                  updateAdultAge(
+                    0,
+                    Math.max(18, Math.min(100, parseInt(e.target.value) || 18)),
+                  )
+                }
               />
             </div>
             {married && (
@@ -291,9 +300,14 @@ export default function HouseholdForm({
                   className="input"
                   value={household.adults[1]?.age ?? 30}
                   min={18}
-                  max={120}
+                  max={100}
                   aria-label="Spouse age"
-                  onChange={(e) => updateAdultAge(1, parseInt(e.target.value) || 30)}
+                  onChange={(e) =>
+                    updateAdultAge(
+                      1,
+                      Math.max(18, Math.min(100, parseInt(e.target.value) || 18)),
+                    )
+                  }
                 />
               </div>
             )}
@@ -319,59 +333,48 @@ export default function HouseholdForm({
         </div>
       </div>
 
-      {/* Children */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-pe-gray-600">Children</label>
-          <button
-            type="button"
-            onClick={addChild}
-            className="text-sm text-pe-teal-600 hover:text-pe-teal-700 font-medium"
-          >
-            + Add child
-          </button>
+      {/* Children — compact count + age grid (matches the RCC wizard's
+          household step: a count input, then one small age box per child
+          flowing underneath, instead of a card per child). */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div>
+          <label className={labelCls}>Children</label>
+          <input
+            type="number"
+            className="input"
+            value={household.children.length}
+            min={0}
+            max={10}
+            onChange={(e) => setChildCount(parseInt(e.target.value) || 0)}
+          />
         </div>
-        {household.children.length === 0 ? (
-          <p className="text-xs text-pe-gray-500">No children added.</p>
-        ) : (
-          <div className="space-y-3">
-            {household.children.map((child, index) => (
-              <div
-                key={index}
-                className="rounded-lg border border-pe-gray-200 bg-white p-3"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-pe-gray-700">
-                    Child {index + 1}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeChild(index)}
-                    className="text-pe-gray-400 hover:text-red-500"
-                    aria-label={`Remove child ${index + 1}`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-pe-gray-500 mb-1">Age</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={child.age}
-                      min={0}
-                      max={17}
-                      onChange={(e) =>
-                        updateChild(index, { age: parseInt(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+        {household.children.length > 0 && (
+          <div className="md:col-span-3">
+            <span className="block text-xs font-medium text-pe-gray-500 mb-1">
+              Age(s)
+            </span>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+              {household.children.map((child, index) => (
+                <input
+                  key={index}
+                  type="number"
+                  className="input px-2 py-1.5"
+                  value={child.age}
+                  min={0}
+                  max={17}
+                  placeholder={`Age ${index + 1}`}
+                  aria-label={`Child ${index + 1} age`}
+                  onChange={(e) =>
+                    updateChild(index, {
+                      age: Math.max(
+                        0,
+                        Math.min(17, parseInt(e.target.value) || 0),
+                      ),
+                    })
+                  }
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -424,15 +427,16 @@ export default function HouseholdForm({
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         className="input pl-7"
-                        value={household.income[key] || 0}
-                        min={0}
-                        onChange={(e) =>
-                          updateIncome({
-                            [key]: parseInt(e.target.value) || 0,
-                          } as Partial<IncomeInput>)
-                        }
+                        value={(household.income[key] || 0).toLocaleString('en-US')}
+                        onChange={(e) => {
+                          const n = Number(e.target.value.replace(/,/g, ''));
+                          if (!isNaN(n) && n >= 0) {
+                            updateIncome({ [key]: n } as Partial<IncomeInput>);
+                          }
+                        }}
                       />
                     </div>
                   </div>

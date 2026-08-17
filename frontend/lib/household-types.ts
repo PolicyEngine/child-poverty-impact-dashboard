@@ -169,9 +169,11 @@ export interface IncomeSweepResponse {
 export const defaultHousehold: HouseholdInput = {
   state: 'CA',
   year: 2026,
-  filing_status: 'single',
+  filing_status: 'head_of_household',
   adults: [{ age: 30 }],
-  children: [],
+  // One child by default — a child-poverty dashboard should open with the
+  // child-linked credits visible (matches the RCC wizard's default).
+  children: [{ age: 5 }],
   income: {
     employment_income: 40000,
   },
