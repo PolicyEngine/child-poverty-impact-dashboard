@@ -229,7 +229,12 @@ def _dedupe_by_reform(entries: list[dict]) -> list[dict]:
     return out
 
 
-_FULL_ENTRIES = _sharded(_dedupe_by_reform(_NONEMPTY))
+# Behavior entries are excluded here: test_household_behavior.py computes
+# every one of them (baseline vs reform), so re-running them in the plain
+# compute matrix would only duplicate CI work.
+_FULL_ENTRIES = _sharded(
+    _dedupe_by_reform([e for e in _NONEMPTY if e["kind"] != "behavior"])
+)
 
 
 @pytest.mark.skipif(

@@ -51,9 +51,9 @@ jobs:
         run: rm -f package-lock.json && npm install
       # Regenerate the coverage manifest so it can never go stale relative to
       # the registries/builders.
-      - name: Generate reform manifest
+      - name: Generate reform manifest + default anchors
         working-directory: frontend
-        run: npm run manifest
+        run: npm run manifest && npm run anchors
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -64,10 +64,15 @@ jobs:
       - name: Install policyengine-us (pinned to match Modal)
         run: pip install "policyengine-us==1.808.0" pytest
       # Fast gate: resolve every option's parameter paths against pinned PE-US
-      # (all entries) + a representative end-to-end compute per dispatch branch.
-      # The exhaustive per-entry compute runs in reform-compute-full below.
-      - name: Validate reform paths + representative computes
-        run: pytest tests/calculations/test_reform_computes.py -q
+      # (all entries) + a representative end-to-end compute per dispatch branch
+      # + one behavioral (net-income-moves) check per option category
+      # + the 3-year default-anchor audit (every displayed default == current
+      # law at 2026/2027/2028; fails when current-law-defaults.json is stale —
+      # regenerate it after a pin bump via scripts/generate_current_law_defaults.py).
+      # The exhaustive per-entry compute and full behavioral matrix run in
+      # reform-compute-full below.
+      - name: Validate reform paths + representative computes + behavior + anchors
+        run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py tests/calculations/test_default_anchors.py -q
 
   reform-compute-full:
     name: Reform compute (full, shard ${{ matrix.shard }})
@@ -92,9 +97,9 @@ jobs:
         working-directory: frontend
         # See note in the frontend job above (npm/cli#4828).
         run: rm -f package-lock.json && npm install
-      - name: Generate reform manifest
+      - name: Generate reform manifest + default anchors
         working-directory: frontend
-        run: npm run manifest
+        run: npm run manifest && npm run anchors
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -102,6 +107,8 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - name: Install policyengine-us (pinned to match Modal)
         run: pip install "policyengine-us==1.808.0" pytest
-      # Each shard fully computes its slice of every non-empty reform.
-      - name: Full compute (shard ${{ matrix.shard }} of 16)
-        run: pytest tests/calculations/test_reform_computes.py -q -k computes_all
+      # Each shard fully computes its slice of every non-empty reform, plus
+      # its slice of the behavioral matrix (every configurable option's
+      # generosity bump must actually raise a household's net income).
+      - name: Full compute + behavior (shard ${{ matrix.shard }} of 16)
+        run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py -q -k "computes_all or test_option_moves_household"

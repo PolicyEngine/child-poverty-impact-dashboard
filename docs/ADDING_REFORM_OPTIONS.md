@@ -93,6 +93,23 @@ Two layers, both run in CI (`.github/workflows/ci.yml`) and locally:
     Building a reformed PE-US system costs ~30s, so full per-entry compute is
     opt-in via `CPID_FULL_COMPUTE=1` (a nightly/pre-release sweep, not PR CI).
 
+  - **household behavior (`tests/calculations/test_household_behavior.py`)** —
+    a strictly-more-generous edit of every configurable option (the manifest's
+    `behavior` entries, built by `generosityParamValues`) must strictly raise a
+    representative household's net income at a category-appropriate income, or
+    the option is *inert* — a parameter that exists and computes but never
+    reaches anyone (the create-state-EITC bug class). One option per category
+    runs on every PR; the full matrix runs in the sharded CI job.
+  - **default anchors (`tests/calculations/test_default_anchors.py`)** — every
+    adjustable param's displayed default must equal current law at 2026, 2027,
+    AND 2028 (the report wizard offers all three). Defaults come from the
+    generated `frontend/data/current-law-defaults.json`
+    (`scripts/generate_current_law_defaults.py`, reading the pinned engine) and
+    are injected year-aware at option-build time; hardcoded registry constants
+    are only fallbacks. Multi-path params (one slider driving several
+    filing-status schedules) emit offset-preserving values — the sibling paths
+    keep their statutory spread instead of collapsing to the slider value.
+
 Both consume the shared enumeration helpers in `frontend/lib/reform-coverage.ts`,
 so a newly registered, non-`in_development` option is automatically covered — you
 don't write a bespoke test per option, you just make the gates pass.
@@ -105,10 +122,21 @@ npm run lint
 npm run type-check
 npm run test            # includes the coverage sweep
 npm run manifest        # writes frontend/__generated__/reform-manifest.json
+npm run anchors         # writes frontend/__generated__/default-anchors.json
 cd ..
 pip install "policyengine-us==<pinned>" pytest
-pytest tests/calculations/test_reform_computes.py -q
-# Optional exhaustive sweep (slow): CPID_FULL_COMPUTE=1 pytest tests/calculations/test_reform_computes.py -q
+pytest tests/calculations/ -q
+# Optional exhaustive sweeps (slow): CPID_FULL_COMPUTE=1 pytest tests/calculations/ -q
+```
+
+### After a policyengine-us pin bump
+
+Regenerate the current-law defaults so displayed values track the new engine
+(the anchor audit fails until you do):
+
+```bash
+cd frontend && npm run anchors && cd ..
+.venv/Scripts/python scripts/generate_current_law_defaults.py
 ```
 
 If you mark an option `in_development`, note in the PR description why (e.g.

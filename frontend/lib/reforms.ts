@@ -74,7 +74,7 @@ function applyReformOption(
     if (eitcStructured(state)) {
       Object.assign(
         reform,
-        buildStructuredEitcReform(state, parameterValues?.[id]),
+        buildStructuredEitcReform(state, parameterValues?.[id], year),
       );
       return;
     }
@@ -88,12 +88,16 @@ function applyReformOption(
       pv?.match_rate !== undefined ? pv.match_rate / 100 : undefined;
     Object.assign(
       reform,
-      buildStateEitcReform(state, {
-        matchRate,
-        makeRefundable: !!pv?.make_refundable,
-        eitcCap: pv?.eitc_cap,
-        eliminateCap: !!pv?.eliminate_cap,
-      }),
+      buildStateEitcReform(
+        state,
+        {
+          matchRate,
+          makeRefundable: !!pv?.make_refundable,
+          eitcCap: pv?.eitc_cap,
+          eliminateCap: !!pv?.eliminate_cap,
+        },
+        year,
+      ),
     );
     return;
   }
@@ -117,7 +121,7 @@ function applyReformOption(
     const state = id.slice(0, 2).toUpperCase();
     Object.assign(
       reform,
-      buildDependentExemptionReform(state, parameterValues?.[id]),
+      buildDependentExemptionReform(state, parameterValues?.[id], year),
     );
     return;
   }
