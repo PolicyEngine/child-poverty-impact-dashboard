@@ -85,6 +85,50 @@ export function editedParamValues(option: ReformOption): ParamValues {
   };
 }
 
+/** Params whose INCREASE makes the reform less generous: phase-out /
+ *  reduction speeds. Everything else numeric (amounts, rates, matches,
+ *  thresholds, phase-out starts/widths, age limits) is more generous when
+ *  raised. Toggles are direction-ambiguous (repeal switches, structure
+ *  flips), so the generosity bump never touches them. */
+function reducesGenerosityWhenRaised(name: string): boolean {
+  return (
+    /(phase.?out|reduction)/i.test(name) &&
+    /(rate|step|increment)/i.test(name)
+  );
+}
+
+/** A strictly-MORE-GENEROUS edit for an option: every numeric param bumped
+ *  up one step (clamped to its max), phase-out speeds and toggles held at
+ *  their defaults. Returns ``null`` when no param can be bumped (toggle-only
+ *  or non-configurable options) — those options get no behavior entry and
+ *  are listed in the behavior test's skip report instead.
+ *
+ *  This is the basis for the household behavior suite
+ *  (``tests/calculations/test_household_behavior.py``): a more-generous
+ *  reform must strictly raise a representative household's net income, or
+ *  the option is inert — the bug class a compute check cannot catch. */
+export function generosityParamValues(
+  option: ReformOption,
+): ParamValues | null {
+  const params = option.adjustable_params ?? [];
+  let bumped = false;
+  const values: Record<string, number> = {};
+  for (const p of params) {
+    if (p.control === 'toggle' || reducesGenerosityWhenRaised(p.name)) {
+      values[p.name] = p.default_value;
+      continue;
+    }
+    if (p.default_value < p.max_value) {
+      values[p.name] = Math.min(p.max_value, p.default_value + p.step);
+      bumped = true;
+    } else {
+      values[p.name] = p.default_value;
+    }
+  }
+  if (!bumped) return null;
+  return { [option.id]: values };
+}
+
 /** Pick one selectable option from each category, then resolve mutual
  *  exclusivity (drop a later pick that conflicts with one already kept, in
  *  either direction). Models a user who turns on something everywhere at
@@ -116,7 +160,7 @@ export function mergedDefaultParamValues(
   return out;
 }
 
-export type ManifestKind = 'single' | 'single-edited' | 'combo';
+export type ManifestKind = 'single' | 'single-edited' | 'combo' | 'behavior';
 
 export interface ManifestEntry {
   state: string;
@@ -160,6 +204,19 @@ export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
           ),
         });
       }
+      const bump = generosityParamValues(option);
+      if (bump) {
+        const reform = buildReformDict([option.id], bump, year);
+        if (Object.keys(reform).length > 0) {
+          entries.push({
+            state,
+            kind: 'behavior',
+            ids: [option.id],
+            year,
+            reform,
+          });
+        }
+      }
     }
 
     const combo = comboOptionsForState(opts);
@@ -178,7 +235,10 @@ export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
   const seen = new Set<string>();
   const deduped: ManifestEntry[] = [];
   for (const e of entries) {
-    const key = JSON.stringify([e.state, e.ids, e.reform]);
+    // kind is part of the key: a behavior entry often carries the same dict
+    // as the single-edited entry (pure bump-up sliders), but the behavior
+    // suite selects by kind and must still see it.
+    const key = JSON.stringify([e.state, e.kind, e.ids, e.reform]);
     if (seen.has(key)) continue;
     seen.add(key);
     deduped.push(e);

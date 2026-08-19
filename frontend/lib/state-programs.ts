@@ -12,6 +12,10 @@
 import statePrograms from '@/data/state-programs.json';
 import eitcReforms from '@/data/eitc-reforms.json';
 import dependentExemptionReforms from '@/data/dependent-exemption-reforms.json';
+import {
+  currentLawDefault,
+  emitAnchoredParams,
+} from './current-law-defaults';
 
 export interface StateEITCRecord {
   name: string;
@@ -141,8 +145,10 @@ export interface StateEitcReformOpts {
 export function buildStateEitcReform(
   stateCode: string,
   opts: StateEitcReformOpts,
+  year = 2026,
 ): Record<string, number | boolean> {
-  const entry = EITC_REFORMS[stateCode.toUpperCase()];
+  const code = stateCode.toUpperCase();
+  const entry = EITC_REFORMS[code];
   if (!entry || typeof entry === 'string') return {};
   const reform: Record<string, number | boolean> = {};
   if (
@@ -153,8 +159,17 @@ export function buildStateEitcReform(
     reform[entry.in_effect] = true;
   }
   // Default to the current-law rate (a no-op) so adjusting only the cap or
-  // refundability doesn't silently move the match off baseline.
-  reform[entry.match] = opts.matchRate ?? entry.current_rate;
+  // refundability doesn't silently move the match off baseline. Year-aware:
+  // a scheduled rate change (e.g. HI's 40%→20% in 2028) must not be
+  // overridden by a stale registry constant.
+  const currentRate =
+    currentLawDefault(
+      `${code.toLowerCase()}_eitc`,
+      'match_rate',
+      year,
+      entry.current_rate * 100,
+    ) / 100;
+  reform[entry.match] = opts.matchRate ?? currentRate;
   if (entry.cap) {
     if (opts.eliminateCap) reform[entry.cap] = EITC_CAP_ELIMINATED;
     else if (opts.eitcCap !== undefined) reform[entry.cap] = opts.eitcCap;
@@ -555,17 +570,17 @@ export function eitcIsWfc(stateCode: string): boolean {
 export function buildStructuredEitcReform(
   stateCode: string,
   paramValues?: Record<string, number>,
+  year = 2026,
 ): Record<string, number> {
-  const entry = STRUCTURED_EITC[stateCode.toUpperCase()];
+  const code = stateCode.toUpperCase();
+  const entry = STRUCTURED_EITC[code];
   if (!entry) return {};
-  const out: Record<string, number> = {};
-  for (const p of entry.params) {
-    const ui = paramValues?.[p.name];
-    if (ui === undefined || ui === p.default_value) continue; // unchanged
-    const value = p.divide_by ? ui / p.divide_by : ui;
-    for (const path of p.paths ?? [p.path!]) out[path] = value;
-  }
-  return out;
+  return emitAnchoredParams(
+    `${code.toLowerCase()}_eitc`,
+    entry.params,
+    paramValues,
+    year,
+  );
 }
 
 // ---- Reform options registry --------------------------------------------
@@ -663,14 +678,18 @@ function describeEitcAction(programs: StateProgramRecord): {
   };
 }
 
-function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
+function buildEitcOptions(
+  programs: StateProgramRecord,
+  year = 2026,
+): ReformOption[] {
+  const eitcId = `${programs.state_code.toLowerCase()}_eitc`;
   // MN / WA: structured Working Family (Tax) Credit, not a federal match.
   const struct = STRUCTURED_EITC[programs.state_code.toUpperCase()];
   if (struct) {
     if (struct.requires_income_tax && !programs.has_income_tax) return [];
     return [
       {
-        id: `${programs.state_code.toLowerCase()}_eitc`,
+        id: eitcId,
         name: struct.name,
         description: struct.description,
         category: 'state_eitc',
@@ -680,7 +699,12 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
           label: p.label,
           min_value: p.min_value,
           max_value: p.max_value,
-          default_value: p.default_value,
+          default_value: currentLawDefault(
+            eitcId,
+            p.name,
+            year,
+            p.default_value,
+          ),
           step: p.step,
           unit: p.unit,
           description: p.description,
@@ -692,7 +716,14 @@ function buildEitcOptions(programs: StateProgramRecord): ReformOption[] {
   }
   if (!programs.has_income_tax) return [];
   if (!eitcConfigurable(programs.state_code)) return [];
-  const { current_rate, description } = describeEitcAction(programs);
+  const { current_rate: registryRate, description } =
+    describeEitcAction(programs);
+  const current_rate = currentLawDefault(
+    eitcId,
+    'match_rate',
+    year,
+    registryRate,
+  );
   const nonrefundable = programs.eitc?.refundable === false;
   const entryRaw = EITC_REFORMS[programs.state_code.toUpperCase()];
   const entry = entryRaw && typeof entryRaw !== 'string' ? entryRaw : null;
@@ -909,9 +940,19 @@ export function dependentExemptionEntry(
 export function buildDependentExemptionReform(
   stateCode: string,
   pv?: Record<string, number>,
+  year = 2026,
 ): Record<string, number | boolean> {
   const entry = dependentExemptionEntry(stateCode);
   if (!entry) return {};
+  const oid = `${stateCode.toLowerCase()}_dependent_exemption`;
+  // Year-aware anchors: a stale registry constant must not mis-anchor the
+  // no-op checks (RI's exemption is $5,250 in 2026, not the 2025 $5,200).
+  const currentAmount =
+    entry.current_amount !== undefined
+      ? currentLawDefault(oid, 'amount', year, entry.current_amount)
+      : undefined;
+  const extraCurrent = (extra: { name: string; current_amount: number }) =>
+    currentLawDefault(oid, extra.name, year, extra.current_amount);
   const reform: Record<string, number | boolean> = {};
   const eliminate = !!pv?.eliminate;
   const editedAmount =
@@ -932,12 +973,12 @@ export function buildDependentExemptionReform(
     reform[al.threshold] = pv?.age_limit_age ?? al.default;
     if (eliminate) {
       reform[al.reform_amount] = 0;
-    } else if (editedAmount !== undefined && editedAmount !== entry.current_amount) {
+    } else if (editedAmount !== undefined && editedAmount !== currentAmount) {
       reform[al.reform_amount] = editedAmount;
     }
     // Baseline per-bracket threshold/amount edits compose (read by the contrib).
     for (const extra of entry.extra_params ?? []) {
-      if (pv?.[extra.name] !== undefined && pv[extra.name] !== extra.current_amount) {
+      if (pv?.[extra.name] !== undefined && pv[extra.name] !== extraCurrent(extra)) {
         emitTo(extra.path, pv[extra.name]);
       }
     }
@@ -955,7 +996,7 @@ export function buildDependentExemptionReform(
     if (eliminate) {
       if (entry.in_effect) reform[entry.in_effect] = true;
       if (entry.amount) reform[entry.amount] = 0;
-    } else if (editedAmount !== undefined && editedAmount !== entry.current_amount) {
+    } else if (editedAmount !== undefined && editedAmount !== currentAmount) {
       if (entry.in_effect) reform[entry.in_effect] = true;
       if (entry.amount) reform[entry.amount] = editedAmount;
     }
@@ -969,7 +1010,7 @@ export function buildDependentExemptionReform(
   };
   if (entry.amount_path) {
     if (eliminate) emit(entry.amount_path, 0);
-    else if (editedAmount !== undefined && editedAmount !== entry.current_amount)
+    else if (editedAmount !== undefined && editedAmount !== currentAmount)
       emit(entry.amount_path, editedAmount);
   }
   // Additional per-bracket amounts (AL/AZ tiers, NJ college dependents) and
@@ -980,7 +1021,7 @@ export function buildDependentExemptionReform(
       emit(extra.path, 0);
     } else if (
       pv?.[extra.name] !== undefined &&
-      pv[extra.name] !== extra.current_amount
+      pv[extra.name] !== extraCurrent(extra)
     ) {
       emit(extra.path, pv[extra.name]);
     }
@@ -990,10 +1031,30 @@ export function buildDependentExemptionReform(
 
 function buildDependentExemptionOptions(
   programs: StateProgramRecord,
+  year = 2026,
 ): ReformOption[] {
-  const entry = dependentExemptionEntry(programs.state_code);
-  if (!entry) return [];
+  const rawEntry = dependentExemptionEntry(programs.state_code);
+  if (!rawEntry) return [];
   if (!programs.has_income_tax) return [];
+  // Year-aware view of the registry: current_amount and extras anchored to
+  // the pinned engine at the analysis year (falls back to the constants).
+  const oid = `${programs.state_code.toLowerCase()}_dependent_exemption`;
+  const entry = {
+    ...rawEntry,
+    current_amount:
+      rawEntry.current_amount !== undefined
+        ? currentLawDefault(oid, 'amount', year, rawEntry.current_amount)
+        : undefined,
+    extra_params: rawEntry.extra_params?.map((extra) => ({
+      ...extra,
+      current_amount: currentLawDefault(
+        oid,
+        extra.name,
+        year,
+        extra.current_amount,
+      ),
+    })),
+  };
 
   const kindLabel =
     entry.kind === 'credit'
@@ -2166,6 +2227,7 @@ export function buildStateCtcOptions(
   const code = stateCode.toUpperCase();
   const entry = CTC_REFORMS[code];
   if (!entry) return [];
+  const optionId = `${code.toLowerCase()}_ctc`;
   const adjustable_params: AdjustableParameter[] =
     code === 'NY'
       ? nyCtcParams(year)
@@ -2174,7 +2236,12 @@ export function buildStateCtcOptions(
           label: p.label,
           min_value: p.min_value,
           max_value: p.max_value,
-          default_value: p.default_value,
+          default_value: currentLawDefault(
+            optionId,
+            p.name,
+            year,
+            p.default_value,
+          ),
           step: p.step,
           unit: p.unit,
           description: p.description,
@@ -2205,19 +2272,17 @@ export function buildStateCtcReform(
 ): Record<string, number | boolean> {
   const code = stateCode.toUpperCase();
   if (code === 'NY') return buildNyCtcReform(paramValues, year);
-  if (code === 'UT') return buildUtCtcReform(paramValues);
-  if (code === 'GA') return buildGaCtcReform(paramValues);
-  if (code === 'ID') return buildIdCtcReform(paramValues);
+  if (code === 'UT') return buildUtCtcReform(paramValues, year);
+  if (code === 'GA') return buildGaCtcReform(paramValues, year);
+  if (code === 'ID') return buildIdCtcReform(paramValues, year);
   const entry = CTC_REFORMS[code];
   if (!entry) return {};
-  const out: Record<string, number> = {};
-  for (const p of entry.params) {
-    const ui = paramValues?.[p.name];
-    if (ui === undefined || ui === p.default_value) continue; // unchanged
-    const value = p.divide_by ? ui / p.divide_by : ui;
-    for (const path of p.paths ?? [p.path!]) out[path] = value;
-  }
-  return out;
+  return emitAnchoredParams(
+    `${code.toLowerCase()}_ctc`,
+    entry.params,
+    paramValues,
+    year,
+  );
 }
 
 /** New York Empire State Child Credit. The 2025-2027 age-based structure
@@ -2302,16 +2367,16 @@ const UT_REFORM_PARAM_NAMES = new Set([
 
 function buildUtCtcReform(
   pv?: Record<string, number>,
+  year = 2026,
 ): Record<string, number | boolean> {
   const entry = CTC_REFORMS.UT;
-  const out: Record<string, number | boolean> = {};
-  for (const p of entry.params) {
-    if (UT_REFORM_PARAM_NAMES.has(p.name)) continue;
-    const ui = pv?.[p.name];
-    if (ui === undefined || ui === p.default_value) continue;
-    const value = p.divide_by ? ui / p.divide_by : ui;
-    for (const path of p.paths ?? [p.path!]) out[path] = value;
-  }
+  const out: Record<string, number | boolean> = emitAnchoredParams(
+    'ut_ctc',
+    entry.params,
+    pv,
+    year,
+    UT_REFORM_PARAM_NAMES,
+  );
   if (pv?.make_refundable) {
     out['gov.contrib.states.ut.ctc.in_effect'] = true;
     const amount = pv?.reform_amount ?? 1000;
@@ -2332,16 +2397,16 @@ const GA_REFORM_PARAM_NAMES = new Set(['make_refundable', 'refundable_amount']);
 
 function buildGaCtcReform(
   pv?: Record<string, number>,
+  year = 2026,
 ): Record<string, number | boolean> {
   const entry = CTC_REFORMS.GA;
-  const out: Record<string, number | boolean> = {};
-  for (const p of entry.params) {
-    if (GA_REFORM_PARAM_NAMES.has(p.name)) continue;
-    const ui = pv?.[p.name];
-    if (ui === undefined || ui === p.default_value) continue;
-    const value = p.divide_by ? ui / p.divide_by : ui;
-    for (const path of p.paths ?? [p.path!]) out[path] = value;
-  }
+  const out: Record<string, number | boolean> = emitAnchoredParams(
+    'ga_ctc',
+    entry.params,
+    pv,
+    year,
+    GA_REFORM_PARAM_NAMES,
+  );
   if (pv?.make_refundable) {
     out['gov.contrib.states.ga.ctc.refundable.in_effect'] = true;
     const refundable = pv?.refundable_amount ?? 250;
@@ -2361,18 +2426,13 @@ const ID_REFORM_PARAM_NAMES = new Set(['make_refundable', 'refundable_amount']);
 
 function buildIdCtcReform(
   pv?: Record<string, number>,
+  year = 2026,
 ): Record<string, number | boolean> {
   const entry = CTC_REFORMS.ID;
   const out: Record<string, number | boolean> = {
     'gov.contrib.states.id.ctc.in_effect': true,
+    ...emitAnchoredParams('id_ctc', entry.params, pv, year, ID_REFORM_PARAM_NAMES),
   };
-  for (const p of entry.params) {
-    if (ID_REFORM_PARAM_NAMES.has(p.name)) continue;
-    const ui = pv?.[p.name];
-    if (ui === undefined || ui === p.default_value) continue;
-    const value = p.divide_by ? ui / p.divide_by : ui;
-    for (const path of p.paths ?? [p.path!]) out[path] = value;
-  }
   if (pv?.make_refundable) {
     out['gov.contrib.states.id.ctc.refundable.in_effect'] = true;
     const refundable = pv?.refundable_amount ?? 205;
@@ -2420,8 +2480,8 @@ export function getReformOptionsForState(
       state_cdcc: programs.cdcc !== null,
     },
     ctc_options: buildStateCtcOptions(programs.state_code, year),
-    eitc_options: buildEitcOptions(programs),
-    dependent_exemption_options: buildDependentExemptionOptions(programs),
+    eitc_options: buildEitcOptions(programs, year),
+    dependent_exemption_options: buildDependentExemptionOptions(programs, year),
     grocery_credit_options: buildGroceryCreditOptions(programs.state_code),
     snap_options: buildSnapOptions(),
     child_allowance_options: buildChildAllowanceOptions(),

@@ -182,9 +182,19 @@ describe('buildReformDict', () => {
     expect(reform['gov.states.ri.tax.income.credits.ctc.amount']).toBe(500);
     const aged = buildReformDict(['ri_ctc'], { ri_ctc: { age: 17 } }, 2026);
     expect(aged['gov.states.ri.tax.income.credits.ctc.age_limit']).toBe(17);
-    // $330 / age 18 are the enacted (2027) defaults -> unchanged is a no-op.
+    // 2026 current law is NO credit (it begins 2027), so $0 is the no-op
+    // and $330 in 2026 is a real reform (enacting the credit a year early).
     expect(
-      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 330, age: 18 } }, 2026),
+      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 0, age: 18 } }, 2026),
+    ).toEqual({});
+    expect(
+      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 330 } }, 2026)[
+        'gov.states.ri.tax.income.credits.ctc.amount'
+      ],
+    ).toBe(330);
+    // For 2027 the enacted $330 / age 18 ARE current law -> no-op.
+    expect(
+      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 330, age: 18 } }, 2027),
     ).toEqual({});
   });
 
@@ -433,16 +443,23 @@ describe('buildReformDict', () => {
     );
     expect(reform[`${D}.amount`]).toBe(500);
     expect(reform[`${D}.multiplier[0].amount`]).toBe(3);
-    // Phase-out start applies to all five filing statuses.
-    for (const s of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'JOINT', 'SURVIVING_SPOUSE']) {
-      expect(reform[`${D}.phase_out.start.${s}`]).toBe(50000);
-    }
+    // Phase-out start: the UI value applies to SINGLE (the labelled
+    // status); the other statuses keep their statutory spread, shifted by
+    // the same delta (offset-preserving multi-path emission) — one slider
+    // must not collapse ME's per-status schedule to a single number.
+    const delta = 50000 - 102266; // ui value − 2026 SINGLE current law
+    expect(reform[`${D}.phase_out.start.SINGLE`]).toBe(50000);
+    expect(reform[`${D}.phase_out.start.SEPARATE`]).toBeCloseTo(76700 + delta, -1);
+    expect(reform[`${D}.phase_out.start.HEAD_OF_HOUSEHOLD`]).toBeCloseTo(127833 + delta, -1);
+    expect(reform[`${D}.phase_out.start.JOINT`]).toBeCloseTo(153399 + delta, -1);
+    expect(reform[`${D}.phase_out.start.SURVIVING_SPOUSE`]).toBeCloseTo(153399 + delta, -1);
   });
 
   it('is a no-op when the Maine CTC is left at current law', () => {
     expect(buildReformDict(['me_ctc'], undefined, 2026)).toEqual({});
+    // 2026 current law is $310 (the registry's $305 was the 2025 value).
     expect(
-      buildReformDict(['me_ctc'], { me_ctc: { amount: 305, young_child_multiplier: 2 } }, 2026),
+      buildReformDict(['me_ctc'], { me_ctc: { amount: 310, young_child_multiplier: 2 } }, 2026),
     ).toEqual({});
   });
 
@@ -713,10 +730,13 @@ describe('buildReformDict', () => {
     // Phase-out starts are set per filing status.
     expect(reform[`${P}.threshold.SINGLE`]).toBe(100000);
     expect(reform[`${P}.threshold.JOINT`]).toBe(120000);
-    // The increment still fans to all five filing statuses.
-    for (const st of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'JOINT', 'SURVIVING_SPOUSE']) {
+    // The increment fans to all five filing statuses, offset-preserving:
+    // JOINT's statutory increment is $3,590 (vs $2,875 for the others), so
+    // it keeps its +$715 spread instead of being flattened to the UI value.
+    for (const st of ['SINGLE', 'SEPARATE', 'HEAD_OF_HOUSEHOLD', 'SURVIVING_SPOUSE']) {
       expect(reform[`${P}.increment.${st}`]).toBe(4000);
     }
+    expect(reform[`${P}.increment.JOINT`]).toBe(4715);
     expect(reform[`${P}.rate`]).toBeCloseTo(0.3);
     // Current-law (2027) defaults are a no-op (single 88,500 / joint 110,640).
     expect(
@@ -753,9 +773,13 @@ describe('buildReformDict', () => {
 
   it('sets a Colorado tier income threshold across all five filing statuses', () => {
     const reform = buildReformDict(['co_ctc'], { co_ctc: { threshold1: 30000 } }, 2026);
-    for (const st of ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse']) {
+    // Offset-preserving: JOINT's statutory tier-1 threshold is $10k above
+    // the single-filer schedule ($36k vs $26k), so it shifts by the same
+    // +$4k delta instead of collapsing to the single-filer value.
+    for (const st of ['single', 'head_of_household', 'separate', 'surviving_spouse']) {
       expect(reform[`gov.states.co.tax.income.credits.ctc.amount.${st}[1].threshold`]).toBe(30000);
     }
+    expect(reform['gov.states.co.tax.income.credits.ctc.amount.joint[1].threshold']).toBe(40000);
     expect(buildReformDict(['co_ctc'], { co_ctc: { threshold1: 26000 } }, 2026)).toEqual({});
   });
 
