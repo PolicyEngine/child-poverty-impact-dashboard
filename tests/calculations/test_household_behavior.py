@@ -98,6 +98,39 @@ _CATEGORY_INCOMES: dict[str, tuple[int, ...]] = {
 # Per-(state, category) extra incomes for known tight eligibility windows.
 _STATE_EXTRA_INCOMES: dict[tuple[str, str], tuple[int, ...]] = {
     ("MD", "ctc"): (10_000,),  # hard $15k AGI cap
+    # MO's nonrefundable match only binds where BOTH the federal EITC and MO
+    # liability are positive — a narrow window around $45k for this family.
+    ("MO", "eitc"): (45_000,),
+}
+
+# Options whose operative lever is a TOGGLE the generosity bump holds by
+# design: their baseline nonrefundable credit already exhausts state
+# liability wherever the federal EITC is positive, so no numeric bump can
+# move a household. They're exercised by
+# ``test_refundability_toggle_pays_out`` (single-edited entries flip the
+# make_refundable toggle) instead of the generosity matrix.
+_TOGGLE_ACTIVATED: dict[tuple[str, str], str] = {
+    ("OH", "oh_eitc"): "30% nonrefundable match saturates OH liability",
+    ("SC", "sc_eitc"): "125% nonrefundable match saturates SC liability",
+    ("UT", "ut_eitc"): "20% nonrefundable match saturates UT liability",
+    ("UT", "ut_ctc"): "nonrefundable CTC saturates UT liability in-window",
+}
+
+# Options that CANNOT move a household in the coverage year, by law.
+_STRUCTURALLY_UNAVAILABLE: dict[tuple[str, str], str] = {
+    # RI's CTC begins TY2027; in 2026 the amount param exists but the credit
+    # isn't in effect, and the editor has no enactment switch (unlike ID's
+    # revival flag). The 2026 default truthfully shows $0; 2027 semantics
+    # are covered by the reforms.test no-op cases and the anchor audit.
+    ("RI", "ri_ctc"): "credit begins TY2027; no 2026 enactment lever",
+}
+
+# Options whose beneficiaries the default family can't represent.
+# federal_tax_cuts_for_workers expands the CHILDLESS EITC — a family with
+# two kids sees nothing, a childless adult in the credit's narrow income
+# range sees hundreds of dollars.
+_CHILDLESS_OPTIONS: dict[str, tuple[int, ...]] = {
+    "federal_tax_cuts_for_workers": (12_000, 16_000),
 }
 
 
@@ -109,15 +142,18 @@ def _incomes(entry: dict) -> tuple[int, ...]:
     )
 
 
-def _situation(state: str, income: int, year: int) -> dict:
+def _situation(
+    state: str, income: int, year: int, childless: bool = False
+) -> dict:
     y = str(year)
-    members = ["head", "child_a", "child_b"]
+    people = {"head": {"age": {y: 35}, "employment_income": {y: income}}}
+    members = ["head"]
+    if not childless:
+        people["child_a"] = {"age": {y: 3}}
+        people["child_b"] = {"age": {y: 8}}
+        members += ["child_a", "child_b"]
     return {
-        "people": {
-            "head": {"age": {y: 35}, "employment_income": {y: income}},
-            "child_a": {"age": {y: 3}},
-            "child_b": {"age": {y: 8}},
-        },
+        "people": people,
         "tax_units": {"tax_unit": {"members": members}},
         "families": {"family": {"members": members}},
         "spm_units": {"spm_unit": {"members": members}},
@@ -147,6 +183,9 @@ def _load_entries() -> list[dict]:
     picked: list[dict] = []
     seen: set[str] = set()
     for e in entries:
+        skip_key = (e["state"], e["ids"][0])
+        if skip_key in _TOGGLE_ACTIVATED or skip_key in _STRUCTURALLY_UNAVAILABLE:
+            continue
         is_behavior = e["kind"] == "behavior"
         is_federal_switch = (
             e["kind"] == "single"
@@ -172,8 +211,10 @@ def _case_id(entry: dict) -> str:
 
 
 @lru_cache(maxsize=None)
-def _baseline_net(state: str, income: int, year: int) -> float:
-    sim = Simulation(situation=_situation(state, income, year))
+def _baseline_net(
+    state: str, income: int, year: int, childless: bool = False
+) -> float:
+    sim = Simulation(situation=_situation(state, income, year, childless))
     return float(sim.calculate("household_net_income", year)[0])
 
 
@@ -181,12 +222,15 @@ def _assert_raises_net_income(entry: dict) -> None:
     year = int(entry["year"])
     core = _build_core_reform_dict(entry["reform"], year)
     reform = Reform.from_dict(core, country_id="us")
+    childless_incomes = _CHILDLESS_OPTIONS.get(entry["ids"][0])
+    childless = childless_incomes is not None
+    incomes = childless_incomes or _incomes(entry)
     deltas = {}
-    for income in _incomes(entry):
-        base = _baseline_net(entry["state"], income, year)
+    for income in incomes:
+        base = _baseline_net(entry["state"], income, year, childless)
         reformed = float(
             Simulation(
-                situation=_situation(entry["state"], income, year),
+                situation=_situation(entry["state"], income, year, childless),
                 reform=reform,
             ).calculate("household_net_income", year)[0]
         )
@@ -247,3 +291,49 @@ _FULL = _sharded([e for e in _ENTRIES if e not in _REPRESENTATIVE])
 def test_option_moves_household(entry: dict) -> None:
     """Exhaustive: every configurable option's generosity bump must land."""
     _assert_raises_net_income(entry)
+
+
+def _single_edited_entry(state: str, option_id: str) -> dict | None:
+    entries = json.loads(MANIFEST_PATH.read_text())["entries"]
+    return next(
+        (
+            e
+            for e in entries
+            if e["state"] == state
+            and e["ids"] == [option_id]
+            and e["kind"] == "single-edited"
+        ),
+        None,
+    )
+
+
+@pytest.mark.parametrize(
+    "state,option_id",
+    sorted(_TOGGLE_ACTIVATED),
+    ids=[f"{s}:{o}" for s, o in sorted(_TOGGLE_ACTIVATED)],
+)
+def test_refundability_toggle_pays_out(state: str, option_id: str) -> None:
+    """Toggle-activated options (nonrefundable credits whose baseline already
+    exhausts liability) must pay out once the make_refundable toggle flips —
+    the single-edited manifest entry flips every toggle, so it exercises the
+    option the way a user actually would. Verified deltas at $18k (2026):
+    OH +$2,232, SC +$9,072 (cap also eliminated), UT EITC +$1,512,
+    UT CTC +$850."""
+    entry = _single_edited_entry(state, option_id)
+    assert entry is not None, f"no single-edited {option_id} entry"
+    year = int(entry["year"])
+    core = _build_core_reform_dict(entry["reform"], year)
+    reform = Reform.from_dict(core, country_id="us")
+    income = 18_000
+    base = _baseline_net(state, income, year)
+    reformed = float(
+        Simulation(
+            situation=_situation(state, income, year), reform=reform
+        ).calculate("household_net_income", year)[0]
+    )
+    assert reformed > base + 1.0, (
+        f"{state}:{option_id} with make_refundable flipped paid nothing at "
+        f"${income:,} (base={base:.2f}, reform={reformed:.2f}) — "
+        f"the refundability lever is inert. "
+        f"(Generosity-matrix skip reason: {_TOGGLE_ACTIVATED[(state, option_id)]})"
+    )
