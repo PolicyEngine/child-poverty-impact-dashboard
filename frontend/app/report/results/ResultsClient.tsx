@@ -35,6 +35,21 @@ import {
 } from '@/components/StatewideTabs';
 
 // PolicyEngine color scheme (from keep-your-pay-act)
+// Selectable employment-income ranges for the household net-income chart.
+// Every range sweeps the same number of points, so switching ranges costs
+// the backend the same either way (and each unique range caches in Modal).
+const SWEEP_RANGES = [100_000, 200_000, 500_000, 1_000_000] as const;
+const SWEEP_MAX_DEFAULT = 200_000;
+const SWEEP_POINTS = 400; // step = max / points → 401 samples per sweep
+
+const formatSweepMax = (v: number): string =>
+  v >= 1_000_000 ? `$${v / 1_000_000}M` : `$${v / 1000}k`;
+
+const extractMessage = (err: unknown): string => {
+  const e = err as { response?: { data?: { detail?: string } }; message?: string };
+  return e?.response?.data?.detail || e?.message || 'Unknown error';
+};
+
 const COLORS = {
   primary: '#319795',       // primary-500 (teal)
   primaryDark: '#285E61',   // primary-700
@@ -252,6 +267,10 @@ export default function ReportResultsPage() {
   const [incomeSweep, setIncomeSweep] = useState<IncomeSweepResponse | null>(null);
   const [sweepLoading, setSweepLoading] = useState(false);
   const [sweepError, setSweepError] = useState<string | null>(null);
+  // Employment-income range of the net-income chart, selectable via the
+  // pills above it. The step scales with the max so every range sweeps the
+  // same 401 points (constant backend cost per selection).
+  const [sweepMax, setSweepMax] = useState(SWEEP_MAX_DEFAULT);
 
   // Single-state mode: this holds the only state's microsimulation result.
   // Multi-state mode: it holds the *primary* state's result so the existing
@@ -335,11 +354,6 @@ export default function ReportResultsPage() {
   useEffect(() => {
     if (!config) return;
 
-    const extractMessage = (err: unknown): string => {
-      const e = err as { response?: { data?: { detail?: string } }; message?: string };
-      return e?.response?.data?.detail || e?.message || 'Unknown error';
-    };
-
     // Fire one Modal job per state in parallel. Single-state reports
     // effectively run a one-element loop, which keeps the code path the
     // same for both modes. The primary state's result also populates
@@ -388,27 +402,37 @@ export default function ReportResultsPage() {
           setHouseholdError(extractMessage(err));
         });
 
-      setSweepLoading(true);
-      setSweepError(null);
-      runIncomeSweep(
-        config.household,
-        config.selectedReforms,
-        0,
-        400_000,
-        500,
-        config.parameterValues,
-      )
-        .then((sweep) => setIncomeSweep(sweep))
-        .catch((err: unknown) => {
-          console.warn('Income sweep failed:', err);
-          setSweepError(extractMessage(err));
-        })
-        .finally(() => setSweepLoading(false));
     }
     // retryNonce re-fires every leg after a failure; legs that already
     // succeeded are served from the Modal result cache in ~a second.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, retryNonce]);
+
+  // The income sweep is its own effect so the range pills can re-fetch it
+  // without re-running the statewide/household legs (those are served from
+  // the Modal result cache anyway, but there's no need to touch them).
+  useEffect(() => {
+    if (!config) return;
+    if (isCompareMode) return;
+    if (config.populationType !== 'household' || !config.household) return;
+    setSweepLoading(true);
+    setSweepError(null);
+    runIncomeSweep(
+      config.household,
+      config.selectedReforms,
+      0,
+      sweepMax,
+      sweepMax / SWEEP_POINTS,
+      config.parameterValues,
+    )
+      .then((sweep) => setIncomeSweep(sweep))
+      .catch((err: unknown) => {
+        console.warn('Income sweep failed:', err);
+        setSweepError(extractMessage(err));
+      })
+      .finally(() => setSweepLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, retryNonce, sweepMax]);
 
   // configReady distinguishes "haven't hit useEffect yet" from "loaded and
   // confirmed missing". Before configReady, render the tab shell so SSR
@@ -581,6 +605,8 @@ export default function ReportResultsPage() {
               incomeSweep={incomeSweep}
               sweepLoading={sweepLoading}
               sweepError={sweepError}
+              sweepMax={sweepMax}
+              onSweepMaxChange={setSweepMax}
             />
           ) : householdError ? (
             <TabError message={householdError} />
@@ -868,6 +894,8 @@ function HouseholdOverviewTab({
   incomeSweep,
   sweepLoading,
   sweepError,
+  sweepMax,
+  onSweepMaxChange,
 }: {
   config: ReportConfig;
   results: HouseholdImpact;
@@ -875,6 +903,8 @@ function HouseholdOverviewTab({
   incomeSweep: IncomeSweepResponse | null;
   sweepLoading: boolean;
   sweepError: string | null;
+  sweepMax: number;
+  onSweepMaxChange: (max: number) => void;
 }) {
   const { baseline: baselineHH, reform, net_income_change } = results;
 
@@ -947,12 +977,35 @@ function HouseholdOverviewTab({
 
       {/* Net income change chart */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-pe-gray-800">
-          Change in net income by employment income
-        </h3>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <h3 className="text-lg font-semibold text-pe-gray-800">
+            Change in net income by employment income
+          </h3>
+          <div
+            className="flex items-center gap-1.5"
+            role="group"
+            aria-label="Employment income range"
+          >
+            {SWEEP_RANGES.map((max) => (
+              <button
+                key={max}
+                type="button"
+                onClick={() => onSweepMaxChange(max)}
+                aria-pressed={sweepMax === max}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  sweepMax === max
+                    ? 'bg-pe-teal-500 border-pe-teal-500 text-white'
+                    : 'bg-white border-pe-gray-200 text-pe-gray-600 hover:border-pe-teal-300'
+                }`}
+              >
+                {formatSweepMax(max)}
+              </button>
+            ))}
+          </div>
+        </div>
         <p className="text-sm text-pe-gray-500 mb-4">
-          Reform vs. current law across $0–$400k of employment income. Hover
-          for the per-provision breakdown.
+          Reform vs. current law across $0–{formatSweepMax(sweepMax)} of
+          employment income. Hover for the per-provision breakdown.
         </p>
         {sweepLoading ? (
           <div className="flex items-center justify-center py-16 text-pe-gray-500 text-sm">
@@ -976,12 +1029,16 @@ function HouseholdOverviewTab({
               <XAxis
                 dataKey="income"
                 type="number"
-                domain={[0, 400_000]}
+                domain={[0, sweepMax]}
                 tickFormatter={(v: number) =>
-                  v >= 1000 ? `$${Math.round(v / 1000)}k` : `$${v}`
+                  v >= 1_000_000
+                    ? `$${(v / 1_000_000).toFixed(v % 1_000_000 ? 2 : 0)}M`
+                    : v >= 1000
+                      ? `$${Math.round(v / 1000)}k`
+                      : `$${v}`
                 }
                 stroke="#6B7280"
-                ticks={[0, 50_000, 100_000, 150_000, 200_000, 250_000, 300_000, 350_000, 400_000]}
+                ticks={Array.from({ length: 9 }, (_, i) => (i * sweepMax) / 8)}
               />
               <YAxis
                 tickFormatter={(v: number) => formatCurrencyWithSign(v)}

@@ -12,7 +12,8 @@
    "default": 18,
    "reform_in_effect": "gov.contrib.states.ca.dependent_credit.in_effect",
    "reform_amount": "gov.contrib.states.ca.dependent_credit.amount"
-  }
+  },
+  "note": "Note: California's exemption is a non-refundable credit against tax, so raising it has no effect once CA tax reaches $0 \u2014 which happens at fairly high incomes for families with children (a $50,000 single parent of two already owes no CA income tax)."
  },
  "GA": {
   "mechanism": "baseline",

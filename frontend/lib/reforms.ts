@@ -17,6 +17,7 @@
 import {
   buildStateEitcReform,
   buildStateCtcReform,
+  buildCoFacReform,
   eitcStructured,
   buildStructuredEitcReform,
   buildDependentExemptionReform,
@@ -99,6 +100,13 @@ function applyReformOption(
         year,
       ),
     );
+    return;
+  }
+
+  // Colorado Family Affordability Credit — CO's second child credit, its
+  // own option so it can be selected alongside (or instead of) the CO CTC.
+  if (id === 'co_fac') {
+    Object.assign(reform, buildCoFacReform(parameterValues?.[id], year));
     return;
   }
 

@@ -129,6 +129,12 @@ pytest tests/calculations/ -q
 # Optional exhaustive sweeps (slow): CPID_FULL_COMPUTE=1 pytest tests/calculations/ -q
 ```
 
+> **New multi-path options bootstrap in two passes**: the anchors dump probes
+> through the year-aware emission, which needs the defaults map, which is
+> generated from the anchors. For a brand-new option run
+> `npm run anchors` → `generate_current_law_defaults.py` → `npm run anchors`
+> again (the audit fails until the second pass).
+
 ### After a policyengine-us pin bump
 
 Regenerate the current-law defaults so displayed values track the new engine
