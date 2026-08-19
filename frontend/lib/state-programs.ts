@@ -1141,9 +1141,11 @@ function buildDependentExemptionOptions(
     {
       id: `${programs.state_code.toLowerCase()}_dependent_exemption`,
       name: `${programs.state_name} ${capitalizedKind}`,
-      description: entry.amount_editable
-        ? `Adjust, partially repeal, or eliminate ${programs.state_name}'s ${kindLabel}. Pair it with a state EITC or child allowance to model a swap.`
-        : `Eliminate ${programs.state_name}'s ${kindLabel}. (Its per-dependent value varies by income/age/filing status, so only full repeal is offered.) Pair it with a state EITC or child allowance to model a swap.`,
+      description:
+        (entry.amount_editable
+          ? `Adjust, partially repeal, or eliminate ${programs.state_name}'s ${kindLabel}. Pair it with a state EITC or child allowance to model a swap.`
+          : `Eliminate ${programs.state_name}'s ${kindLabel}. (Its per-dependent value varies by income/age/filing status, so only full repeal is offered.) Pair it with a state EITC or child allowance to model a swap.`) +
+        (entry.note ? ` ${entry.note}` : ''),
       category: 'state_dependent_exemption',
       is_configurable: true,
       adjustable_params: params,
@@ -2124,6 +2126,118 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   },
 };
 
+// ---- Colorado Family Affordability Credit (HB24-1311) ---------------------
+// A SECOND Colorado credit alongside the CO CTC — and the larger of the two:
+// a refundable per-child amount ($3,273 base for children under 6, 75% of
+// that for ages 6-16), phased down 6.875% per $5,000 of AGI above a
+// filing-status threshold. Statutorily the amounts are TABOR-revenue-
+// triggered; PE-US encodes the fixed scheduled amounts, so edits here model
+// the full-funding path. Wired as its own option (`co_fac`) so CO analyses
+// stop silently omitting the state's biggest young-child credit.
+const FAC = 'gov.states.co.tax.income.credits.family_affordability';
+const CO_FAC_PARAMS: CtcParam[] = [
+  {
+    name: 'amount',
+    label: 'Base amount per child (under 6)',
+    path: `${FAC}.amount`,
+    default_value: 3273,
+    min_value: 0,
+    max_value: 8000,
+    step: 50,
+    unit: '$',
+    description:
+      'Per-child base amount for children under 6. Current: $3,273 (the full-funding amount; actual-law amounts are TABOR-revenue-triggered).',
+  },
+  {
+    name: 'older_child_share',
+    label: 'Older-child share (ages 6–16)',
+    path: `${FAC}.age_multiplier[1].amount`,
+    default_value: 75,
+    min_value: 0,
+    max_value: 100,
+    step: 5,
+    unit: '%',
+    divide_by: 100,
+    description:
+      'Share of the base amount paid per child aged 6–16. Current: 75%.',
+  },
+  {
+    name: 'young_child_age',
+    label: 'Full amount applies under age',
+    path: `${FAC}.age_multiplier[1].threshold`,
+    default_value: 6,
+    min_value: 1,
+    max_value: 17,
+    step: 1,
+    unit: 'years',
+    description:
+      'Children under this age receive the full base amount; older children get the older-child share.',
+  },
+  {
+    name: 'max_child_age',
+    label: 'Credit ends at age',
+    path: `${FAC}.age_multiplier[2].threshold`,
+    default_value: 17,
+    min_value: 6,
+    max_value: 19,
+    step: 1,
+    unit: 'years',
+    description: 'Children this age or older receive nothing. Current: 17.',
+  },
+  {
+    name: 'phaseout_start',
+    label: 'Phase-down start (AGI, single filer)',
+    paths: [
+      `${FAC}.reduction.threshold.SINGLE`,
+      `${FAC}.reduction.threshold.SEPARATE`,
+      `${FAC}.reduction.threshold.HEAD_OF_HOUSEHOLD`,
+      `${FAC}.reduction.threshold.SURVIVING_SPOUSE`,
+      `${FAC}.reduction.threshold.JOINT`,
+    ],
+    default_value: 16000,
+    min_value: 0,
+    max_value: 150000,
+    step: 1000,
+    unit: '$',
+    description:
+      'AGI where the credit starts phasing down (single filer; joint filers keep their statutory $10k-higher threshold).',
+  },
+  {
+    name: 'phaseout_rate',
+    label: 'Phase-down rate per increment',
+    path: `${FAC}.reduction.rate`,
+    default_value: 6.875,
+    min_value: 0,
+    max_value: 50,
+    step: 0.125,
+    unit: '%',
+    divide_by: 100,
+    description:
+      'Percent of the credit lost per income increment above the threshold. Current: 6.875%.',
+  },
+  {
+    name: 'phaseout_increment',
+    label: 'Phase-down income increment',
+    path: `${FAC}.reduction.increment`,
+    default_value: 5000,
+    min_value: 500,
+    max_value: 25000,
+    step: 500,
+    unit: '$',
+    description:
+      'Income step size for the phase-down. Current: $5,000 of AGI per reduction step.',
+  },
+];
+
+/** PolicyEngine-US reform dict for the CO Family Affordability Credit.
+ *  Same anchored-emission contract as the CTC builders. */
+export function buildCoFacReform(
+  paramValues?: Record<string, number>,
+  year = 2026,
+): Record<string, number> {
+  return emitAnchoredParams('co_fac', CO_FAC_PARAMS, paramValues, year);
+}
+
 // Colorado tier amount, applied to all five filing-status scales at once.
 function coTier(idx: number, def: number, label: string): CtcParam {
   const statuses = ['single', 'joint', 'head_of_household', 'separate', 'surviving_spouse'];
@@ -2220,6 +2334,26 @@ function nyCtcParams(year: number): AdjustableParameter[] {
 
 /** Reform options for the selected state's current-law CTC (one card with
  *  its modifiable parameters), or [] if the state has no wired CTC. */
+/** Map a registry param list to year-aware adjustable params. */
+function anchoredAdjustableParams(
+  optionId: string,
+  params: readonly CtcParam[],
+  year: number,
+): AdjustableParameter[] {
+  return params.map((p) => ({
+    name: p.name,
+    label: p.label,
+    min_value: p.min_value,
+    max_value: p.max_value,
+    default_value: currentLawDefault(optionId, p.name, year, p.default_value),
+    step: p.step,
+    unit: p.unit,
+    description: p.description,
+    ...(p.control ? { control: p.control } : {}),
+    ...(p.depends_on ? { depends_on: p.depends_on } : {}),
+  }));
+}
+
 export function buildStateCtcOptions(
   stateCode: string,
   year = 2026,
@@ -2227,28 +2361,15 @@ export function buildStateCtcOptions(
   const code = stateCode.toUpperCase();
   const entry = CTC_REFORMS[code];
   if (!entry) return [];
+  // RI's CTC begins TY2027 and the editor has no enactment lever, so a 2026
+  // amount edit would be structurally inert — offer it for 2027+ only.
+  if (code === 'RI' && year < 2027) return [];
   const optionId = `${code.toLowerCase()}_ctc`;
   const adjustable_params: AdjustableParameter[] =
     code === 'NY'
       ? nyCtcParams(year)
-      : entry.params.map((p) => ({
-          name: p.name,
-          label: p.label,
-          min_value: p.min_value,
-          max_value: p.max_value,
-          default_value: currentLawDefault(
-            optionId,
-            p.name,
-            year,
-            p.default_value,
-          ),
-          step: p.step,
-          unit: p.unit,
-          description: p.description,
-          ...(p.control ? { control: p.control } : {}),
-          ...(p.depends_on ? { depends_on: p.depends_on } : {}),
-        }));
-  return [
+      : anchoredAdjustableParams(optionId, entry.params, year);
+  const options: ReformOption[] = [
     {
       id: `${stateCode.toLowerCase()}_ctc`,
       name: entry.name,
@@ -2259,6 +2380,18 @@ export function buildStateCtcOptions(
       adjustable_params,
     },
   ];
+  if (code === 'CO') {
+    options.push({
+      id: 'co_fac',
+      name: 'Colorado Family Affordability Credit',
+      description:
+        "Colorado's second, larger child credit (HB24-1311): a refundable per-child amount for children under 17 — the full base for children under 6, 75% of it for ages 6–16 — phasing down with AGI. Amounts shown are the full-funding schedule PE-US encodes; actual-law amounts are TABOR-revenue-triggered.",
+      category: 'state_ctc',
+      is_configurable: true,
+      adjustable_params: anchoredAdjustableParams('co_fac', CO_FAC_PARAMS, year),
+    });
+  }
+  return options;
 }
 
 /** PolicyEngine-US reform dict for a state's CTC. Emits ONLY parameters the

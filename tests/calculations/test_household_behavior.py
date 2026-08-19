@@ -72,6 +72,8 @@ REPRESENTATIVE_IDS = [
 def _category(option_id: str) -> str:
     if option_id.endswith("_eitc"):
         return "eitc"
+    if option_id == "co_fac":
+        return "ctc"
     if option_id.endswith("_ctc") and not option_id.startswith("federal"):
         return "ctc"
     if option_id.endswith("_dependent_exemption"):
@@ -117,13 +119,9 @@ _TOGGLE_ACTIVATED: dict[tuple[str, str], str] = {
 }
 
 # Options that CANNOT move a household in the coverage year, by law.
-_STRUCTURALLY_UNAVAILABLE: dict[tuple[str, str], str] = {
-    # RI's CTC begins TY2027; in 2026 the amount param exists but the credit
-    # isn't in effect, and the editor has no enactment switch (unlike ID's
-    # revival flag). The 2026 default truthfully shows $0; 2027 semantics
-    # are covered by the reforms.test no-op cases and the anchor audit.
-    ("RI", "ri_ctc"): "credit begins TY2027; no 2026 enactment lever",
-}
+# (RI's CTC used to live here; its editor is now year-gated to 2027+, so it
+# no longer appears in the 2026 manifest at all.)
+_STRUCTURALLY_UNAVAILABLE: dict[tuple[str, str], str] = {}
 
 # Options whose beneficiaries the default family can't represent.
 # federal_tax_cuts_for_workers expands the CHILDLESS EITC — a family with

@@ -3,6 +3,7 @@ import {
   buildReformDict,
   buildDependentExemptionSubReform,
 } from '@/lib/reforms';
+import { getReformOptionsForState } from '@/lib/state-programs';
 
 const BI = 'gov.contrib.ubi_center.basic_income.amount.person.by_age';
 const PO = 'gov.contrib.ubi_center.basic_income.phase_out';
@@ -178,21 +179,14 @@ describe('buildReformDict', () => {
   });
 
   it('emits the Rhode Island CTC amount/age (no-op at current law)', () => {
-    const reform = buildReformDict(['ri_ctc'], { ri_ctc: { amount: 500 } }, 2026);
+    // The RI editor is year-gated to 2027+ (the credit begins TY2027 and
+    // there is no enactment lever for earlier years) — so all semantics are
+    // asserted at 2027.
+    const reform = buildReformDict(['ri_ctc'], { ri_ctc: { amount: 500 } }, 2027);
     expect(reform['gov.states.ri.tax.income.credits.ctc.amount']).toBe(500);
-    const aged = buildReformDict(['ri_ctc'], { ri_ctc: { age: 17 } }, 2026);
+    const aged = buildReformDict(['ri_ctc'], { ri_ctc: { age: 17 } }, 2027);
     expect(aged['gov.states.ri.tax.income.credits.ctc.age_limit']).toBe(17);
-    // 2026 current law is NO credit (it begins 2027), so $0 is the no-op
-    // and $330 in 2026 is a real reform (enacting the credit a year early).
-    expect(
-      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 0, age: 18 } }, 2026),
-    ).toEqual({});
-    expect(
-      buildReformDict(['ri_ctc'], { ri_ctc: { amount: 330 } }, 2026)[
-        'gov.states.ri.tax.income.credits.ctc.amount'
-      ],
-    ).toBe(330);
-    // For 2027 the enacted $330 / age 18 ARE current law -> no-op.
+    // The enacted $330 / age 18 ARE 2027 current law -> no-op.
     expect(
       buildReformDict(['ri_ctc'], { ri_ctc: { amount: 330, age: 18 } }, 2027),
     ).toEqual({});
@@ -781,6 +775,67 @@ describe('buildReformDict', () => {
     }
     expect(reform['gov.states.co.tax.income.credits.ctc.amount.joint[1].threshold']).toBe(40000);
     expect(buildReformDict(['co_ctc'], { co_ctc: { threshold1: 26000 } }, 2026)).toEqual({});
+  });
+
+  it('offers the RI CTC editor only from 2027 (credit begins TY2027)', () => {
+    // In 2026 the credit does not exist and the editor has no enactment
+    // lever, so an amount edit would be structurally inert — hide it.
+    expect(
+      getReformOptionsForState('RI', 2026).ctc_options.map((o) => o.id),
+    ).toEqual([]);
+    expect(
+      getReformOptionsForState('RI', 2027).ctc_options.map((o) => o.id),
+    ).toEqual(['ri_ctc']);
+  });
+
+  it('offers CO both the CTC and the Family Affordability Credit', () => {
+    expect(
+      getReformOptionsForState('CO', 2026).ctc_options.map((o) => o.id),
+    ).toEqual(['co_ctc', 'co_fac']);
+  });
+
+  it('appends the CA non-refundability note to the exemption description', () => {
+    const opt = getReformOptionsForState('CA', 2026)
+      .dependent_exemption_options[0];
+    expect(opt.description).toContain('non-refundable credit against tax');
+  });
+
+  it('wires the Colorado Family Affordability Credit (no-op at current law)', () => {
+    const F = 'gov.states.co.tax.income.credits.family_affordability';
+    // Untouched defaults (the full-funding schedule) are a no-op.
+    expect(
+      buildReformDict(
+        ['co_fac'],
+        { co_fac: { amount: 3273, older_child_share: 75, phaseout_start: 16000 } },
+        2026,
+      ),
+    ).toEqual({});
+    // Base amount + older-child share emit their paths (percent -> /1).
+    const reform = buildReformDict(
+      ['co_fac'],
+      { co_fac: { amount: 4000, older_child_share: 100 } },
+      2026,
+    );
+    expect(reform[`${F}.amount`]).toBe(4000);
+    expect(reform[`${F}.age_multiplier[1].amount`]).toBe(1);
+    // Phase-down start is offset-preserving: JOINT keeps its statutory
+    // $10k-higher threshold ($26k vs $16k in 2026).
+    const shifted = buildReformDict(
+      ['co_fac'],
+      { co_fac: { phaseout_start: 20000 } },
+      2026,
+    );
+    expect(shifted[`${F}.reduction.threshold.SINGLE`]).toBe(20000);
+    expect(shifted[`${F}.reduction.threshold.JOINT`]).toBe(30000);
+    // 2028: the thresholds uprate ($17k single / $28k joint), so the same
+    // $20k edit anchors to the 2028 law.
+    const y2028 = buildReformDict(
+      ['co_fac'],
+      { co_fac: { phaseout_start: 20000 } },
+      2028,
+    );
+    expect(y2028[`${F}.reduction.threshold.SINGLE`]).toBe(20000);
+    expect(y2028[`${F}.reduction.threshold.JOINT`]).toBe(31000);
   });
 
   it('edits a New Mexico bracket income threshold (no-op at current law)', () => {
