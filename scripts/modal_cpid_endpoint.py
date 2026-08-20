@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-08-20b-buildp-acs-local+pe-us-1.808.0"})
+    .env({"CPID_BUILD_REV": "2026-08-20c-buildp-acs-local+pe-us-1.808.0"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -1025,6 +1025,90 @@ def compute_economy(payload: dict) -> dict:
 
     _log("distributional done")
 
+    # ---- Congressional-district impacts. Build P's ACS-local frame carries
+    # each household's district (dataset column congressional_district_geoid,
+    # 119th-Congress boundaries — the frame is calibrated to all 436 CD
+    # populations). Aggregate the person/household arrays already computed
+    # above per district. For 2027/2028 this stays on 119th-Congress
+    # districts until a 120th-Congress frame ships (swap district_congress
+    # and the frontend geojson together at that point).
+    district_rows: list = []
+    try:
+        hh_table = _dataset().household
+        geoid_raw = hh_table["congressional_district_geoid"].astype(str)
+        # Normalize to 4-digit STATEFP+CD (e.g. '0639'; at-large '5600').
+        hh_geoid_by_id = {
+            int(h): g.zfill(4)
+            for h, g in zip(hh_table["household_id"], geoid_raw)
+        }
+        hh_ids = np.array(
+            sim_baseline.calculate("household_id", period=year)
+        ).astype(int)[hh_mask]
+        person_hh_ids = np.array(
+            sim_baseline.calculate(
+                "household_id", period=year, map_to="person"
+            )
+        ).astype(int)[person_mask]
+        hh_geoid = np.array([hh_geoid_by_id.get(h, "") for h in hh_ids])
+        person_geoid = np.array(
+            [hh_geoid_by_id.get(h, "") for h in person_hh_ids]
+        )
+        hh_net_gain = (
+            np.array(
+                sim_reform.calculate(
+                    "household_net_income", period=year
+                )
+            )
+            - np.array(
+                sim_baseline.calculate(
+                    "household_net_income", period=year
+                )
+            )
+        )[hh_mask]
+
+        for g in sorted(set(hh_geoid) - {""}):
+            hm = hh_geoid == g
+            pm = person_geoid == g
+            hw = household_weight[hm]
+            pw = person_weight[pm]
+            hw_total = float(hw.sum())
+            pw_total = float(pw.sum())
+            if hw_total == 0:
+                continue
+            cm = pm & child_mask
+            cw_total = float(person_weight[cm].sum())
+            district_rows.append(
+                {
+                    "geoid": g,
+                    # '00' district number = the state's at-large seat.
+                    "district_number": int(g[2:]),
+                    "n_households": int(hm.sum()),
+                    "households": hw_total,
+                    "residents": pw_total,
+                    "average_household_gain": float(
+                        (hh_net_gain[hm] * hw).sum() / hw_total
+                    ),
+                    "total_gain": float((hh_net_gain[hm] * hw).sum()),
+                    "percent_gaining": float(
+                        (pw * (person_gain[pm] > 0)).sum() / pw_total * 100
+                        if pw_total else 0.0
+                    ),
+                    "percent_losing": float(
+                        (pw * (person_gain[pm] < 0)).sum() / pw_total * 100
+                        if pw_total else 0.0
+                    ),
+                    "child_baseline_rate": _rate(pov_bl_arr, cm),
+                    "child_reform_rate": _rate(pov_rf_arr, cm),
+                    "children_lifted": _lifted(cm),
+                    "child_population": cw_total,
+                }
+            )
+        district_rows.sort(key=lambda r: r["district_number"])
+    except Exception as exc:  # never fail the request over the CD extra
+        print(f"district aggregation failed: {exc}", flush=True)
+        district_rows = []
+    _log("districts done")
+
     # Dependent exemption/credit cost — isolated. A dependent exemption only
     # moves state income tax, and that delta overlaps with state CTC/EITC
     # changes in the combined reform, so attribute it via a separate
@@ -1077,6 +1161,8 @@ def compute_economy(payload: dict) -> dict:
             "children_lifted": _lifted(child_mask),
             "young_children_lifted": _lifted(young_child_mask),
         },
+        "districts": district_rows,
+        "district_congress": 119,
         "distributional": {
             "deciles": decile_impacts,
             "average_gain_all": avg_gain_all,

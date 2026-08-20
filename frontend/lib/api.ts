@@ -211,6 +211,8 @@ function mapEconomyToAnalysisResponse(
       state,
     },
     headline_stats: {},
+    districts: economy.districts,
+    district_congress: economy.district_congress,
   };
 }
 
