@@ -133,9 +133,14 @@ export default function HomePage() {
                   />
                 </svg>
               </Link>
-              <Link href="/state-credits" className="btn btn-ghost btn-lg">
+              <a
+                href="https://www.policyengine.org/us/state-eitcs-ctcs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-ghost btn-lg"
+              >
                 <span>Explore existing state credits</span>
-              </Link>
+              </a>
             </div>
           </div>
         </div>

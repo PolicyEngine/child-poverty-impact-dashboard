@@ -94,8 +94,16 @@ export default function AboutPage() {
           </div>
         </div>
         <p className="text-gray-600 mt-4">
-          The <a href="/state-credits" className="text-pe-teal-500 hover:underline">state
-          credits map</a> shows the existing programs these reforms start from.
+          PolicyEngine&apos;s{' '}
+          <a
+            href="https://www.policyengine.org/us/state-eitcs-ctcs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-pe-teal-500 hover:underline"
+          >
+            state EITCs and CTCs map
+          </a>{' '}
+          shows the existing programs these reforms start from.
         </p>
       </section>
 
