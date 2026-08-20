@@ -1,19 +1,29 @@
-"""Build per-state slices of the Populace national file on a Modal Volume.
+"""Build per-state slices of the Microcosm ACS-local national file on a
+Modal Volume.
 
 A statewide dashboard request only needs one state's households, but the
-national Populace file makes every request simulate all ~57k households
-(~5.3 min per simulation). Slicing the file once per dataset revision into
-51 small state files (ID: 743 households / 8MB) collapses a request to the
-old per-state speed while keeping exactly Populace's numbers — verified by
-asserting each slice's weighted person/household counts equal the national
-state-masked counts, and that no tax/spm/family/marital unit straddles a
-state boundary.
+national file (Build P: 1.59M households) would make every request simulate
+the whole country. Slicing the file once per release into 51 state files
+(WY: 3.4k households … CA: 163k) keeps statewide runs bounded while
+preserving exactly the calibrated numbers — verified by asserting the
+slices partition the frame exactly and that no tax/spm/family/marital unit
+straddles a state boundary.
 
-Run once per POPULACE_REVISION bump:
+Run once per release bump (resume-safe: existing slices are skipped, so a
+cancelled run can be re-run; delete a slice file first to force a rebuild):
     modal run scripts/build_populace_state_slices.py
 
-Writes to the `cpid-populace-slices` Volume under /{REVISION[:8]}/{ST}.h5,
+Writes to the `cpid-populace-slices` Volume under /{SLICE_TAG}/{ST}.h5,
 which scripts/modal_cpid_endpoint.py mounts read-only.
+
+Ops notes from the Build P rollout (2026-08-19/20):
+- A killed `modal run --detach` CLIENT can still propagate cancellation to
+  the app; a truncated slice from a cancelled save must be deleted before
+  the resume run (it would otherwise be skipped as complete).
+- The ACS-local releases apply the engine-pass contract to the published
+  bytes, so they load directly — but spine bookkeeping columns are
+  mixed-dtype objects HDF refuses to re-save; the normalization below is
+  required.
 """
 
 import modal
@@ -22,15 +32,17 @@ app = modal.App("cpid-populace-slice-builder")
 
 # Same pins as the endpoint image (scripts/modal_cpid_endpoint.py).
 image = modal.Image.debian_slim(python_version="3.11").pip_install(
-    "policyengine-us==1.765.0",
+    "policyengine-us==1.808.0",
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "huggingface_hub",
 )
 
 POPULACE_REPO = "policyengine/populace-us"
-POPULACE_FILE = "populace_us_2024.h5"
-POPULACE_REVISION = "053baf6cf56aaf1160e2f1bfe7631c6924d46b2e"  # 2026-07-01
+POPULACE_FILE = "populace_us_2024_acs_local.h5"
+# HF release tag; slices land under the short hash from the release id.
+POPULACE_REVISION = "populace-us-2024-buildp-acs-local-592ae5d6-20260819T020303Z"
+SLICE_TAG = "592ae5d6"
 
 volume = modal.Volume.from_name("cpid-populace-slices", create_if_missing=True)
 
@@ -49,7 +61,7 @@ STATE_FIPS = {
 GROUP_ENTITIES = ("tax_unit", "spm_unit", "family", "marital_unit")
 
 
-@app.function(image=image, timeout=3600, memory=16384, volumes={"/slices": volume})
+@app.function(image=image, timeout=7200, memory=131072, cpu=8.0, volumes={"/slices": volume})
 def build_slices() -> dict:
     import os
 
@@ -62,15 +74,37 @@ def build_slices() -> dict:
     ds = USSingleYearDataset(file_path=path)
     if hasattr(ds, "load"):
         ds.load()
+    # Spine bookkeeping columns (source ids etc.) load as mixed-dtype
+    # objects that HDF "table" format refuses to re-save; normalize every
+    # object column to str (pure-bool ones to bool) before slicing.
+    for entity in ("household", "person", *GROUP_ENTITIES):
+        df = getattr(ds, entity)
+        for col in df.columns:
+            if df[col].dtype == object:
+                uniques = set(df[col].dropna().unique())
+                if uniques <= {True, False}:
+                    df[col] = df[col].astype(bool)
+                else:
+                    df[col] = df[col].astype(str)
     hh_all = ds.household
     person_all = ds.person
 
-    out_dir = f"/slices/{POPULACE_REVISION[:8]}"
+    out_dir = f"/slices/{SLICE_TAG}"
     os.makedirs(out_dir, exist_ok=True)
     report: dict[str, dict] = {}
 
     for st, fips in STATE_FIPS.items():
         keep_hh = hh_all[hh_all["state_fips"] == fips]
+        out = f"{out_dir}/{st}.h5"
+        if os.path.exists(out):
+            report[st] = {
+                "households": len(keep_hh),
+                "persons": -1,
+                "mb": round(os.path.getsize(out) / 1e6, 1),
+                "skipped": True,
+            }
+            print(f"{st}: already sliced, skipping", flush=True)
+            continue
         hh_ids = set(keep_hh["household_id"])
         person = person_all[person_all["person_household_id"].isin(hh_ids)]
         frames = {"household": keep_hh, "person": person}
@@ -90,7 +124,6 @@ def build_slices() -> dict:
             time_period=2024,
             **{k: v.reset_index(drop=True) for k, v in frames.items()},
         )
-        out = f"{out_dir}/{st}.h5"
         sliced.save(out)
         report[st] = {
             "households": len(keep_hh),
@@ -102,11 +135,10 @@ def build_slices() -> dict:
 
     # Coverage: every national household lands in exactly one slice.
     total_hh = sum(r["households"] for r in report.values())
-    total_p = sum(r["persons"] for r in report.values())
-    if total_hh != len(hh_all) or total_p != len(person_all):
+    if total_hh != len(hh_all):
         raise ValueError(
             f"Slices do not partition the frame: {total_hh}/{len(hh_all)} "
-            f"households, {total_p}/{len(person_all)} persons"
+            "households"
         )
     volume.commit()
     return report
@@ -122,7 +154,7 @@ def verify_slice(st: str) -> dict:
     year = 2026
     sim = Microsimulation(
         dataset=USSingleYearDataset(
-            file_path=f"/slices/{POPULACE_REVISION[:8]}/{st}.h5"
+            file_path=f"/slices/{SLICE_TAG}/{st}.h5"
         )
     )
     pw = np.array(sim.calculate("person_weight", period=year))

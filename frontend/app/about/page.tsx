@@ -111,21 +111,21 @@ export default function AboutPage() {
         <h2 id="methodology-heading" className="section-title">Methodology</h2>
         <div className="space-y-4 text-gray-700">
           <p>
-            <strong>Data Source:</strong> The dashboard runs on{' '}
-            <a href="https://github.com/PolicyEngine/populace" className="text-pe-teal-500 hover:underline">Populace</a>,
-            PolicyEngine&apos;s calibrated national microdata file (
+            <strong>Data Source:</strong> The dashboard runs on the local-area arm of{' '}
+            <a href="https://github.com/PolicyEngine/microcosm" className="text-pe-teal-500 hover:underline">Microcosm</a>,
+            PolicyEngine&apos;s calibrated national microdata (
             <a href="https://huggingface.co/datasets/policyengine/populace-us" className="text-pe-teal-500 hover:underline">policyengine/populace-us</a>
-            ) — roughly 57,000 households built from the Current Population Survey and
-            IRS Public Use File, selected and reweighted with{' '}
-            <a href="https://populace.dev/papers/l0" className="text-pe-teal-500 hover:underline">
-              sparse L0 calibration
-            </a>{' '}
-            against thousands of administrative targets (IRS collections by state and
-            income bracket, program totals, and demographics). One file covers all 50
-            states and DC: each analysis simulates the full national file and slices
-            results to the selected state&apos;s households. Both the dataset revision and
-            the PolicyEngine US model version are pinned per deployment (shown at the
-            backend&apos;s health endpoint) and bumped deliberately.
+            ) — about 1.6 million households on a hybrid survey spine (the CPS ASEC
+            carrying detailed program and tax information, plus the 2024 American
+            Community Survey for local-area density), reweighted against roughly 4,500
+            administrative targets: the full IRS Statistics of Income surface by state
+            (including federal CTC, ACTC, and EITC amounts), USDA SNAP benefits and
+            caseloads, Medicaid enrollment, and state and congressional-district
+            populations. One file covers all 50 states and DC, pre-partitioned into
+            per-state slices so each analysis simulates exactly the selected
+            state&apos;s households. Both the dataset release and the PolicyEngine US
+            model version are pinned per deployment (shown at the backend&apos;s health
+            endpoint) and bumped deliberately.
           </p>
           <p>
             <strong>Microsimulation:</strong> PolicyEngine&apos;s open-source tax-benefit
@@ -136,10 +136,10 @@ export default function AboutPage() {
           <p>
             <strong>Poverty Measurement:</strong> We use the Supplemental Poverty Measure
             (SPM), which accounts for geographic cost-of-living differences, taxes, and
-            the value of government benefits. Populace&apos;s national SPM rates track the
-            Census Bureau&apos;s published figures closely (within about half a point
-            overall); state-level SPM rates are still being refined — see Validation
-            below.
+            the value of government benefits. State child-SPM rates on the current
+            dataset track the Census Bureau&apos;s published state figures with a median
+            deviation under 5%, though individual small states can differ more —
+            see Validation below.
           </p>
           <p>
             <strong>Fiscal Cost:</strong> Costs are calculated as the difference in total
