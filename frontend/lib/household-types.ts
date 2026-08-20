@@ -105,6 +105,9 @@ export interface ReformOption {
   exclusive_with?: string[];
   /** Shown greyed-out and non-selectable — planned but not yet wired. */
   in_development?: boolean;
+  /** Creates a program that doesn't exist in current law — summaries show
+   *  the entered value alone, not a "default → value" change. */
+  creates_program?: boolean;
 }
 
 export interface StateReformOptions {

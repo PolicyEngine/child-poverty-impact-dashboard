@@ -203,8 +203,11 @@ export default function ReportBuilderPage() {
           }
           // Show the change from current law when the user moved it
           // (e.g. "Match rate 40% → 50%"), otherwise just the value.
+          // Created programs (child allowance) have no current law to
+          // change FROM — their defaults are just editor suggestions — so
+          // always show the entered value alone.
           const value =
-            cur !== p.default_value
+            !opt?.creates_program && cur !== p.default_value
               ? `${fmtValue(p.default_value, p.unit)} → ${fmtValue(cur, p.unit)}`
               : fmtValue(cur, p.unit);
           return `${p.label} ${value}`;
