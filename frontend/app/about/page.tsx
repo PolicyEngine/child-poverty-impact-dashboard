@@ -166,21 +166,40 @@ export default function AboutPage() {
         <h2 id="validation-heading" className="section-title">Validation</h2>
         <div className="space-y-4 text-gray-700">
           <p>
-            Every Populace release is scored against benchmarks it was <em>not</em>{' '}
-            calibrated to, published on PolicyEngine&apos;s calibration dashboard:
-            out-of-sample federal provisions scored by the Joint Committee on Taxation,
-            official state budget outlays for existing state EITC and CTC programs, and
-            Census state-level SPM poverty rates (overall and child, 2022&ndash;2024
-            three-year averages). Nationally, simulated SPM poverty sits within about
-            half a percentage point of the Census 2024 figures; state EITC totals
-            typically land within roughly ten percent of official outlays.
+            The dataset&apos;s calibrated surfaces reproduce their administrative
+            targets essentially exactly: federal CTC, ACTC, and EITC amounts by state
+            (IRS Statistics of Income), SNAP benefits and caseloads (USDA, FY2024),
+            Medicaid enrollment, and state populations (our audit measures the
+            population fit at a median +0.9%). Each release is also scored against
+            benchmarks it was <em>not</em> calibrated to, published on
+            PolicyEngine&apos;s calibration dashboard.
           </p>
           <p>
-            State-level poverty rates are the active work-in-progress: some states run
-            high or low against the Census benchmarks, and young-child credits (for
-            example California&apos;s YCTC) currently overshoot official totals. These gaps
-            are tracked per release so improvements — and regressions — are visible
-            before they reach this dashboard.
+            <strong>State child poverty:</strong> for 2024 — the year the microdata
+            represents — simulated state child-SPM rates track the Census figures with
+            a median deviation under 5% (28 of 51 states within ±25%). The
+            dashboard&apos;s <em>2026</em> baseline rates run roughly 20% below the
+            latest (2023) Census print — largely because 2026 law is genuinely
+            different: the $2,200 OBBBA Child Tax Credit, SNAP rule changes, and new
+            state childcare programs all reduce projected child poverty relative to
+            2023 law. Individual small states can deviate substantially in either
+            direction (Vermont and Maine high; Arkansas, Hawaii, and Michigan low).
+          </p>
+          <p>
+            <strong>State credit costs (2026 vs official outlays):</strong> state EITC
+            totals land at a median +2.4% of official figures (23 of 29 states within
+            ±25%). State CTC totals run about a third above official outlays — chiefly
+            because the model assumes full take-up of refundable child credits, where
+            real-world participation among low- and no-liability filers runs roughly
+            50&ndash;75%; several benchmarks also predate recent program restructures.
+          </p>
+          <p>
+            <strong>Dataset transition (August 2026):</strong> the dashboard moved from
+            an earlier 57,000-household file to the current 1.6-million-household
+            dataset with exactly-calibrated federal credit surfaces. Reform impacts
+            changed with the recalibration — generally toward smaller, better-anchored
+            poverty effects (the earlier file concentrated credit-responsive households
+            too heavily) — so results predating the switch are not comparable.
           </p>
         </div>
       </section>
@@ -240,7 +259,15 @@ export default function AboutPage() {
           </li>
           <li>
             <strong>Take-up Rates:</strong> The model assumes 100% take-up of benefits.
-            Actual participation may be lower.
+            Actual participation may be lower — for refundable state child credits,
+            observed take-up runs roughly 50&ndash;75%, so those program costs and
+            impacts are upper bounds.
+          </li>
+          <li>
+            <strong>SSI:</strong> Supplemental Security Income is not among the
+            dataset&apos;s calibration targets and runs about a third below
+            administrative totals; deep-poverty results and reforms interacting with
+            SSI carry that bias.
           </li>
           <li>
             <strong>State-Level Precision:</strong> State poverty <em>levels</em> are

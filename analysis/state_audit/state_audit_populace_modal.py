@@ -8,14 +8,14 @@ policyengine-us pin. The #61 run audited the legacy
 ``policyengine-us-data/states/{ST}.h5`` files, which the dashboard left
 behind on 2026-07-07, so its numbers do not validate production; this
 run does. Diff the two raw JSONs (plus the targets CSVs) via
-``build_csvs.py --raw output/state_audit_populace_raw.json``.
+``build_csvs.py --raw state_audit_buildp_raw.json --suffix _buildp``.
 
 Usage::
 
     modal run analysis/state_audit/state_audit_populace_modal.py
     modal run analysis/state_audit/state_audit_populace_modal.py --states CA,TX,VT
 
-Writes ``analysis/state_audit/output/state_audit_populace_raw.json``.
+Writes ``analysis/state_audit/output/state_audit_buildp_raw.json``.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ image = (
         "numpy>=1.24.0",
         "huggingface_hub",
     )
-    .env({"AUDIT_BUILD_REV": f"2026-08-17-populace-slices+pe-us-{PE_US_PIN}"})
+    .env({"AUDIT_BUILD_REV": f"2026-08-20-buildp-acs-local+pe-us-{PE_US_PIN}"})
 )
 
 slices_volume = modal.Volume.from_name("cpid-populace-slices")
@@ -173,7 +173,7 @@ def main(states: str = "", year: int = 2026):
     )
     print(
         f"Auditing {len(targets)} production slices "
-        f"(populace@{POPULACE_REVISION[:8]}, pe-us {PE_US_PIN}) for {year}..."
+        f"(buildp@{SLICE_TAG}, pe-us {PE_US_PIN}) for {year}..."
     )
     results = list(audit_state.map(targets, kwargs={"year": year}))
     results = [r for r in results if r]
@@ -181,7 +181,7 @@ def main(states: str = "", year: int = 2026):
 
     out_dir = os.path.join(os.path.dirname(__file__), "output")
     os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "state_audit_populace_raw.json")
+    out_path = os.path.join(out_dir, "state_audit_buildp_raw.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
