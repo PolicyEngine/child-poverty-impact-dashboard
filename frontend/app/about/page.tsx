@@ -241,6 +241,11 @@ export default function AboutPage() {
               <li>Rankings by poverty reduction</li>
               <li>Rankings by cost-effectiveness</li>
               <li>Existing state CTC programs</li>
+              <li>
+                Congressional-district impacts (119th Congress boundaries and
+                representatives; average household change, share gaining, and
+                child poverty per district)
+              </li>
             </ul>
           </div>
         </div>

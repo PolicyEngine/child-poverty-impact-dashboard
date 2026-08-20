@@ -14,6 +14,7 @@ import type {
 import type { AnalysisResponse } from '@/lib/types';
 import { SHARE_PARAM, decodeReportConfig, encodeReportConfig, shareUrl } from '@/lib/share-link';
 import { US_STATES } from '@/lib/household-types';
+import DistrictImpacts from '@/components/DistrictImpacts';
 import {
   LineChart,
   Line,
@@ -105,7 +106,8 @@ type TabKey =
   | 'overview'
   | 'poverty'
   | 'fiscal'
-  | 'distributional';
+  | 'distributional'
+  | 'districts';
 
 interface ReportConfig {
   /** Multi-state wizards persist a list; legacy reports (and any old
@@ -231,6 +233,15 @@ const TABS: TabConfig[] = [
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    key: 'districts',
+    label: 'Districts',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
       </svg>
     ),
   },
@@ -726,6 +737,31 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing distributional impact"
+              hint={stageHint}
+            />
+          )
+        ) : activeTab === 'districts' ? (
+          statewideResults ? (
+            statewideResults.districts &&
+            statewideResults.districts.length > 0 &&
+            primaryState ? (
+              <DistrictImpacts
+                state={primaryState}
+                districts={statewideResults.districts}
+                year={config!.year}
+              />
+            ) : (
+              <div className="card text-sm text-pe-gray-600">
+                District-level results are not available for this report
+                (it may predate district support). Re-run the analysis to
+                compute congressional-district impacts.
+              </div>
+            )
+          ) : statewideError ? (
+            <TabError message={statewideError} onRetry={retryLeg} />
+          ) : (
+            <TabSkeleton
+              title="Computing district impacts"
               hint={stageHint}
             />
           )

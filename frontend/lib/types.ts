@@ -160,6 +160,10 @@ export interface AnalysisResponse {
   fiscal_cost: FiscalCostResponse;
   distributional_impact: DistributionalResponse;
   headline_stats: Record<string, number>;
+  /** Per-congressional-district impacts (119th-Congress boundaries).
+   *  Absent on results computed before district support shipped. */
+  districts?: import('./modalApi').DistrictImpact[];
+  district_congress?: number;
 }
 
 export interface StateInfo {

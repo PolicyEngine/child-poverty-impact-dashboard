@@ -45,9 +45,31 @@ export interface EconomyDecileImpact {
   share_of_total_benefit: number;
 }
 
+export interface DistrictImpact {
+  /** 4-digit STATEFP+CD geoid, e.g. "0639"; at-large districts end "00". */
+  geoid: string;
+  district_number: number;
+  /** Unweighted household records in the district (sample-size guard). */
+  n_households: number;
+  households: number;
+  residents: number;
+  average_household_gain: number;
+  total_gain: number;
+  percent_gaining: number;
+  percent_losing: number;
+  child_baseline_rate: number;
+  child_reform_rate: number;
+  children_lifted: number;
+  child_population: number;
+}
+
 export interface EconomyImpactResult {
   state: string | null;
   year: number;
+  /** Per-congressional-district impacts (119th-Congress boundaries).
+   *  Optional: absent on results cached before 2026-08-20c. */
+  districts?: DistrictImpact[];
+  district_congress?: number;
   fiscal: {
     federal_tax_change: number;
     state_tax_change: number;
