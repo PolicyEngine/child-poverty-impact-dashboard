@@ -30,7 +30,7 @@ app = modal.App("state-dataset-audit-populace")
 # Pins match scripts/modal_cpid_endpoint.py exactly — this audits the
 # production build, so the two must move together.
 PE_US_PIN = "1.808.0"
-POPULACE_REVISION = "053baf6cf56aaf1160e2f1bfe7631c6924d46b2e"  # 2026-07-01
+SLICE_TAG = "592ae5d6"  # buildp-acs-local, adopted 2026-08-20
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -65,7 +65,7 @@ def audit_state(state_code: str, year: int) -> dict:
     from policyengine_us import Microsimulation
 
     state_code = state_code.upper()
-    dataset = f"/slices/{POPULACE_REVISION[:8]}/{state_code}.h5"
+    dataset = f"/slices/{SLICE_TAG}/{state_code}.h5"
     if not os.path.exists(dataset):
         raise RuntimeError(
             f"Missing slice {dataset} — run "
@@ -143,7 +143,7 @@ def audit_state(state_code: str, year: int) -> dict:
     return {
         "state": state_code,
         "year": year,
-        "dataset": f"populace@{POPULACE_REVISION[:8]} slice",
+        "dataset": f"buildp@{SLICE_TAG} slice",
         "pe_us": PE_US_PIN,
         "pop_total": _pop(all_mask),
         "pop_under_1": _pop(under_1),

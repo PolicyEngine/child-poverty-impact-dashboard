@@ -51,19 +51,26 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-08-17-populace-slices+pe-us-1.808.0"})
+    .env({"CPID_BUILD_REV": "2026-08-20-buildp-acs-local+pe-us-1.808.0"})
 )
 
-# Populace: PolicyEngine's single national calibrated dataset (replaces the 51
-# per-state ECPS files — PE is standardizing every project on it). A national
-# simulation costs ~5.3 min regardless of the requested state, so each pinned
-# revision is pre-sliced into 51 per-state files on the cpid-populace-slices
-# Volume (scripts/build_populace_state_slices.py — run it once per revision
-# bump). Slice sums are verified to match the national state-masked values,
-# so results are exactly Populace's at a fraction of the runtime.
+# Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
+# artifact, née Populace) — 1.59M households on a hybrid spine (ASEC PUF
+# 57k households / 69% of weight + ACS 2024 1-yr 1.53M / 31%), calibrated
+# to 4,459 targets including the full IRS SOI surface (federal CTC/ACTC/
+# EITC essentially exact by state), USDA FY2024 SNAP, Medicaid enrollment,
+# and state/CD populations. Adopted 2026-08-20 after the corrected sweep:
+# state child-SPM median +4.7% vs Census (28/51 within ±25%), better than
+# the prior sparse pin (−18%, 21/51). Pre-sliced into 51 per-state files
+# on the cpid-populace-slices Volume (scripts/build_populace_state_slices.py
+# after a release bump). Slices are exact partitions — no unit straddles a
+# state boundary. Runtime: big states now run minutes (CA ~5-10 min), small
+# states ~1-2 min; the result cache + Supabase pre-warm cover the gap.
 POPULACE_REPO = "policyengine/populace-us"
-POPULACE_FILE = "populace_us_2024.h5"
-POPULACE_REVISION = "053baf6cf56aaf1160e2f1bfe7631c6924d46b2e"  # 2026-07-01
+POPULACE_FILE = "populace_us_2024_acs_local.h5"
+POPULACE_RELEASE = "populace-us-2024-buildp-acs-local-592ae5d6-20260819T020303Z"
+# Short tag used for the slice directory on the Volume.
+POPULACE_REVISION = "592ae5d6"
 
 slices_volume = modal.Volume.from_name(
     "cpid-populace-slices", create_if_missing=True
@@ -1148,6 +1155,7 @@ def web():
                 f"{POPULACE_REPO}/{POPULACE_FILE}@{POPULACE_REVISION[:8]}"
                 " (per-state slices)"
             ),
+            "dataset_release": POPULACE_RELEASE,
             "build_rev": os.environ.get("CPID_BUILD_REV"),
             "supabase": "enabled" if _supabase_cfg() else "disabled",
         }
