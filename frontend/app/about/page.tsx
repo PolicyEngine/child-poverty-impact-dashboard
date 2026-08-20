@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'About & Methodology',
@@ -18,6 +19,17 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <article className="max-w-4xl mx-auto space-y-8">
+      <div>
+        <Link
+          href="/"
+          className="text-pe-gray-500 hover:text-pe-teal-600 text-sm mb-2 inline-flex items-center gap-1"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Home
+        </Link>
+      </div>
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">About the Dashboard</h1>
         <p className="text-gray-600">
