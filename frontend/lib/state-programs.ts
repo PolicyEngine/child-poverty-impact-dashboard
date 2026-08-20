@@ -629,6 +629,11 @@ export interface ReformOption {
    *  is surfaced so users can see it's planned, but isn't wired to a PE-US
    *  lever yet. */
   in_development?: boolean;
+  /** The option CREATES a program that doesn't exist in current law (e.g.
+   *  the child allowance): its param defaults are editor suggestions, not
+   *  current-law anchors, so summaries show the entered value alone rather
+   *  than a "default → value" change. */
+  creates_program?: boolean;
 }
 
 export interface StateReformOptions {
@@ -1167,6 +1172,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
         'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a child tax credit — works in every state, including those with no state CTC.',
       category: 'child_allowance',
       is_configurable: true,
+      creates_program: true,
       adjustable_params: [
         {
           name: 'infant_amount',
