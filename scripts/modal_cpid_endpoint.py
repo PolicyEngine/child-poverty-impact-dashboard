@@ -391,6 +391,33 @@ def _own_state_credit_vars(sim, state_code: str, year: int, kind: str) -> list:
     ]
 
 
+def _reform_created_credit_vars(
+    sim_baseline, sim_reform, state_code: str
+) -> tuple[list, list]:
+    """Variable names the reform CREATES for this state's EITC/CTC.
+
+    The create-state-credit contribs (gov.contrib.states.{xx}.
+    child_poverty_impact_dashboard.*) define new {st}_eitc /
+    {st}_ctc / {st}_refundable_ctc variables that the gov.states.household
+    registries do not include, so the registry-derived sums miss them and
+    a created credit (e.g. ND's 10% EITC) shows $0 in the household
+    breakdown even though it pays out. A variable absent from baseline law
+    but present in the reform system belongs in the reform-side sum.
+    Returns (eitc_extras, ctc_extras)."""
+    st = state_code.lower()
+    b_vars = sim_baseline.tax_benefit_system.variables
+    r_vars = sim_reform.tax_benefit_system.variables
+    eitc_extras, ctc_extras = [], []
+    for name, bucket in (
+        (f"{st}_eitc", eitc_extras),
+        (f"{st}_ctc", ctc_extras),
+        (f"{st}_refundable_ctc", ctc_extras),
+    ):
+        if name not in b_vars and name in r_vars:
+            bucket.append(name)
+    return eitc_extras, ctc_extras
+
+
 def _household_point(
     sim_baseline, sim_reform, year: int, state_code: str, sim_dep=None
 ) -> dict:
@@ -411,26 +438,31 @@ def _household_point(
 
     eitc_vars = _own_state_credit_vars(sim_baseline, state_code, year, "state_eitcs")
     ctc_vars = _own_state_credit_vars(sim_baseline, state_code, year, "state_ctcs")
+    # Reform-created credits (create-a-state-EITC/CTC contribs) exist only
+    # in the reform system — include them in the reform row's sums.
+    eitc_extras, ctc_extras = _reform_created_credit_vars(
+        sim_baseline, sim_reform, state_code
+    )
 
     def _sum(sim, names: list) -> float:
         return float(sum(_val(sim, n) for n in names))
 
-    def _row(sim) -> dict:
+    def _row(sim, extra_eitc: list = [], extra_ctc: list = []) -> dict:
         return {
             "net_income": _val(sim, "household_net_income"),
             "federal_income_tax": _val(sim, "income_tax"),
             "state_income_tax": _val(sim, "state_income_tax"),
             "federal_ctc": _val(sim, "ctc"),
             "federal_eitc": _val(sim, "eitc"),
-            "state_ctc": _sum(sim, ctc_vars),
-            "state_eitc": _sum(sim, eitc_vars),
+            "state_ctc": _sum(sim, ctc_vars + extra_ctc),
+            "state_eitc": _sum(sim, eitc_vars + extra_eitc),
             "child_allowance": _val(sim, "basic_income"),
             "snap_benefits": _val(sim, "snap"),
             "in_poverty": bool(_val(sim, "in_poverty") > 0),
         }
 
     base_row = _row(sim_baseline)
-    reform_row = _row(sim_reform)
+    reform_row = _row(sim_reform, eitc_extras, ctc_extras)
     # Isolated dependent-exemption portion (signed as a benefit: positive when
     # the exemption is raised, negative when shrunk/eliminated). 0 when no
     # dependent-exemption sub-reform is sent.
@@ -513,6 +545,11 @@ def compute_household_sweep(payload: dict) -> dict:
         )
         eitc_vars = _own_state_credit_vars(sim_b, state_code, year, "state_eitcs")
         ctc_vars = _own_state_credit_vars(sim_b, state_code, year, "state_ctcs")
+        # Reform-created credits exist only in the reform system; include
+        # them when summing the reform rows (created e.g. by ND's 10% EITC).
+        eitc_extras, ctc_extras = _reform_created_credit_vars(
+            sim_b, sim_r, state_code
+        )
         n = len(incomes)
 
         def _arr(sim, name: str):
@@ -527,14 +564,14 @@ def compute_household_sweep(payload: dict) -> dict:
                 total = total + _arr(sim, nm)
             return total
 
-        def _rows(sim):
+        def _rows(sim, extra_eitc: list = [], extra_ctc: list = []):
             net = _arr(sim, "household_net_income")
             fit = _arr(sim, "income_tax")
             sit = _arr(sim, "state_income_tax")
             fctc = _arr(sim, "ctc")
             feitc = _arr(sim, "eitc")
-            sctc = _sum_arr(sim, ctc_vars)
-            seitc = _sum_arr(sim, eitc_vars)
+            sctc = _sum_arr(sim, ctc_vars + extra_ctc)
+            seitc = _sum_arr(sim, eitc_vars + extra_eitc)
             ca = _arr(sim, "basic_income")
             snap = _arr(sim, "snap")
             pov = _arr(sim, "in_poverty")
@@ -562,7 +599,7 @@ def compute_household_sweep(payload: dict) -> dict:
         )
 
         baseline_data_points = _rows(sim_b)
-        data_points = _rows(sim_r)
+        data_points = _rows(sim_r, eitc_extras, ctc_extras)
 
         # Isolated dependent-exemption portion per income point: baseline state
         # income tax − dependent-only state income tax. 0 everywhere when no
