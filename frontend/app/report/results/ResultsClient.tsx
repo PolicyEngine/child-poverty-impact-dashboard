@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { calculateImpact, calculateBaseline, runIncomeSweep } from '@/lib/household-api';
@@ -408,31 +408,84 @@ export default function ReportResultsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, retryNonce]);
 
-  // The income sweep is its own effect so the range pills can re-fetch it
-  // without re-running the statewide/household legs (those are served from
-  // the Modal result cache anyway, but there's no need to touch them).
+  // The income sweep is its own effect so the range pills can switch it
+  // without re-running the statewide/household legs. Ranges are cached per
+  // config: the DEFAULT range computes (and renders) first, then the other
+  // pills' ranges pre-fetch in the background so switching is instant —
+  // each also lands in the Modal result cache, so even a page reload stays
+  // warm. Refs (not state) hold the cache so background completions don't
+  // re-render unless they're for the range currently on screen.
+  const sweepCacheRef = useRef<Record<number, IncomeSweepResponse>>({});
+  const sweepInflightRef = useRef<Set<number>>(new Set());
+  const sweepMaxRef = useRef(sweepMax);
+  useEffect(() => {
+    sweepMaxRef.current = sweepMax;
+  }, [sweepMax]);
+
   useEffect(() => {
     if (!config) return;
     if (isCompareMode) return;
     if (config.populationType !== 'household' || !config.household) return;
+    sweepCacheRef.current = {};
+    sweepInflightRef.current = new Set();
+
+    const fetchRange = (max: number): Promise<void> => {
+      if (sweepCacheRef.current[max] || sweepInflightRef.current.has(max)) {
+        return Promise.resolve();
+      }
+      sweepInflightRef.current.add(max);
+      return runIncomeSweep(
+        config.household!,
+        config.selectedReforms,
+        0,
+        max,
+        max / SWEEP_POINTS,
+        config.parameterValues,
+      )
+        .then((sweep) => {
+          sweepCacheRef.current[max] = sweep;
+          if (sweepMaxRef.current === max) {
+            setIncomeSweep(sweep);
+            setSweepLoading(false);
+          }
+        })
+        .catch((err: unknown) => {
+          console.warn(`Income sweep ($${max}) failed:`, err);
+          if (sweepMaxRef.current === max) {
+            setSweepError(extractMessage(err));
+            setSweepLoading(false);
+          }
+        })
+        .finally(() => {
+          sweepInflightRef.current.delete(max);
+        });
+    };
+
     setSweepLoading(true);
     setSweepError(null);
-    runIncomeSweep(
-      config.household,
-      config.selectedReforms,
-      0,
-      sweepMax,
-      sweepMax / SWEEP_POINTS,
-      config.parameterValues,
-    )
-      .then((sweep) => setIncomeSweep(sweep))
-      .catch((err: unknown) => {
-        console.warn('Income sweep failed:', err);
-        setSweepError(extractMessage(err));
-      })
-      .finally(() => setSweepLoading(false));
+    // Default range first (it renders), then warm the other pills.
+    fetchRange(sweepMaxRef.current).then(() => {
+      SWEEP_RANGES.filter((m) => m !== sweepMaxRef.current).forEach((m) => {
+        void fetchRange(m);
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, retryNonce, sweepMax]);
+  }, [config, retryNonce]);
+
+  // Pill switch: serve from the per-config cache when warm; otherwise show
+  // the spinner — the background pre-fetch (or the Modal result cache)
+  // resolves it and the completion handler above renders it.
+  useEffect(() => {
+    const cached = sweepCacheRef.current[sweepMax];
+    if (cached) {
+      setIncomeSweep(cached);
+      setSweepLoading(false);
+      setSweepError(null);
+    } else if (sweepInflightRef.current.has(sweepMax)) {
+      setSweepLoading(true);
+      setSweepError(null);
+    }
+  }, [sweepMax]);
 
   // configReady distinguishes "haven't hit useEffect yet" from "loaded and
   // confirmed missing". Before configReady, render the tab shell so SSR

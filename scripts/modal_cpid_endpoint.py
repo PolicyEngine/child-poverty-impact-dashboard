@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-08-20-buildp-acs-local+pe-us-1.808.0"})
+    .env({"CPID_BUILD_REV": "2026-08-20b-buildp-acs-local+pe-us-1.808.0"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
