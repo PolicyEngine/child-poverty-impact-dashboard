@@ -1211,7 +1211,13 @@ def web():
     @api.post("/economy/start")
     def economy_start(payload: dict) -> dict:
         key = _cache_key("economy", payload)
-        if _cache_get(key) is not None:
+        cached = _cache_get(key)
+        if cached is not None:
+            # Backfill the durable store on Dict hits: results pre-warmed
+            # BEFORE Supabase activation land in Supabase the next time
+            # they're requested (e.g. re-running the pre-warm script),
+            # without recomputing. Upsert semantics make repeats cheap.
+            _supabase_put(key, "economy", payload, cached)
             return {"job_id": f"cache:{key}"}
         call = compute_economy.spawn(payload)
         return {"job_id": call.object_id}
@@ -1219,7 +1225,9 @@ def web():
     @api.post("/household/start")
     def household_start(payload: dict) -> dict:
         key = _cache_key("household", payload)
-        if _cache_get(key) is not None:
+        cached = _cache_get(key)
+        if cached is not None:
+            _supabase_put(key, "household", payload, cached)
             return {"job_id": f"cache:{key}"}
         call = compute_household_sweep.spawn(payload)
         return {"job_id": call.object_id}
