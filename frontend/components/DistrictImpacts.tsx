@@ -49,6 +49,13 @@ function districtId(state: string, geoid: string): string {
   return `${state}-${String(display).padStart(2, '0')}`;
 }
 
+/** Party color convention: Democrats blue, Republicans red, others gray. */
+function partyClass(party: string): string {
+  if (party.startsWith('Democrat')) return 'text-blue-600';
+  if (party.startsWith('Republican')) return 'text-red-600';
+  return 'text-pe-gray-600';
+}
+
 function fmtUsd(v: number): string {
   const sign = v > 0 ? '+' : v < 0 ? '−' : '';
   return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}`;
@@ -248,10 +255,14 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
                   <td className="py-2 pr-4 font-medium text-pe-gray-700">
                     {id}
                   </td>
-                  <td className="py-2 pr-4 text-pe-gray-600">
-                    {rep
-                      ? `${rep.name} (${rep.party.charAt(0)})`
-                      : '—'}
+                  <td className="py-2 pr-4">
+                    {rep ? (
+                      <span className={`font-medium ${partyClass(rep.party)}`}>
+                        {rep.name} ({rep.party.charAt(0)})
+                      </span>
+                    ) : (
+                      <span className="text-pe-gray-400">—</span>
+                    )}
                   </td>
                   <td
                     className={`py-2 pr-4 text-right font-medium ${
@@ -306,7 +317,7 @@ function DistrictTooltip({ hover, state }: { hover: Hover; state: string }) {
     >
       <div className="font-semibold text-pe-gray-800">{id}</div>
       {rep && (
-        <div className="text-pe-gray-600 text-xs mb-1">
+        <div className={`text-xs mb-1 font-medium ${partyClass(rep.party)}`}>
           {rep.name} ({rep.party.charAt(0)})
         </div>
       )}
