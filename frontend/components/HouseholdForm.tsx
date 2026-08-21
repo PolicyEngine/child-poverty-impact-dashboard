@@ -16,10 +16,9 @@ interface HouseholdFormProps {
   submitLabel?: string;
 }
 
-// Selectable "other income" sources. employment_income (and the
-// spouse counterpart when married) are always present and not in this
-// list. Keys are intentionally restricted to the IncomeInput fields the
-// backend already understands.
+// Selectable "other income" sources. employment_income is always present
+// and not in this list. Keys are intentionally restricted to the
+// IncomeInput fields the backend already understands.
 type OtherIncomeKey =
   | 'capital_gains'
   | 'self_employment_income'
@@ -56,9 +55,21 @@ export default function HouseholdForm({
   isLoading = false,
   submitLabel = 'Calculate Benefits & Taxes',
 }: HouseholdFormProps) {
-  const [household, setHousehold] = useState<HouseholdInput>({
-    ...defaultHousehold,
-    ...initialValues,
+  const [household, setHousehold] = useState<HouseholdInput>(() => {
+    const merged = { ...defaultHousehold, ...initialValues };
+    // Employment income lives in ONE field: the net-income chart sweeps it,
+    // so a separate fixed spouse amount would silently shift what the
+    // x-axis means. Legacy deep links may still carry a spouse amount —
+    // fold it in and zero it.
+    const spouse = merged.income?.spouse_employment_income ?? 0;
+    if (spouse > 0) {
+      merged.income = {
+        ...merged.income,
+        employment_income: (merged.income?.employment_income || 0) + spouse,
+        spouse_employment_income: 0,
+      };
+    }
+    return merged;
   });
 
   // Marital toggle drives filing_status. Initialize from any incoming
@@ -181,7 +192,7 @@ export default function HouseholdForm({
           filing_status: 'married_filing_jointly',
           adults: [{ age: 35 }, { age: 33 }],
           children: [{ age: 3 }, { age: 7 }],
-          income: { employment_income: 60000, spouse_employment_income: 30000 },
+          income: { employment_income: 90000 },
         }));
         setSelectedOtherIncome([]);
         break;
@@ -198,7 +209,6 @@ export default function HouseholdForm({
 
   const totalIncome =
     (household.income.employment_income || 0) +
-    (household.income.spouse_employment_income || 0) +
     (household.income.self_employment_income || 0) +
     (household.income.social_security_income || 0) +
     (household.income.unemployment_income || 0) +
@@ -252,24 +262,11 @@ export default function HouseholdForm({
             </div>
           </div>
           {married && (
-            <div>
-              <label className={labelCls}>Spouse employment income</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  className="input pl-7"
-                  value={(household.income.spouse_employment_income || 0).toLocaleString('en-US')}
-                  onChange={(e) => {
-                    const n = Number(e.target.value.replace(/,/g, ''));
-                    if (!isNaN(n) && n >= 0) {
-                      updateIncome({ spouse_employment_income: n });
-                    }
-                  }}
-                />
-              </div>
-            </div>
+            <p className="text-xs text-pe-gray-500">
+              Enter the household&apos;s combined employment income above — the
+              net-income chart sweeps this single earnings amount, so keeping
+              it in one place keeps the chart&apos;s x-axis meaningful.
+            </p>
           )}
         </div>
 
