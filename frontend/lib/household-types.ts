@@ -200,8 +200,7 @@ export const defaultMarriedCouple: HouseholdInput = {
   adults: [{ age: 35 }, { age: 33 }],
   children: [{ age: 3 }, { age: 7 }],
   income: {
-    employment_income: 60000,
-    spouse_employment_income: 30000,
+    employment_income: 90000,
   },
 };
 
