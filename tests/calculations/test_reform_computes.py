@@ -267,6 +267,97 @@ def _compute(entry: dict) -> None:
     assert net_income is not None
 
 
+# ---- National reforms × every state ---------------------------------------
+# The exhaustive compute dedupes identical reform dicts to one state on the
+# assumption that "an identical dict computes identically regardless of the
+# state tag". That is FALSE for state formulas that reference federal
+# structures: the AFA restructure removes non_refundable_ctc from the
+# federal credit list and Oklahoma's ok_federal_ctc .index()es it — a crash
+# CI never saw because OK+AFA was deduped away (found in the 8/21 pre-warm).
+# This test computes every NATIONAL reform (a dict shared by 2+ states)
+# against one simulation containing a household in every state, so a
+# state-specific formula break under a federal reform fails CI.
+
+_ALL_STATES = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI",
+    "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN",
+    "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH",
+    "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA",
+    "WV", "WI", "WY",
+]
+
+# (option-ids tuple) -> states excluded from the all-state sim because of a
+# KNOWN upstream bug. Every entry must cite the tracking issue and should be
+# removed with the pin bump that ships the fix.
+_KNOWN_BROKEN_STATES: dict[tuple, list] = {
+    # ok_federal_ctc crashes when the AFA removes non_refundable_ctc from
+    # the federal non-refundable credit list (policyengine-us bug; the
+    # dashboard greys the AFA out for OK until the guard ships upstream).
+    ("federal_afa",): ["OK"],
+}
+
+
+def _national_entries() -> list[dict]:
+    by_dict: dict[str, list] = {}
+    for e in _NONEMPTY:
+        if e["kind"] != "single":
+            continue
+        by_dict.setdefault(
+            json.dumps(e["reform"], sort_keys=True), []
+        ).append(e)
+    out = []
+    for entries in by_dict.values():
+        if len({e["state"] for e in entries}) >= 2:
+            out.append(entries[0])
+    return out
+
+
+_NATIONAL = _sharded(_national_entries())
+
+
+def _all_states_situation(year: int, exclude: list) -> dict:
+    y = str(year)
+    people, households, tax_units, spm_units, families = {}, {}, {}, {}, {}
+    for st in _ALL_STATES:
+        if st in exclude:
+            continue
+        head, kid = f"head_{st}", f"kid_{st}"
+        people[head] = {"age": {y: 35}, "employment_income": {y: 30_000}}
+        people[kid] = {"age": {y: 4}}
+        members = [head, kid]
+        households[f"hh_{st}"] = {"members": members, "state_name": {y: st}}
+        tax_units[f"tu_{st}"] = {"members": members}
+        spm_units[f"su_{st}"] = {"members": members}
+        families[f"fa_{st}"] = {"members": members}
+    return {
+        "people": people,
+        "tax_units": tax_units,
+        "spm_units": spm_units,
+        "families": families,
+        "households": households,
+    }
+
+
+@pytest.mark.skipif(
+    not _RUN_FULL,
+    reason="one reformed system build per national reform (~30s each); runs "
+    "in the sharded CI job or via CPID_FULL_COMPUTE=1",
+)
+@pytest.mark.parametrize(
+    "entry", _NATIONAL, ids=[_case_id(e) for e in _NATIONAL]
+)
+def test_national_reform_computes_in_every_state(entry: dict) -> None:
+    year = int(entry["year"])
+    exclude = _KNOWN_BROKEN_STATES.get(tuple(entry["ids"]), [])
+    core = _build_core_reform_dict(entry["reform"], year)
+    reform = Reform.from_dict(core, country_id="us")
+    sim = Simulation(
+        situation=_all_states_situation(year, exclude), reform=reform
+    )
+    sim.calculate("household_net_income", year)
+    sim.calculate("state_income_tax", year)
+
+
 _PATH_RE = re.compile(r"^[A-Za-z0-9_.\[\]]+$")
 
 
