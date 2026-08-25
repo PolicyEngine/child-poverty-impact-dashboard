@@ -1138,14 +1138,6 @@ function HouseholdOverviewTab({
               <Tooltip content={<NetIncomeChangeTooltip />} />
               <Line
                 type="monotone"
-                dataKey="dependent_exemption_change"
-                stroke={COLORS.baseline}
-                strokeWidth={2}
-                dot={false}
-                name="Dependent exemption change"
-              />
-              <Line
-                type="monotone"
                 dataKey="net_income_change"
                 stroke={COLORS.primary}
                 strokeWidth={2.5}

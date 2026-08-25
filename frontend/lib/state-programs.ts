@@ -1217,13 +1217,13 @@ function buildChildAllowanceOptions(): ReformOption[] {
         {
           name: 'cutoff_age',
           label: 'Top age cutoff',
-          min_value: 18,
-          max_value: 19,
+          min_value: 7,
+          max_value: 150,
           default_value: 18,
           step: 1,
           unit: 'yr',
           description:
-            'Oldest eligible age band: 18 = children under 18, 19 = children under 19.',
+            'People under this age are eligible (18 = children under 18). The oldest band runs from age 6 up to this cutoff.',
         },
         {
           name: 'phaseout_enabled',

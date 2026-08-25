@@ -114,17 +114,6 @@ interface TabProps {
 export function StatewideOverview({ results, state, year }: TabProps) {
   const { poverty_impact, fiscal_cost, distributional_impact } = results;
 
-  // Relative (percent) change in the deep child poverty rate — the response
-  // only ships the pp change for deep poverty, so derive the relative version
-  // from the baseline/reform rates to match the other "Poverty reduction" rows.
-  const deepPovertyPercentChange =
-    poverty_impact.baseline_deep_child_poverty_rate > 0
-      ? ((poverty_impact.reform_deep_child_poverty_rate -
-          poverty_impact.baseline_deep_child_poverty_rate) /
-          poverty_impact.baseline_deep_child_poverty_rate) *
-        100
-      : 0;
-
   return (
     <div className="space-y-6">
       <div>
@@ -160,35 +149,6 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           subtext="Of all residents"
           positive={distributional_impact.percent_gaining > distributional_impact.percent_losing}
         />
-      </div>
-
-      {/* Quick stats summary */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Key statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatGroup
-            title="Poverty reduction"
-            rows={[
-              { label: 'Child poverty change (ages 0–17)', value: formatPercentWithSign(poverty_impact.child_poverty_percent_change) },
-              { label: 'Young child poverty change (ages 0–3)', value: formatPercentWithSign(poverty_impact.young_child_poverty_percent_change) },
-              { label: 'Deep poverty change', value: formatPercentWithSign(deepPovertyPercentChange) },
-            ]}
-          />
-          <StatGroup
-            title="Fiscal impact"
-            rows={[
-              { label: 'State revenue impact', value: formatBillions(-fiscal_cost.state_cost_billions) },
-            ]}
-          />
-          <StatGroup
-            title="Distribution"
-            rows={[
-              { label: 'Average gain (all)', value: formatCurrencyWithSign(distributional_impact.average_gain_all) },
-              { label: 'Bottom 50% gain', value: formatCurrencyWithSign(distributional_impact.average_gain_bottom_50) },
-              { label: 'Gini coefficient change', value: `${distributional_impact.gini_change >= 0 ? '+' : ''}${distributional_impact.gini_change.toFixed(4)}` },
-            ]}
-          />
-        </div>
       </div>
 
       <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
@@ -703,20 +663,6 @@ function FiscalCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg p-5 border" style={{ backgroundColor: bg, borderColor: border }}>
       <p className="text-sm text-gray-700 mb-2">{label}</p>
       <p className="text-2xl font-bold" style={{ color }}>{formatBillions(value)}</p>
-    </div>
-  );
-}
-
-function StatGroup({ title, rows }: { title: string; rows: { label: string; value: string }[] }) {
-  return (
-    <div className="space-y-2">
-      <h4 className="text-sm font-semibold" style={{ color: COLORS.primary }}>{title}</h4>
-      {rows.map((r, i) => (
-        <div key={i} className={`flex justify-between py-2 ${i < rows.length - 1 ? 'border-b border-gray-100' : ''}`}>
-          <span className="text-sm text-gray-600">{r.label}</span>
-          <span className="text-sm font-medium text-gray-800">{r.value}</span>
-        </div>
-      ))}
     </div>
   );
 }

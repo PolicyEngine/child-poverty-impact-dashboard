@@ -223,24 +223,32 @@ export default function ReformOptionsSelector({
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <div className="flex overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-pe-teal-500 text-pe-teal-600'
-                  : 'border-transparent text-pe-gray-500 hover:text-pe-gray-700'
-              }`}
-            >
-              {tab.label}
-              {tab.options.length > 0 && (
-                <span className="ml-1 text-xs bg-gray-100 px-1.5 py-0.5 rounded">
-                  {tab.options.length}
-                </span>
-              )}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            // Badge shows how many reforms in this category are ACTIVE (not
+            // how many are available), so users can see at a glance what
+            // they're calculating.
+            const activeCount = tab.options.filter((o) =>
+              selectedOptions.includes(o.id),
+            ).length;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-pe-teal-500 text-pe-teal-600'
+                    : 'border-transparent text-pe-gray-500 hover:text-pe-gray-700'
+                }`}
+              >
+                {tab.label}
+                {activeCount > 0 && (
+                  <span className="ml-1 text-xs bg-pe-teal-100 text-pe-teal-700 px-1.5 py-0.5 rounded">
+                    {activeCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
