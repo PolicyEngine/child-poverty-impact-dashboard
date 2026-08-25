@@ -244,7 +244,7 @@ export default function AboutPage() {
               <li>
                 Congressional-district impacts (119th Congress boundaries and
                 representatives; average household change, share gaining, and
-                child poverty per district)
+                relative child poverty change per district)
               </li>
             </ul>
           </div>
