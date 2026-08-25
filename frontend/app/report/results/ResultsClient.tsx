@@ -872,6 +872,118 @@ const PROVISION_FIELDS: {
   { key: 'snap_benefits', label: 'SNAP' },
 ];
 
+function NetIncomeBanner({ change }: { change: number }) {
+  const beneficial = change > 0;
+  const harmful = change < 0;
+  const sign = change > 0 ? '+' : change < 0 ? '-' : '';
+  const formatted = `${sign}$${Math.abs(Math.round(change)).toLocaleString()}`;
+  return (
+    <div
+      className={`rounded-xl border-2 p-6 ${
+        beneficial
+          ? 'bg-gradient-to-br from-pe-teal-50 to-white border-pe-teal-300'
+          : harmful
+          ? 'bg-gradient-to-br from-red-50 to-white border-red-300'
+          : 'bg-gray-50 border-gray-200'
+      }`}
+    >
+      <p className="text-sm font-medium text-pe-gray-600 mb-1">
+        Net income change
+      </p>
+      <p
+        className={`text-4xl font-bold ${
+          beneficial
+            ? 'text-pe-teal-700'
+            : harmful
+            ? 'text-red-700'
+            : 'text-pe-gray-500'
+        }`}
+      >
+        {formatted}
+        <span className="text-base font-medium text-pe-gray-500 ml-2">
+          /year
+        </span>
+      </p>
+    </div>
+  );
+}
+
+interface WaterfallRow {
+  name: string;
+  /** Bottom of the visible bar (the lower of the step's start/end). */
+  base: number;
+  /** Visible bar height (absolute change). */
+  size: number;
+  change: number;
+  isTotal: boolean;
+}
+
+function WaterfallTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: WaterfallRow }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0].payload;
+  const sign = row.change > 0 ? '+' : row.change < 0 ? '-' : '';
+  return (
+    <div className="bg-white border border-pe-gray-200 rounded-md shadow-lg px-3 py-2 text-xs">
+      <p className="font-semibold text-pe-gray-800">{row.name}</p>
+      <p className="text-pe-gray-600">
+        {sign}${Math.abs(Math.round(row.change)).toLocaleString()}/year
+      </p>
+    </div>
+  );
+}
+
+function WaterfallChart({ data }: { data: WaterfallRow[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={380}>
+      <BarChart
+        data={data}
+        margin={{ top: 8, right: 16, left: 8, bottom: 24 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+        <XAxis
+          dataKey="name"
+          interval={0}
+          angle={-18}
+          textAnchor="end"
+          height={72}
+          tick={{ fontSize: 11, fill: '#4B5563' }}
+          stroke="#9CA3AF"
+        />
+        <YAxis
+          tickFormatter={(v: number) => formatCurrencyWithSign(v)}
+          tick={{ fontSize: 12, fill: '#4B5563' }}
+          stroke="#9CA3AF"
+          width={80}
+        />
+        <Tooltip content={<WaterfallTooltip />} cursor={{ fill: '#F3F4F6' }} />
+        <ReferenceLine y={0} stroke="#9CA3AF" />
+        {/* Invisible stack lifts each bar to its running-total position. */}
+        <Bar dataKey="base" stackId="wf" fill="transparent" isAnimationActive={false} />
+        <Bar dataKey="size" stackId="wf" radius={[2, 2, 0, 0]}>
+          {data.map((row, i) => (
+            <Cell
+              key={i}
+              fill={
+                row.isTotal
+                  ? COLORS.primaryDark
+                  : row.change >= 0
+                    ? COLORS.positive
+                    : COLORS.negative
+              }
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 function ChangeCard({
   label,
   change,
@@ -996,6 +1108,59 @@ function HouseholdOverviewTab({
   onSweepMaxChange: (max: number) => void;
 }) {
   const { baseline: baselineHH, reform, net_income_change } = results;
+  const [breakdownView, setBreakdownView] = useState<'cards' | 'waterfall'>(
+    'cards',
+  );
+
+  // Per-provision changes, shared by the cards grid and the waterfall.
+  const provisionChanges = [
+    ...PROVISION_FIELDS.map(({ key, label }) => {
+      // State CTC also includes the child allowance (basic income).
+      const reformVal =
+        (reform[key] as number) +
+        (key === 'state_ctc' ? reform.child_allowance ?? 0 : 0);
+      const baseVal =
+        (baselineHH[key] as number) +
+        (key === 'state_ctc' ? baselineHH.child_allowance ?? 0 : 0);
+      return { label, change: reformVal - baseVal };
+    }),
+    {
+      label: 'Dependent exemption',
+      change: reform.dependent_exemption_change ?? 0,
+    },
+  ];
+
+  // Waterfall: each nonzero provision steps the running total from 0 toward
+  // the net-income change; a residual bar captures tax/benefit interactions
+  // the provision fields don't isolate, so the steps always sum to the total.
+  const waterfallData = (() => {
+    const steps = provisionChanges.filter((p) => Math.abs(p.change) >= 1);
+    const stepSum = steps.reduce((acc, p) => acc + p.change, 0);
+    const residual = net_income_change - stepSum;
+    if (Math.abs(residual) >= 1) {
+      steps.push({ label: 'Other taxes & interactions', change: residual });
+    }
+    let running = 0;
+    const rows = steps.map((s) => {
+      const start = running;
+      running += s.change;
+      return {
+        name: s.label,
+        base: Math.min(start, running),
+        size: Math.abs(s.change),
+        change: s.change,
+        isTotal: false,
+      };
+    });
+    rows.push({
+      name: 'Net income',
+      base: Math.min(0, net_income_change),
+      size: Math.abs(net_income_change),
+      change: net_income_change,
+      isTotal: true,
+    });
+    return rows;
+  })();
 
   const chartData: ChartPoint[] = (() => {
     if (!incomeSweep?.baseline_data_points) return [];
@@ -1039,29 +1204,41 @@ function HouseholdOverviewTab({
         </p>
       </div>
 
-      {/* Per-provision change cards, plus dependent-exemption and net-income cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {PROVISION_FIELDS.map(({ key, label }) => {
-          // State CTC card also includes the child allowance (basic income).
-          const reformVal =
-            (reform[key] as number) +
-            (key === 'state_ctc' ? reform.child_allowance ?? 0 : 0);
-          const baseVal =
-            (baselineHH[key] as number) +
-            (key === 'state_ctc' ? baselineHH.child_allowance ?? 0 : 0);
-          return (
-            <ChangeCard key={key} label={label} change={reformVal - baseVal} />
-          );
-        })}
-        <ChangeCard
-          label="Dependent exemption"
-          change={reform.dependent_exemption_change ?? 0}
-        />
-        <ChangeCard
-          label="Net income"
-          change={net_income_change}
-          highlight
-        />
+      {/* Headline net-income change */}
+      <NetIncomeBanner change={net_income_change} />
+
+      {/* Per-provision breakdown: cards or waterfall */}
+      <div className="card">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h3 className="text-lg font-semibold text-pe-gray-800">
+            Impact breakdown
+          </h3>
+          <div className="flex gap-1">
+            {(['cards', 'waterfall'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setBreakdownView(mode)}
+                className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor:
+                    breakdownView === mode ? COLORS.primary : '#F3F4F6',
+                  color: breakdownView === mode ? 'white' : '#374151',
+                }}
+              >
+                {mode === 'cards' ? 'Cards' : 'Waterfall'}
+              </button>
+            ))}
+          </div>
+        </div>
+        {breakdownView === 'cards' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {provisionChanges.map(({ label, change }) => (
+              <ChangeCard key={label} label={label} change={change} />
+            ))}
+          </div>
+        ) : (
+          <WaterfallChart data={waterfallData} />
+        )}
       </div>
 
       {/* Net income change chart */}
