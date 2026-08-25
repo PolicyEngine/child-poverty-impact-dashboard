@@ -191,15 +191,31 @@ export default function ReportBuilderPage() {
       const opt = allOptions.find((o) => o.id === id);
       const name = opt?.name ?? id;
       const pv = config.parameterValues?.[id];
+      // Companion age params (set or defaulted) that get folded into other
+      // labels below so the chip names the actual age band.
+      const paramValue = (pname: string): number | undefined =>
+        pv?.[pname] ??
+        opt?.adjustable_params?.find((a) => a.name === pname)?.default_value;
       const params = (opt?.adjustable_params ?? [])
         .filter((p) => pv?.[p.name] !== undefined)
         .map((p) => {
           const cur = pv![p.name];
+          // Folded into "Only dependents under N" / "Ages 6–N" below.
+          if (p.name === 'age_limit_age' || p.name === 'cutoff_age') {
+            return null;
+          }
           // Toggles (e.g. "Eliminate exemption", "Remove net income test")
           // read as their label when switched on, and are dropped when off —
           // so an eliminated dependent exemption shows the action, not a value.
           if (p.control === 'toggle') {
-            return cur ? p.label : null;
+            if (!cur) return null;
+            if (p.name === 'age_limit_enabled') {
+              const age = paramValue('age_limit_age');
+              return age !== undefined
+                ? `Only dependents under ${age}`
+                : p.label;
+            }
+            return p.label;
           }
           // Show the change from current law when the user moved it
           // (e.g. "Match rate 40% → 50%"), otherwise just the value.
@@ -210,6 +226,15 @@ export default function ReportBuilderPage() {
             !opt?.creates_program && cur !== p.default_value
               ? `${fmtValue(p.default_value, p.unit)} → ${fmtValue(cur, p.unit)}`
               : fmtValue(cur, p.unit);
+          // The oldest child-allowance band runs from 6 up to (not
+          // including) the cutoff age — name the actual band, e.g.
+          // "Ages 6–17" for a cutoff of 18.
+          if (p.name === 'older_child_amount') {
+            const cutoff = paramValue('cutoff_age');
+            const label =
+              cutoff !== undefined ? `Ages 6–${cutoff - 1}` : p.label;
+            return `${label} ${value}`;
+          }
           return `${p.label} ${value}`;
         })
         .filter(Boolean);
