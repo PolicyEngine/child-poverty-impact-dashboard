@@ -261,13 +261,6 @@ export default function HouseholdForm({
               />
             </div>
           </div>
-          {married && (
-            <p className="text-xs text-pe-gray-500">
-              Enter the household&apos;s combined employment income above — the
-              net-income chart sweeps this single earnings amount, so keeping
-              it in one place keeps the chart&apos;s x-axis meaningful.
-            </p>
-          )}
         </div>
 
         {/* Ages (head + spouse when married) */}
