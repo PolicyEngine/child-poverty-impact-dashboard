@@ -196,10 +196,26 @@ export default function ReportBuilderPage() {
       const paramValue = (pname: string): number | undefined =>
         pv?.[pname] ??
         opt?.adjustable_params?.find((a) => a.name === pname)?.default_value;
+      // Created programs (child allowance) apply their defaults even when
+      // the user never touches a slider, so the chip shows those defaults
+      // too; existing-program reforms only show params the user set.
+      const effectiveValue = (pname: string): number | undefined =>
+        pv?.[pname] ??
+        (opt?.creates_program
+          ? opt?.adjustable_params?.find((a) => a.name === pname)
+              ?.default_value
+          : undefined);
       const params = (opt?.adjustable_params ?? [])
-        .filter((p) => pv?.[p.name] !== undefined)
         .map((p) => {
-          const cur = pv![p.name];
+          const cur = effectiveValue(p.name);
+          if (cur === undefined) return null;
+          // A param gated on a toggle only shows when that toggle is
+          // effectively on (or off, for depends_on_off) — e.g. phase-out
+          // thresholds stay hidden while the phase-out toggle is off.
+          if (p.depends_on && !effectiveValue(p.depends_on)) return null;
+          if (p.depends_on_off && effectiveValue(p.depends_on_off)) {
+            return null;
+          }
           // Folded into "Only dependents under N" / "Ages 6–N" below.
           if (p.name === 'age_limit_age' || p.name === 'cutoff_age') {
             return null;
