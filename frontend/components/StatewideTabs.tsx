@@ -126,7 +126,7 @@ export function StatewideOverview({ results, state, year }: TabProps) {
       </div>
 
       {/* Headline metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <HeadlineCard
           label="Child poverty change"
           value={formatPercentWithSign(poverty_impact.child_poverty_percent_change)}
@@ -153,70 +153,10 @@ export function StatewideOverview({ results, state, year }: TabProps) {
         />
       </div>
 
-      {/* Baseline-vs-reform poverty rates at a glance */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-1">
-          Poverty rates: baseline vs. reform
-        </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Supplemental Poverty Measure rates before and after the reform ({year}).
-        </p>
-        <OverviewPovertyChart poverty={poverty_impact} />
-      </div>
-
       <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
         Estimates are static: they do not capture behavioral responses such as changes in labor supply, tax avoidance, or migration.
       </p>
     </div>
-  );
-}
-
-function OverviewPovertyChart({
-  poverty,
-}: {
-  poverty: AnalysisResponse['poverty_impact'];
-}) {
-  const data = [
-    {
-      label: 'Child (0–17)',
-      baseline: poverty.baseline_child_poverty_rate * 100,
-      reform: poverty.reform_child_poverty_rate * 100,
-    },
-    {
-      label: 'Young child (0–3)',
-      baseline: poverty.baseline_young_child_poverty_rate * 100,
-      reform: poverty.reform_young_child_poverty_rate * 100,
-    },
-    {
-      label: 'Deep child',
-      baseline: poverty.baseline_deep_child_poverty_rate * 100,
-      reform: poverty.reform_deep_child_poverty_rate * 100,
-    },
-  ];
-  return (
-    <>
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-          <XAxis dataKey="label" tick={TICK_STYLE} stroke="#9CA3AF" />
-          <YAxis
-            tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-            tick={TICK_STYLE}
-            stroke="#9CA3AF"
-            width={48}
-          />
-          <Tooltip
-            content={<CustomTooltip formatter={(v) => `${v.toFixed(1)}%`} />}
-          />
-          <Bar dataKey="baseline" name="Baseline" fill="#9CA3AF" radius={[2, 2, 0, 0]} />
-          <Bar dataKey="reform" name="Reform" fill={COLORS.primary} radius={[2, 2, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="flex flex-wrap justify-center gap-4 mt-2">
-        <LegendItem color="#9CA3AF" label="Baseline" />
-        <LegendItem color={COLORS.primary} label="Reform" />
-      </div>
-    </>
   );
 }
 
@@ -701,10 +641,10 @@ function HeadlineCard({ label, value, subtext, positive }: {
 }) {
   const color = positive ? COLORS.positive : COLORS.negative;
   return (
-    <div className="rounded-lg p-5 border bg-white" style={{ borderTop: `3px solid ${color}` }}>
-      <p className="text-sm text-gray-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold" style={{ color }}>{value}</p>
-      <p className="text-xs text-gray-400 mt-1">{subtext}</p>
+    <div className="rounded-xl p-8 border bg-white" style={{ borderTop: `4px solid ${color}` }}>
+      <p className="text-base text-gray-500 mb-2">{label}</p>
+      <p className="text-5xl font-bold" style={{ color }}>{value}</p>
+      <p className="text-sm text-gray-400 mt-2">{subtext}</p>
     </div>
   );
 }
