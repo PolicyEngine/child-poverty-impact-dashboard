@@ -700,7 +700,7 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing household impact"
-              hint="Calling PolicyEngine for baseline and reform — usually under 30 seconds."
+              hint="Calling PolicyEngine for baseline and reform — usually under a minute."
             />
           )
         ) : activeTab === 'overview' ? (
