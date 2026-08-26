@@ -80,6 +80,12 @@ const STEPS: { key: Step; label: string; icon: React.ReactNode }[] = [
 export default function ReportBuilderPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>('state');
+  // Deep scroll positions don't carry meaning across steps — after
+  // configuring reforms far down the page, the household step would
+  // otherwise open mid-page with its skip option off-screen.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [step]);
   const [config, setConfig] = useState<ReportConfig>({
     states: [],
     populationType: 'household',

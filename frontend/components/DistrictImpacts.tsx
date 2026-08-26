@@ -2,7 +2,8 @@
 
 /**
  * Congressional-district impacts: a state-filtered choropleth of the
- * per-district average household net-income change, plus a per-district
+ * per-district average net-income change per resident (person-weighted,
+ * matching the statewide distributional figures), plus a per-district
  * table with each district's current representative.
  *
  * Boundaries: 119th-Congress districts (frontend/public/data/geojson/…,
@@ -59,6 +60,14 @@ function partyClass(party: string): string {
 function fmtUsd(v: number): string {
   const sign = v > 0 ? '+' : v < 0 ? '−' : '';
   return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}`;
+}
+
+/** Average net-income change PER RESIDENT — total district gain over
+ *  district residents. The statewide figures (decile chart, residents
+ *  gaining) are person-weighted, so the district view uses the same
+ *  denominator to keep the two views comparable. */
+function avgPerResident(d: DistrictImpact): number {
+  return d.residents > 0 ? d.total_gain / d.residents : 0;
 }
 
 /** Relative (percent) change in the district child poverty rate. District
@@ -136,7 +145,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
     () =>
       Math.max(
         1,
-        ...districts.map((d) => Math.abs(d.average_household_gain)),
+        ...districts.map((d) => Math.abs(avgPerResident(d))),
       ),
     [districts],
   );
@@ -190,13 +199,14 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
     <div className="space-y-6">
       <div className="card">
         <h3 className="text-lg font-semibold text-pe-gray-800">
-          Average household impact by congressional district
+          Average impact per resident by congressional district
         </h3>
         <p className="text-sm text-pe-gray-500 mb-4">
-          Change in annual household net income under the reform ({year}),
-          averaged within each of {state}&apos;s congressional districts
-          (119th Congress boundaries). Hover a district for its
-          representative and details.
+          Average change in annual net income per resident under the
+          reform ({year}) within each of {state}&apos;s congressional
+          districts (119th Congress boundaries) &mdash; the same
+          person-weighted measure as the statewide figures. Hover a
+          district for its representative and details.
         </p>
         {geoError ? (
           <p className="text-sm text-red-600">District map unavailable.</p>
@@ -218,7 +228,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
                   <path
                     key={String(feature.properties.GEOID)}
                     d={d}
-                    fill={row ? color(row.average_household_gain) : '#F1F5F9'}
+                    fill={row ? color(avgPerResident(row)) : '#F1F5F9'}
                     stroke="#FFFFFF"
                     strokeWidth={1}
                     className="transition-opacity hover:opacity-80 cursor-pointer"
@@ -239,7 +249,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
                 }}
               />
               <span>{fmtUsd(maxAbs)}</span>
-              <span className="ml-2">average change per household</span>
+              <span className="ml-2">average change per resident</span>
             </div>
           </div>
         )}
@@ -254,7 +264,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
             <tr className="text-left text-pe-gray-500 border-b border-pe-gray-100">
               <th className="py-2 pr-4">District</th>
               <th className="py-2 pr-4">Representative</th>
-              <th className="py-2 pr-4 text-right">Avg change</th>
+              <th className="py-2 pr-4 text-right">Avg change / resident</th>
               <th className="py-2 pr-4 text-right">% gaining</th>
               <th className="py-2 text-right">Child poverty change</th>
             </tr>
@@ -282,14 +292,14 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
                   </td>
                   <td
                     className={`py-2 pr-4 text-right font-medium ${
-                      d.average_household_gain > 0
+                      avgPerResident(d) > 0
                         ? 'text-pe-teal-600'
-                        : d.average_household_gain < 0
+                        : avgPerResident(d) < 0
                           ? 'text-red-600'
                           : 'text-pe-gray-500'
                     }`}
                   >
-                    {fmtUsd(d.average_household_gain)}
+                    {fmtUsd(avgPerResident(d))}
                   </td>
                   <td className="py-2 pr-4 text-right text-pe-gray-600">
                     {d.percent_gaining.toFixed(1)}%
@@ -345,8 +355,8 @@ function DistrictTooltip({ hover, state }: { hover: Hover; state: string }) {
         </div>
       )}
       <div className="flex justify-between">
-        <span className="text-pe-gray-500">Avg change</span>
-        <span className="font-medium">{fmtUsd(row.average_household_gain)}</span>
+        <span className="text-pe-gray-500">Avg change / resident</span>
+        <span className="font-medium">{fmtUsd(avgPerResident(row))}</span>
       </div>
       <div className="flex justify-between">
         <span className="text-pe-gray-500">% gaining</span>
