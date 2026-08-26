@@ -157,6 +157,23 @@ export default function ReformOptionsSelector({
     },
   ];
 
+  // Selected options whose every param is still at current law — the reform
+  // builders emit only changed values, so these are no-ops. Created programs
+  // (selection alone is a reform) and preset options without adjustable
+  // params (selection flips the reform on) are never no-ops.
+  const noOpCount = tabs
+    .flatMap((t) => t.options)
+    .filter((o) => {
+      if (!selectedOptions.includes(o.id)) return false;
+      if (o.creates_program) return false;
+      const ps = o.adjustable_params ?? [];
+      if (!o.is_configurable || ps.length === 0) return false;
+      const pv = parameterValues[o.id] || {};
+      return ps.every(
+        (p) => pv[p.name] === undefined || pv[p.name] === p.default_value,
+      );
+    }).length;
+
   return (
     <div className="space-y-4">
       {/* Current Programs Summary */}
@@ -212,6 +229,12 @@ export default function ReformOptionsSelector({
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">
           {selectedOptions.length} reform{selectedOptions.length !== 1 ? 's' : ''} selected
+          {noOpCount > 0 && (
+            <span className="text-amber-700">
+              {' '}
+              — {noOpCount} with no changes yet
+            </span>
+          )}
         </span>
         {selectedOptions.length > 0 && (
           <button onClick={clearAll} className="text-sm text-red-500 hover:text-red-700">
@@ -308,6 +331,19 @@ function ReformOptionCard({
 }) {
   const hasAdjustableParams = option.is_configurable && option.adjustable_params && option.adjustable_params.length > 0;
   const inDevelopment = option.in_development === true;
+  // Reform builders emit only values changed from current law, so a
+  // selected card with every param at its default is a NO-OP. Created
+  // programs (child allowance) are the exception — their defaults are a
+  // real reform. Surface the no-op state so "selected" isn't mistaken
+  // for "changing policy".
+  const isNoOp =
+    isSelected &&
+    !option.creates_program &&
+    hasAdjustableParams &&
+    option.adjustable_params!.every((p) => {
+      const v = parameterValues[p.name];
+      return v === undefined || v === p.default_value;
+    });
   // Child allowance + state CTC tabs have a single option, so show its
   // inputs as a wizard immediately (no card-click to expand) and use typed
   // input boxes rather than sliders.
@@ -342,8 +378,19 @@ function ReformOptionCard({
                 In development
               </span>
             )}
+            {isNoOp && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                No change yet
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-600 mt-1">{option.description}</p>
+          {isNoOp && (
+            <p className="text-xs text-amber-700 mt-1">
+              Every value is still at current law — adjust a value below to
+              make this selection change policy.
+            </p>
+          )}
           {inDevelopment && (
             <p className="text-xs text-amber-700 mt-1">
               Not yet available — coming soon.
