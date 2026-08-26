@@ -230,7 +230,6 @@ export default function AboutPage() {
             <ul className="list-disc list-inside text-gray-600 space-y-1">
               <li>Average gain by income decile</li>
               <li>Share of benefits to bottom 20%, 50%</li>
-              <li>Gini coefficient change</li>
               <li>Percent of households gaining/losing</li>
             </ul>
           </div>

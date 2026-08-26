@@ -397,9 +397,6 @@ export function StatewideDistributional({ results }: TabProps) {
       {activeView === 'decile' && (
         <DecileView
           decileImpacts={distributional_impact.decile_impacts}
-          giniChange={distributional_impact.gini_change}
-          baselineGini={distributional_impact.baseline_gini}
-          reformGini={distributional_impact.reform_gini}
           distMode={distMode}
           setDistMode={setDistMode}
         />
@@ -416,16 +413,10 @@ export function StatewideDistributional({ results }: TabProps) {
 
 function DecileView({
   decileImpacts,
-  giniChange,
-  baselineGini,
-  reformGini,
   distMode,
   setDistMode,
 }: {
   decileImpacts: AnalysisResponse['distributional_impact']['decile_impacts'];
-  giniChange: number;
-  baselineGini: number;
-  reformGini: number;
   distMode: 'relative' | 'absolute';
   setDistMode: (m: 'relative' | 'absolute') => void;
 }) {
@@ -500,32 +491,6 @@ function DecileView({
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-
-      {/* Gini coefficient summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-lg p-4 border border-gray-200 bg-white">
-          <p className="text-sm text-gray-600">Baseline Gini</p>
-          <p className="text-xl font-bold text-gray-800 mt-1">{baselineGini.toFixed(4)}</p>
-        </div>
-        <div className="rounded-lg p-4 border border-gray-200 bg-white">
-          <p className="text-sm text-gray-600">Reform Gini</p>
-          <p className="text-xl font-bold text-gray-800 mt-1">{reformGini.toFixed(4)}</p>
-        </div>
-        <div className="rounded-lg p-4 border"
-          style={{
-            backgroundColor: `${giniChange < 0 ? COLORS.positive : COLORS.negative}08`,
-            borderColor: giniChange < 0 ? COLORS.positive : COLORS.negative,
-          }}>
-          <p className="text-sm text-gray-600">Gini change</p>
-          <p className="text-xl font-bold mt-1"
-            style={{ color: giniChange < 0 ? COLORS.positive : COLORS.negative }}>
-            {giniChange >= 0 ? '+' : ''}{giniChange.toFixed(4)}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {giniChange < 0 ? 'Less inequality' : giniChange > 0 ? 'More inequality' : 'No change'}
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

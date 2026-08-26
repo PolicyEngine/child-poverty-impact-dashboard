@@ -299,14 +299,6 @@ function DistributionalSection({ results }: { results: AnalysisResponse }) {
 
           <div className="border-t pt-4 mt-4">
             <MetricRow
-              label="Gini Change"
-              value={distributional_impact.gini_change.toFixed(4)}
-              positive={distributional_impact.gini_change < 0}
-            />
-          </div>
-
-          <div className="border-t pt-4 mt-4">
-            <MetricRow
               label="Residents Gaining"
               value={`${distributional_impact.percent_gaining.toFixed(1)}%`}
             />
