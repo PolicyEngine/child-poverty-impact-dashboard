@@ -268,6 +268,11 @@ export default function ReportResultsPage() {
     !!config.household;
 
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  // Re-center on tab switches — a scroll position deep in one tab's content
+  // is meaningless in the next tab's layout.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [activeTab]);
 
   // Per-leg results, loading, and errors. Each tab owns its own state so a
   // slow or failed leg doesn't block the rest of the page.
@@ -568,14 +573,32 @@ export default function ReportResultsPage() {
                       <span className="text-xs font-medium text-pe-gray-500">
                         Reform:
                       </span>
-                      {config.reformLabels.map((label, i) => (
-                        <span
-                          key={i}
-                          className="text-xs bg-pe-teal-50 text-pe-teal-700 border border-pe-teal-200 px-2.5 py-1 rounded-full"
-                        >
-                          {label}
-                        </span>
-                      ))}
+                      {config.reformLabels.map((label, i) => {
+                        // "Name — p1, p2, …": bold name, params as separated
+                        // segments that wrap cleanly (a long child-allowance
+                        // config overflows a single rounded-full pill).
+                        const [name, ...rest] = label.split(' — ');
+                        const params = rest.join(' — ');
+                        return (
+                          <span
+                            key={i}
+                            className="text-xs bg-pe-teal-50 text-pe-teal-700 border border-pe-teal-200 px-2.5 py-1.5 rounded-lg inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 max-w-full"
+                          >
+                            <span className="font-semibold">{name}</span>
+                            {params &&
+                              params.split(', ').map((p, j, arr) => (
+                                <span key={j} className="whitespace-nowrap">
+                                  {p}
+                                  {j < arr.length - 1 && (
+                                    <span className="text-pe-teal-300 ml-1.5">
+                                      ·
+                                    </span>
+                                  )}
+                                </span>
+                              ))}
+                          </span>
+                        );
+                      })}
                     </div>
                   ) : config.selectedReforms.length === 0 ? (
                     <span className="text-xs text-pe-gray-500">
@@ -1206,6 +1229,23 @@ function HouseholdOverviewTab({
 
       {/* Headline net-income change */}
       <NetIncomeBanner change={net_income_change} />
+
+      {/* A selected reform that leaves THIS household unchanged reads as
+          "the editor doesn't work" — eligibility rules (age limits,
+          phase-outs) often just don't bind for the entered household. */}
+      {(config.selectedReforms?.length ?? 0) > 0 &&
+        Math.abs(net_income_change) < 1 &&
+        provisionChanges.every((p) => Math.abs(p.change) < 1) && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            This household isn&apos;t affected by the selected reform.
+            Eligibility rules can make an edit a no-op here — for example,
+            raising a credit&apos;s age limit changes nothing for a household
+            whose children were already within the limit, and phase-outs can
+            exclude higher incomes. The statewide tabs still reflect the
+            reform&apos;s full effect, and the chart below shows where in the
+            income range this household would be affected.
+          </div>
+        )}
 
       {/* Per-provision breakdown: cards or waterfall */}
       <div className="card">

@@ -74,13 +74,15 @@ function calcNiceTicks(minVal: number, maxVal: number) {
 }
 
 // Shared custom tooltip
-function CustomTooltip({ active, payload, label, formatter }: {
+function CustomTooltip({ active, payload, label, formatter, labelFormatter }: {
   active?: boolean;
   payload?: { name: string; value: number; color?: string }[];
   label?: string;
   formatter?: (value: number, name: string) => string;
+  labelFormatter?: (label: string) => string;
 }) {
   if (!active || !payload?.length) return null;
+  if (label !== undefined && labelFormatter) label = labelFormatter(label);
   return (
     <div style={{
       background: 'white',
@@ -151,10 +153,70 @@ export function StatewideOverview({ results, state, year }: TabProps) {
         />
       </div>
 
+      {/* Baseline-vs-reform poverty rates at a glance */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-1">
+          Poverty rates: baseline vs. reform
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Supplemental Poverty Measure rates before and after the reform ({year}).
+        </p>
+        <OverviewPovertyChart poverty={poverty_impact} />
+      </div>
+
       <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
         Estimates are static: they do not capture behavioral responses such as changes in labor supply, tax avoidance, or migration.
       </p>
     </div>
+  );
+}
+
+function OverviewPovertyChart({
+  poverty,
+}: {
+  poverty: AnalysisResponse['poverty_impact'];
+}) {
+  const data = [
+    {
+      label: 'Child (0–17)',
+      baseline: poverty.baseline_child_poverty_rate * 100,
+      reform: poverty.reform_child_poverty_rate * 100,
+    },
+    {
+      label: 'Young child (0–3)',
+      baseline: poverty.baseline_young_child_poverty_rate * 100,
+      reform: poverty.reform_young_child_poverty_rate * 100,
+    },
+    {
+      label: 'Deep child',
+      baseline: poverty.baseline_deep_child_poverty_rate * 100,
+      reform: poverty.reform_deep_child_poverty_rate * 100,
+    },
+  ];
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={260}>
+        <BarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <XAxis dataKey="label" tick={TICK_STYLE} stroke="#9CA3AF" />
+          <YAxis
+            tickFormatter={(v: number) => `${v.toFixed(0)}%`}
+            tick={TICK_STYLE}
+            stroke="#9CA3AF"
+            width={48}
+          />
+          <Tooltip
+            content={<CustomTooltip formatter={(v) => `${v.toFixed(1)}%`} />}
+          />
+          <Bar dataKey="baseline" name="Baseline" fill="#9CA3AF" radius={[2, 2, 0, 0]} />
+          <Bar dataKey="reform" name="Reform" fill={COLORS.primary} radius={[2, 2, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="flex flex-wrap justify-center gap-4 mt-2">
+        <LegendItem color="#9CA3AF" label="Baseline" />
+        <LegendItem color={COLORS.primary} label="Reform" />
+      </div>
+    </>
   );
 }
 
@@ -285,14 +347,25 @@ export function StatewideFiscal({ results, year }: TabProps) {
 
   // Net revenue impact = negative of cost (cost_billions is positive when it's
   // a cost). The child allowance (UBI) is a benefit, so it lands in neither
-  // the federal nor the state *tax* change — fold it into State so the
-  // Federal + State cards always add up to Total. Federal is then the
-  // remainder (so the three cards reconcile exactly).
-  const totalImpact = -fiscal_cost.total_cost_billions;
-  const stateImpact = -(
-    fiscal_cost.state_cost_billions + (fiscal_cost.ubi_cost_billions ?? 0)
+  // the federal nor the state *tax* change — fold it into State (per David:
+  // the allowance is a state-level program) so Federal + State add up to
+  // Total. Federal is then the remainder.
+  //
+  // Quantize each value to its display precision BEFORE deriving Federal,
+  // so the three cards visibly reconcile — independent rounding can
+  // otherwise show Federal + State a step away from Total.
+  const quantize = (v: number): number => {
+    const abs = Math.abs(v);
+    if (abs >= 1) return Math.round(v * 100) / 100; // $X.XXB
+    return Math.round(v * 1000) / 1000; // $XM
+  };
+  const totalImpact = quantize(-fiscal_cost.total_cost_billions);
+  const stateImpact = quantize(
+    -(fiscal_cost.state_cost_billions + (fiscal_cost.ubi_cost_billions ?? 0)),
   );
-  const federalImpact = totalImpact - stateImpact;
+  const federalImpact = quantize(totalImpact - stateImpact);
+  const hasChildAllowance =
+    Math.abs(fiscal_cost.ubi_cost_billions ?? 0) > 0.001;
 
   // One row per program that actually moved. Federal vs. state EITC/CTC are
   // distinct Modal deltas — earlier this table labelled the FEDERAL eitc
@@ -310,20 +383,11 @@ export function StatewideFiscal({ results, year }: TabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Annual impact - 3 cards */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Budgetary impact ({year})</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FiscalCard label="Total" value={totalImpact} />
-          <FiscalCard label="Federal" value={federalImpact} />
-          <FiscalCard label="State" value={stateImpact} />
-        </div>
-      </div>
-
-      {/* Program breakdown table */}
+      {/* Program breakdown first, totals after — reading order builds from
+          the per-program pieces up to the reconciled totals. */}
       {programBreakdown.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Impact by program</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Impact by program ({year})</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -355,6 +419,22 @@ export function StatewideFiscal({ results, year }: TabProps) {
           )}
         </div>
       )}
+
+      {/* Reconciled totals */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Budgetary impact ({year})</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FiscalCard label="Total" value={totalImpact} />
+          <FiscalCard label="Federal" value={federalImpact} />
+          <FiscalCard label="State" value={stateImpact} />
+        </div>
+        {hasChildAllowance && (
+          <p className="text-xs text-gray-500 italic mt-2">
+            The child allowance is modeled as a state-level program, so its
+            cost is included in the State card.
+          </p>
+        )}
+      </div>
 
       <p className="text-xs text-gray-500 italic">
         Negative values indicate net cost to government; positive values indicate net revenue.
@@ -481,7 +561,8 @@ function DecileView({
           <Tooltip
             content={<CustomTooltip formatter={isRelative
               ? (v) => `${v.toFixed(1)}%`
-              : (v) => formatCurrencyWithSign(v)} />}
+              : (v) => formatCurrencyWithSign(v)}
+              labelFormatter={(l) => `Income decile ${l}`} />}
           />
           <ReferenceLine y={0} stroke="#9CA3AF" strokeWidth={1} />
           <Bar dataKey="value" name={isRelative ? 'Relative change' : 'Average gain'} radius={[2, 2, 0, 0]}>
@@ -566,7 +647,16 @@ function WinnersLosersView({
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
               <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} tick={TICK_STYLE} stroke="#9CA3AF" />
               <YAxis type="category" dataKey="label" tick={TICK_STYLE} stroke="#9CA3AF" width={40} />
-              <Tooltip content={<CustomTooltip formatter={(v) => `${v.toFixed(1)}%`} />} />
+              <Tooltip
+                content={
+                  <CustomTooltip
+                    formatter={(v) => `${v.toFixed(1)}%`}
+                    labelFormatter={(l) =>
+                      l === 'All' ? 'All residents' : `Income decile ${l}`
+                    }
+                  />
+                }
+              />
               {categories.map((c) => (
                 <Bar key={c.key} dataKey={c.key} stackId="a" fill={c.color} name={c.label} />
               ))}
