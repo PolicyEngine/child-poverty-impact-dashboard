@@ -100,7 +100,7 @@ export default function AboutPage() {
             <h3 className="font-semibold text-gray-800">Dependent Exemptions & Credits</h3>
             <p className="text-gray-600">
               Adjust, age-restrict, or eliminate the per-dependent exemptions and
-              credits in 26 states — including AGI-stepped schedules — plus
+              credits in 26 states (including AGI-stepped schedules), plus
               Idaho&apos;s grocery credit.
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function AboutPage() {
             <a href="https://github.com/PolicyEngine/microcosm" className="text-pe-teal-500 hover:underline">Microcosm</a>,
             PolicyEngine&apos;s calibrated national microdata (
             <a href="https://huggingface.co/datasets/policyengine/populace-us" className="text-pe-teal-500 hover:underline">policyengine/populace-us</a>
-            ) — about 1.6 million households on a hybrid survey spine (the CPS ASEC
+            ): about 1.6 million households on a hybrid survey spine (the CPS ASEC
             carrying detailed program and tax information, plus the 2024 American
             Community Survey for local-area density), reweighted against roughly 4,500
             administrative targets: the full IRS Statistics of Income surface by state
@@ -150,7 +150,7 @@ export default function AboutPage() {
             (SPM), which accounts for geographic cost-of-living differences, taxes, and
             the value of government benefits. State child-SPM rates on the current
             dataset track the Census Bureau&apos;s published state figures with a median
-            deviation under 5%, though individual small states can differ more —
+            deviation under 5%, though individual small states can differ more;
             see Validation below.
           </p>
           <p>
@@ -175,11 +175,11 @@ export default function AboutPage() {
             PolicyEngine&apos;s calibration dashboard.
           </p>
           <p>
-            <strong>State child poverty:</strong> for 2024 — the year the microdata
-            represents — simulated state child-SPM rates track the Census figures with
+            <strong>State child poverty:</strong> for 2024, the year the microdata
+            represents, simulated state child-SPM rates track the Census figures with
             a median deviation under 5% (28 of 51 states within ±25%). The
             dashboard&apos;s <em>2026</em> baseline rates run roughly 20% below the
-            latest (2023) Census print — largely because 2026 law is genuinely
+            latest (2023) Census print, largely because 2026 law is genuinely
             different: the $2,200 OBBBA Child Tax Credit, SNAP rule changes, and new
             state childcare programs all reduce projected child poverty relative to
             2023 law. Individual small states can deviate substantially in either
@@ -188,7 +188,7 @@ export default function AboutPage() {
           <p>
             <strong>State credit costs (2026 vs official outlays):</strong> state EITC
             totals land at a median +2.4% of official figures (23 of 29 states within
-            ±25%). State CTC totals run about a third above official outlays — chiefly
+            ±25%). State CTC totals run about a third above official outlays, chiefly
             because the model assumes full take-up of refundable child credits, where
             real-world participation among low- and no-liability filers runs roughly
             50&ndash;75%; several benchmarks also predate recent program restructures.
@@ -197,9 +197,9 @@ export default function AboutPage() {
             <strong>Dataset transition (August 2026):</strong> the dashboard moved from
             an earlier 57,000-household file to the current 1.6-million-household
             dataset with exactly-calibrated federal credit surfaces. Reform impacts
-            changed with the recalibration — generally toward smaller, better-anchored
+            changed with the recalibration, generally toward smaller, better-anchored
             poverty effects (the earlier file concentrated credit-responsive households
-            too heavily) — so results predating the switch are not comparable.
+            too heavily), so results predating the switch are not comparable.
           </p>
         </div>
       </section>
@@ -263,7 +263,7 @@ export default function AboutPage() {
           </li>
           <li>
             <strong>Take-up Rates:</strong> The model assumes 100% take-up of benefits.
-            Actual participation may be lower — for refundable state child credits,
+            Actual participation may be lower: for refundable state child credits,
             observed take-up runs roughly 50&ndash;75%, so those program costs and
             impacts are upper bounds.
           </li>
@@ -276,7 +276,7 @@ export default function AboutPage() {
           <li>
             <strong>State-Level Precision:</strong> State poverty <em>levels</em> are
             still being calibrated against Census benchmarks (see Validation); reform
-            <em> impacts</em> — the changes the dashboard reports — are less sensitive
+            <em> impacts</em>, the changes the dashboard reports, are less sensitive
             to level error than the rates themselves. Small states carry additional
             sampling noise.
           </li>

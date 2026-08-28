@@ -516,17 +516,17 @@ export default function ReportResultsPage() {
   // Backend stage markers -> human-readable progress for the skeleton hint.
   const STAGE_LABELS: Array<[string, string]> = [
     ['reform loaded', 'Loading the state data and reform…'],
-    ['microsims built', 'Simulations built — computing taxes and benefits…'],
-    ['fiscal done', 'Fiscal totals done — computing poverty impacts…'],
-    ['poverty done', 'Poverty done — computing distributional impacts…'],
+    ['microsims built', 'Simulations built. Computing taxes and benefits…'],
+    ['fiscal done', 'Fiscal totals done. Computing poverty impacts…'],
+    ['poverty done', 'Poverty totals done. Computing distributional impacts…'],
     ['distributional done', 'Finalizing…'],
     ['dependent-exemption', 'Isolating the dependent-exemption effect…'],
     ['sweep done', 'Finalizing…'],
   ];
   const stageHint = computeStage
     ? STAGE_LABELS.find(([prefix]) => computeStage.startsWith(prefix))?.[1] ??
-      'Running the microsimulation on Modal — this can take a few minutes.'
-    : 'Running the microsimulation on Modal — this can take a few minutes.';
+      'Running the microsimulation on Modal. This can take a few minutes.'
+    : 'Running the microsimulation on Modal. This can take a few minutes.';
 
   const retryLeg = () => {
     setStatewideError(null);
@@ -577,8 +577,11 @@ export default function ReportResultsPage() {
                         // "Name — p1, p2, …": bold name, params as separated
                         // segments that wrap cleanly (a long child-allowance
                         // config overflows a single rounded-full pill).
-                        const [name, ...rest] = label.split(' — ');
-                        const params = rest.join(' — ');
+                        const sep = label.includes(': ')
+                          ? ': '
+                          : ' — '; // legacy share links
+                        const [name, ...rest] = label.split(sep);
+                        const params = rest.join(sep);
                         return (
                           <span
                             key={i}
@@ -602,7 +605,7 @@ export default function ReportResultsPage() {
                     </div>
                   ) : config.selectedReforms.length === 0 ? (
                     <span className="text-xs text-pe-gray-500">
-                      No reform selected — baseline only
+                      No reform selected (baseline only)
                     </span>
                   ) : null}
                   {config.populationType === 'household' && config.household && (
@@ -700,7 +703,7 @@ export default function ReportResultsPage() {
           ) : (
             <TabSkeleton
               title="Computing household impact"
-              hint="Calling PolicyEngine for baseline and reform — usually under a minute."
+              hint="Calling PolicyEngine for baseline and reform. Usually under a minute."
             />
           )
         ) : activeTab === 'overview' ? (
@@ -1238,7 +1241,7 @@ function HouseholdOverviewTab({
         provisionChanges.every((p) => Math.abs(p.change) < 1) && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             This household isn&apos;t affected by the selected reform.
-            Eligibility rules can make an edit a no-op here — for example,
+            Eligibility rules can make an edit a no-op here. For example,
             raising a credit&apos;s age limit changes nothing for a household
             whose children were already within the limit, and phase-outs can
             exclude higher incomes. The statewide tabs still reflect the
@@ -1770,7 +1773,7 @@ function CompareTab({
               <ul className="ml-5 list-disc">
                 {failed.map((s) => (
                   <li key={s}>
-                    <span className="font-mono">{s}</span> — {errors[s]}
+                    <span className="font-mono">{s}</span>: {errors[s]}
                   </li>
                 ))}
               </ul>
@@ -1782,7 +1785,7 @@ function CompareTab({
       {completedCount === 0 ? (
         <TabSkeleton
           title="Computing comparison"
-          hint={`Running ${states.length} parallel microsimulations on Modal — usually a few minutes each.`}
+          hint={`Running ${states.length} parallel microsimulations on Modal. Usually a few minutes each.`}
         />
       ) : (
         <>

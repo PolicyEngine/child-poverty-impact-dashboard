@@ -207,7 +207,7 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
   MN: {
     name: 'Minnesota Working Family Credit',
     description:
-      "Minnesota's Working Family Credit — the state's EITC-equivalent. It phases in on earned income, adds an amount per qualifying child over 18, and phases out with income (the phase-out is shared with the state Child Tax Credit).",
+      "Minnesota's Working Family Credit, the state's EITC equivalent. It phases in on earned income, adds an amount per qualifying child over 18, and phases out with income (the phase-out is shared with the state Child Tax Credit).",
     kind: 'wfc',
     requires_income_tax: true,
     params: [
@@ -278,7 +278,7 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
   WA: {
     name: 'Washington Working Families Tax Credit',
     description:
-      "Washington's Working Families Tax Credit — a refundable EITC-style credit (Washington has no income tax). The maximum amount rises with the number of qualifying children.",
+      "Washington's Working Families Tax Credit, a refundable EITC-style credit (Washington has no income tax). The maximum amount rises with the number of qualifying children.",
     kind: 'wfc',
     requires_income_tax: false,
     params: [
@@ -1178,7 +1178,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
       id: 'child_allowance',
       name: 'Child allowance',
       description:
-        'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a Child Tax Credit — works in every state, including those with no state CTC.',
+        'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a Child Tax Credit. Works in every state, including those with no state CTC.',
       category: 'child_allowance',
       is_configurable: true,
       creates_program: true,
@@ -1259,7 +1259,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
         },
         {
           name: 'phaseout_threshold_single',
-          label: 'Threshold — single',
+          label: 'Threshold (single)',
           depends_on: 'phaseout_enabled',
           min_value: 0,
           max_value: 1000000,
@@ -1270,7 +1270,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
         },
         {
           name: 'phaseout_threshold_hoh',
-          label: 'Threshold — head of household',
+          label: 'Threshold (head of household)',
           depends_on: 'phaseout_enabled',
           min_value: 0,
           max_value: 1000000,
@@ -1281,7 +1281,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
         },
         {
           name: 'phaseout_threshold_separate',
-          label: 'Threshold — married filing separately',
+          label: 'Threshold (married filing separately)',
           depends_on: 'phaseout_enabled',
           min_value: 0,
           max_value: 1000000,
@@ -1293,7 +1293,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
         },
         {
           name: 'phaseout_threshold_joint',
-          label: 'Threshold — married filing jointly',
+          label: 'Threshold (married filing jointly)',
           depends_on: 'phaseout_enabled',
           min_value: 0,
           max_value: 1000000,
@@ -1304,7 +1304,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
         },
         {
           name: 'phaseout_threshold_surviving_spouse',
-          label: 'Threshold — surviving spouse',
+          label: 'Threshold (surviving spouse)',
           depends_on: 'phaseout_enabled',
           min_value: 0,
           max_value: 1000000,
@@ -1503,7 +1503,7 @@ function buildFederalOptions(stateCode?: string): ReformOption[] {
       id: 'federal_working_parents_tax_relief',
       name: 'Working Parents Tax Relief Act',
       description:
-        "McDonald–Rivet's Working Parents Tax Relief Act: boosts the EITC for parents of young children (under 4) — a higher credit percentage per young child and a larger phase-out threshold.",
+        "McDonald-Rivet's Working Parents Tax Relief Act boosts the EITC for parents of children under 4, with a higher credit percentage per young child and a larger phase-out threshold.",
       category: 'federal_eitc',
     },
   ];
@@ -1665,11 +1665,11 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     params: [
       AMT('gov.states.dc.tax.income.credits.ctc.amount', 1000),
       AGE('gov.states.dc.tax.income.credits.ctc.child.age_threshold', 18),
-      DOLLAR('threshold_single', 'Phase-out — single', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SINGLE', 55000, 'DC taxable income where phase-out begins (single).'),
-      DOLLAR('threshold_joint', 'Phase-out — joint', 'gov.states.dc.tax.income.credits.ctc.income_threshold.JOINT', 70000, 'DC taxable income where phase-out begins (joint).'),
-      DOLLAR('threshold_hoh', 'Phase-out — head of household', 'gov.states.dc.tax.income.credits.ctc.income_threshold.HEAD_OF_HOUSEHOLD', 55000, 'DC taxable income where phase-out begins (HoH).'),
-      DOLLAR('threshold_separate', 'Phase-out — separate', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SEPARATE', 35000, 'DC taxable income where phase-out begins (separate).'),
-      DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SURVIVING_SPOUSE', 55000, 'DC taxable income where phase-out begins (surviving spouse).'),
+      DOLLAR('threshold_single', 'Phase-out (single)', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SINGLE', 55000, 'DC taxable income where phase-out begins (single).'),
+      DOLLAR('threshold_joint', 'Phase-out (joint)', 'gov.states.dc.tax.income.credits.ctc.income_threshold.JOINT', 70000, 'DC taxable income where phase-out begins (joint).'),
+      DOLLAR('threshold_hoh', 'Phase-out (head of household)', 'gov.states.dc.tax.income.credits.ctc.income_threshold.HEAD_OF_HOUSEHOLD', 55000, 'DC taxable income where phase-out begins (HoH).'),
+      DOLLAR('threshold_separate', 'Phase-out (separate)', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SEPARATE', 35000, 'DC taxable income where phase-out begins (separate).'),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out (surviving spouse)', 'gov.states.dc.tax.income.credits.ctc.income_threshold.SURVIVING_SPOUSE', 55000, 'DC taxable income where phase-out begins (surviving spouse).'),
       {
         name: 'phaseout_amount',
         label: 'Reduction amount',
@@ -1730,7 +1730,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     ],
   },
   ID: {
-    name: 'Idaho Child Tax Credit (expired) — revive',
+    name: 'Revive the expired Idaho Child Tax Credit',
     description:
       "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026 (us#8856 contributed reform); optionally adjust the amount or add a refundable portion.",
     params: [
@@ -1766,15 +1766,15 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   RI: {
     name: 'Rhode Island Child Tax Credit',
     description:
-      'Refundable credit of $330 per child age 18 or under, enacted for 2027 (R.I. H 7127). No effect before 2027 — set the analysis year to 2027 or later to model it. Phases out above AGI thresholds that vary by filing status.',
+      'Refundable credit of $330 per child age 18 or under, enacted for 2027 (R.I. H 7127). It has no effect before 2027, so set the analysis year to 2027 or later to model it. Phases out above AGI thresholds that vary by filing status.',
     params: [
       AMT('gov.states.ri.tax.income.credits.ctc.amount', 330, 3000),
       AGE('gov.states.ri.tax.income.credits.ctc.age_limit', 18, 'Eligible if age or under'),
-      DOLLAR('threshold_single', 'Phase-out start — single', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SINGLE', 88500, 'RI AGI where the credit starts phasing out for single filers (takes effect 2027).', 400000),
-      DOLLAR('threshold_joint', 'Phase-out start — joint', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.JOINT', 110640, 'RI AGI where the credit starts phasing out for joint filers (takes effect 2027).', 400000),
-      DOLLAR('threshold_hoh', 'Phase-out start — head of household', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.HEAD_OF_HOUSEHOLD', 88500, 'RI AGI where the credit starts phasing out for heads of household (takes effect 2027).', 400000),
-      DOLLAR('threshold_separate', 'Phase-out start — separate', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SEPARATE', 88500, 'RI AGI where the credit starts phasing out for married-filing-separately (takes effect 2027).', 400000),
-      DOLLAR('threshold_surviving_spouse', 'Phase-out start — surviving spouse', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SURVIVING_SPOUSE', 88500, 'RI AGI where the credit starts phasing out for surviving spouses (takes effect 2027).', 400000),
+      DOLLAR('threshold_single', 'Phase-out start (single)', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SINGLE', 88500, 'RI AGI where the credit starts phasing out for single filers (takes effect 2027).', 400000),
+      DOLLAR('threshold_joint', 'Phase-out start (joint)', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.JOINT', 110640, 'RI AGI where the credit starts phasing out for joint filers (takes effect 2027).', 400000),
+      DOLLAR('threshold_hoh', 'Phase-out start (head of household)', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.HEAD_OF_HOUSEHOLD', 88500, 'RI AGI where the credit starts phasing out for heads of household (takes effect 2027).', 400000),
+      DOLLAR('threshold_separate', 'Phase-out start (separate)', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SEPARATE', 88500, 'RI AGI where the credit starts phasing out for married-filing-separately (takes effect 2027).', 400000),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out start (surviving spouse)', 'gov.states.ri.tax.income.credits.ctc.phase_out.threshold.SURVIVING_SPOUSE', 88500, 'RI AGI where the credit starts phasing out for surviving spouses (takes effect 2027).', 400000),
       RATE('phaseout_rate', 'Phase-out rate', 'gov.states.ri.tax.income.credits.ctc.phase_out.rate', 20, 'Share of the credit removed for each income increment above the threshold. Current: 20%.'),
       {
         name: 'phaseout_increment',
@@ -1938,14 +1938,14 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     params: [
       AMT('gov.states.mn.tax.income.credits.cwfc.ctc.amount', 1750, 6000),
       AGE('gov.states.mn.tax.income.credits.cwfc.ctc.age_limit', 18),
-      DOLLAR('threshold_joint', 'Phase-out start — joint', 'gov.states.mn.tax.income.credits.cwfc.phase_out.threshold.joint', 37910, 'Income where phase-out begins (joint).'),
-      DOLLAR('threshold_other', 'Phase-out start — non-joint', 'gov.states.mn.tax.income.credits.cwfc.phase_out.threshold.other', 31950, 'Income where phase-out begins (non-joint).'),
+      DOLLAR('threshold_joint', 'Phase-out start (joint)', 'gov.states.mn.tax.income.credits.cwfc.phase_out.threshold.joint', 37910, 'Income where phase-out begins (joint).'),
+      DOLLAR('threshold_other', 'Phase-out start (non-joint)', 'gov.states.mn.tax.income.credits.cwfc.phase_out.threshold.other', 31950, 'Income where phase-out begins (non-joint).'),
     ],
   },
   OR: {
     name: 'Oregon Child Tax Credit',
     description:
-      'Refundable credit ($1,050/child, ages 0–5 only — note Oregon excludes children at/over the age below). Phases out against Oregon AGI.',
+      'Refundable credit ($1,050 per child, ages 0–5 only; Oregon excludes children at or above the age below). Phases out against Oregon AGI.',
     params: [
       AMT('gov.states.or.tax.income.credits.ctc.amount', 1050, 6000),
       AGE('gov.states.or.tax.income.credits.ctc.ineligible_age', 6, 'Ineligible at/above age'),
@@ -1978,11 +1978,11 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       'Non-refundable credit ($1,000/child). Phases out by filing status against state AGI plus tax-exempt interest. (Age eligibility is a fixed band and is not adjustable here.)',
     params: [
       AMT('gov.states.ut.tax.income.credits.ctc.amount', 1000),
-      DOLLAR('threshold_single', 'Phase-out — single', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SINGLE', 43000, 'Income where phase-out begins (single).'),
-      DOLLAR('threshold_hoh', 'Phase-out — head of household', 'gov.states.ut.tax.income.credits.ctc.reduction.start.HEAD_OF_HOUSEHOLD', 43000, 'Income where phase-out begins (HoH).'),
-      DOLLAR('threshold_joint', 'Phase-out — joint', 'gov.states.ut.tax.income.credits.ctc.reduction.start.JOINT', 54000, 'Income where phase-out begins (joint).'),
-      DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SURVIVING_SPOUSE', 54000, 'Income where phase-out begins (surviving spouse).'),
-      DOLLAR('threshold_separate', 'Phase-out — separate', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SEPARATE', 27000, 'Income where phase-out begins (separate).'),
+      DOLLAR('threshold_single', 'Phase-out (single)', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SINGLE', 43000, 'Income where phase-out begins (single).'),
+      DOLLAR('threshold_hoh', 'Phase-out (head of household)', 'gov.states.ut.tax.income.credits.ctc.reduction.start.HEAD_OF_HOUSEHOLD', 43000, 'Income where phase-out begins (HoH).'),
+      DOLLAR('threshold_joint', 'Phase-out (joint)', 'gov.states.ut.tax.income.credits.ctc.reduction.start.JOINT', 54000, 'Income where phase-out begins (joint).'),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out (surviving spouse)', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SURVIVING_SPOUSE', 54000, 'Income where phase-out begins (surviving spouse).'),
+      DOLLAR('threshold_separate', 'Phase-out (separate)', 'gov.states.ut.tax.income.credits.ctc.reduction.start.SEPARATE', 27000, 'Income where phase-out begins (separate).'),
       RATE('phaseout_rate', 'Phase-out rate', 'gov.states.ut.tax.income.credits.ctc.reduction.rate', 10, 'Share of income above the threshold that reduces the credit.'),
       {
         name: 'make_refundable',
@@ -2068,7 +2068,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       coTier(2, 200, 'Tier 3 amount (upper AGI)'),
       coThreshold(1, 26000, 'Tier 2 income threshold (single filer)'),
       coThreshold(2, 51000, 'Tier 3 income threshold (single filer)'),
-      coThreshold(3, 77000, 'Credit ends — income threshold (single filer)'),
+      coThreshold(3, 77000, 'Credit ends (single filer income threshold)'),
       AGE('gov.states.co.tax.income.credits.ctc.age_threshold', 6),
     ],
   },
@@ -2129,13 +2129,13 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         description:
           'For analysis years 2028+, keep the current age-based credit in effect instead of reverting to the regular (33% of federal) credit. No effect for 2026–2027.',
       },
-      DOLLAR('young_amount', 'Amount — ages 0–3', '', 1000, 'Credit per child under age 4.', 5000),
-      DOLLAR('older_amount', 'Amount — ages 4–16', '', 500, 'Credit per child age 4–16.', 5000),
-      DOLLAR('threshold_single', 'Phase-out — single', '', 75000, 'Federal AGI where phase-out begins (single).'),
-      DOLLAR('threshold_joint', 'Phase-out — joint', '', 110000, 'Federal AGI where phase-out begins (joint).'),
-      DOLLAR('threshold_hoh', 'Phase-out — head of household', '', 75000, 'Federal AGI where phase-out begins (HoH).'),
-      DOLLAR('threshold_separate', 'Phase-out — separate', '', 55000, 'Federal AGI where phase-out begins (separate).'),
-      DOLLAR('threshold_surviving_spouse', 'Phase-out — surviving spouse', '', 110000, 'Federal AGI where phase-out begins (surviving spouse).'),
+      DOLLAR('young_amount', 'Amount (ages 0–3)', '', 1000, 'Credit per child under age 4.', 5000),
+      DOLLAR('older_amount', 'Amount (ages 4–16)', '', 500, 'Credit per child age 4–16.', 5000),
+      DOLLAR('threshold_single', 'Phase-out (single)', '', 75000, 'Federal AGI where phase-out begins (single).'),
+      DOLLAR('threshold_joint', 'Phase-out (joint)', '', 110000, 'Federal AGI where phase-out begins (joint).'),
+      DOLLAR('threshold_hoh', 'Phase-out (head of household)', '', 75000, 'Federal AGI where phase-out begins (HoH).'),
+      DOLLAR('threshold_separate', 'Phase-out (separate)', '', 55000, 'Federal AGI where phase-out begins (separate).'),
+      DOLLAR('threshold_surviving_spouse', 'Phase-out (surviving spouse)', '', 110000, 'Federal AGI where phase-out begins (surviving spouse).'),
       {
         name: 'rate',
         label: 'Phase-out rate',
@@ -2324,15 +2324,15 @@ function bracketAmt(
 
 function nyAgeParams(): AdjustableParameter[] {
   return [
-    { name: 'young_amount', label: 'Amount — ages 0–3', min_value: 0, max_value: 5000, default_value: 1000, step: 50, unit: '$', description: 'Credit per child under age 4.' },
-    { name: 'older_amount', label: 'Amount — ages 4–16', min_value: 0, max_value: 5000, default_value: 500, step: 50, unit: '$', description: 'Credit per child age 4–16.' },
+    { name: 'young_amount', label: 'Amount (ages 0–3)', min_value: 0, max_value: 5000, default_value: 1000, step: 50, unit: '$', description: 'Credit per child under age 4.' },
+    { name: 'older_amount', label: 'Amount (ages 4–16)', min_value: 0, max_value: 5000, default_value: 500, step: 50, unit: '$', description: 'Credit per child age 4–16.' },
     { name: 'split_age', label: 'Older tier starts at age', min_value: 1, max_value: 18, default_value: 4, step: 1, unit: 'yr', description: 'Children under this age get the ages 0–3 amount; from this age up to the eligibility cap they get the ages 4–16 amount.' },
     { name: 'max_age', label: 'Ineligible at age', min_value: 1, max_value: 19, default_value: 17, step: 1, unit: 'yr', description: 'Children this age or older receive no credit.' },
-    { name: 'threshold_single', label: 'Phase-out — single', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (single).' },
-    { name: 'threshold_joint', label: 'Phase-out — joint', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (joint).' },
-    { name: 'threshold_hoh', label: 'Phase-out — head of household', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (HoH).' },
-    { name: 'threshold_separate', label: 'Phase-out — separate', min_value: 0, max_value: 500000, default_value: 55000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (separate).' },
-    { name: 'threshold_surviving_spouse', label: 'Phase-out — surviving spouse', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (surviving spouse).' },
+    { name: 'threshold_single', label: 'Phase-out (single)', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (single).' },
+    { name: 'threshold_joint', label: 'Phase-out (joint)', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (joint).' },
+    { name: 'threshold_hoh', label: 'Phase-out (head of household)', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (HoH).' },
+    { name: 'threshold_separate', label: 'Phase-out (separate)', min_value: 0, max_value: 500000, default_value: 55000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (separate).' },
+    { name: 'threshold_surviving_spouse', label: 'Phase-out (surviving spouse)', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (surviving spouse).' },
     { name: 'rate', label: 'Reduction per increment', min_value: 0, max_value: 500, default_value: 16.5, step: 0.5, unit: '$', description: 'Dollars of credit lost for each AGI increment over the threshold (increments are rounded up).' },
     { name: 'increment', label: 'AGI increment size', min_value: 1, max_value: 20000, default_value: 1000, step: 100, unit: '$', description: 'Income step the phase-out counts: the credit drops by the reduction amount for each increment of AGI over the threshold.' },
   ];
@@ -2409,7 +2409,7 @@ export function buildStateCtcOptions(
       id: 'co_fac',
       name: 'Colorado Family Affordability Credit',
       description:
-        "Colorado's second, larger child credit (HB24-1311): a refundable per-child amount for children under 17 — the full base for children under 6, 75% of it for ages 6–16 — phasing down with AGI. Amounts shown are the full-funding schedule PE-US encodes; actual-law amounts are TABOR-revenue-triggered.",
+        "Colorado's second, larger child credit (HB24-1311): a refundable per-child amount for children under 17, paying the full base for children under 6 and 75% of it for ages 6–16, phasing down with AGI. Amounts shown are the full-funding schedule PE-US encodes; actual-law amounts depend on TABOR revenue triggers.",
       category: 'state_ctc',
       is_configurable: true,
       adjustable_params: anchoredAdjustableParams('co_fac', CO_FAC_PARAMS, year),

@@ -270,7 +270,7 @@ export default function ReportBuilderPage() {
           return `${p.label} ${value}`;
         })
         .filter(Boolean);
-      return params.length ? `${name} — ${params.join(', ')}` : name;
+      return params.length ? `${name}: ${params.join(', ')}` : name;
     });
 
     const payload = {

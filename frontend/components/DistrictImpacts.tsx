@@ -204,7 +204,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
         <p className="text-sm text-pe-gray-500 mb-4">
           Average change in annual net income per resident under the
           reform ({year}) within each of {state}&apos;s congressional
-          districts (119th Congress boundaries) &mdash; the same
+          districts (119th Congress boundaries), the same
           person-weighted measure as the statewide figures. Hover a
           district for its representative and details.
         </p>
