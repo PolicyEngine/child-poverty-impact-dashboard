@@ -268,7 +268,7 @@ export default function HomePage() {
                 </svg>
               }
               title="State CTCs"
-              description="Create or expand state-level child tax credits across all 50 states."
+              description="Create or expand state-level Child Tax Credits across all 50 states."
             />
 
             <ReformCard

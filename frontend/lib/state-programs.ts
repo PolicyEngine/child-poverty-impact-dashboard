@@ -271,7 +271,7 @@ const STRUCTURED_EITC: Record<string, StructuredEitcEntry> = {
         unit: '%',
         divide_by: 100,
         description:
-          'Rate at which the credit phases out above the income threshold (shared with the MN child tax credit). Current: 12%.',
+          'Rate at which the credit phases out above the income threshold (shared with the MN Child Tax Credit). Current: 12%.',
       },
     ],
   },
@@ -1178,7 +1178,7 @@ function buildChildAllowanceOptions(): ReformOption[] {
       id: 'child_allowance',
       name: 'Child allowance',
       description:
-        'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a child tax credit — works in every state, including those with no state CTC.',
+        'Annual cash payment per child, by age tier (under 1, 1–3, 4–5, 6+). Set all four amounts equal for a flat allowance, or any to $0 to drop that tier. Optionally income-test it (AGI phase-out) to act as a Child Tax Credit — works in every state, including those with no state CTC.',
       category: 'child_allowance',
       is_configurable: true,
       creates_program: true,
@@ -1486,7 +1486,7 @@ function buildFederalOptions(stateCode?: string): ReformOption[] {
       id: 'federal_afa',
       name: 'American Family Act',
       description: afaBrokenForState
-        ? 'Temporarily unavailable for Oklahoma: a policyengine-us issue makes the AFA restructure incompatible with the OK child care/child tax credit computation. A fix is queued upstream.'
+        ? 'Temporarily unavailable for Oklahoma: a policyengine-us issue makes the AFA restructure incompatible with the OK child care/Child Tax Credit computation. A fix is queued upstream.'
         : "Sen. Bennet's American Family Act: a fully-refundable CTC of $3,600/child (1.2× for under-6), with a baby bonus in the first month and income phase-out.",
       category: 'federal_ctc',
       ...(afaBrokenForState ? { in_development: true } : {}),
@@ -1865,7 +1865,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   ME: {
     name: 'Maine Dependent Exemption Tax Credit',
     description:
-      "Maine's child tax credit (officially the Dependent Exemption Tax Credit): $305 per dependent, doubled to $610 for children under 6 (new in 2025), phasing out above income thresholds that vary by filing status.",
+      "Maine's Child Tax Credit (officially the Dependent Exemption Tax Credit): $305 per dependent, doubled to $610 for children under 6 (new in 2025), phasing out above income thresholds that vary by filing status.",
     params: [
       {
         name: 'amount',
