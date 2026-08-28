@@ -396,7 +396,7 @@ export default function ReportBuilderPage() {
                 <p className="text-xs text-pe-gray-500 mt-3">
                   {config.states.length === 0
                     ? 'No state selected.'
-                    : `${US_STATES[config.states[0]]} — single-state report.`}
+                    : US_STATES[config.states[0]]}
                 </p>
               </div>
 

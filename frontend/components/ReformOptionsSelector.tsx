@@ -307,8 +307,17 @@ export default function ReformOptionsSelector({
 
         {tabs.find((t) => t.id === activeTab)?.options.length === 0 && (
           <div className="text-center py-6 text-gray-500">
-            No {tabs.find((t) => t.id === activeTab)?.label} options available for
-            this state
+            <p>
+              No {tabs.find((t) => t.id === activeTab)?.label} options
+              available for this state
+            </p>
+            {activeTab === 'ctc' && (
+              <p className="text-sm mt-2">
+                This state has no Child Tax Credit. To create one, use the
+                Child Allowance tab — an income phase-out turns it into a
+                CTC-style credit.
+              </p>
+            )}
           </div>
         )}
       </div>
