@@ -153,13 +153,13 @@ export default function ReformOptionsSelector({
       id: 'fedctc',
       label: 'Federal CTC',
       options: federalCtc,
-      note: 'Choose one federal CTC reform — these are competing proposals, so only one can be active at a time.',
+      note: 'Choose one federal CTC reform. These are competing proposals, so only one can be active at a time.',
     },
     {
       id: 'fedeitc',
       label: 'Federal EITC',
       options: federalEitc,
-      note: 'You can combine both EITC bills — they target different filers (the Tax Cuts for Workers Act expands the credit for childless workers, while the Working Parents Tax Relief Act boosts it for families with young children).',
+      note: 'You can combine both EITC bills because they target different filers: the Tax Cuts for Workers Act expands the credit for childless workers, while the Working Parents Tax Relief Act boosts it for families with young children.',
     },
   ];
 
@@ -237,7 +237,7 @@ export default function ReformOptionsSelector({
           {noOpCount > 0 && (
             <span className="text-amber-700">
               {' '}
-              — {noOpCount} with no changes yet
+              ({noOpCount} with no changes yet)
             </span>
           )}
         </span>
@@ -414,13 +414,13 @@ function ReformOptionCard({
           <p className="text-sm text-gray-600 mt-1">{option.description}</p>
           {isNoOp && (
             <p className="text-xs text-amber-700 mt-1">
-              Every value is still at current law — adjust a value below to
+              Every value is still at current law. Adjust a value below to
               make this selection change policy.
             </p>
           )}
           {inDevelopment && (
             <p className="text-xs text-amber-700 mt-1">
-              Not yet available — coming soon.
+              Not yet available. Coming soon.
             </p>
           )}
         </div>
