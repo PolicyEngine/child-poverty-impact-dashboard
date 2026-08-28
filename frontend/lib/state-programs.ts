@@ -743,6 +743,10 @@ function buildEitcOptions(
         category: 'state_eitc',
         is_configurable: true,
         estimated_household_impact: 500,
+        // A creates_credit state has no baseline EITC — selecting the option
+        // creates one, so mark it as a new program (card badge, chip
+        // defaults, never a no-op).
+        ...(entry?.creates_credit ? { creates_program: true } : {}),
         // Some create-state contrib EITC reforms delete the state's baseline
         // refundable credits upstream (policyengine-us#8775), producing
         // negative-cost results; grey them out until a fixed PE-US ships.
@@ -775,18 +779,24 @@ function buildEitcOptions(
   const hasCap = !!entry?.cap;
   const params: AdjustableParameter[] = [];
 
-  if (isContrib && refundableReady) {
-    params.push({
-      name: 'make_refundable',
-      label: 'Make refundable',
-      control: 'toggle',
-      min_value: 0,
-      max_value: 1,
-      default_value: 0,
-      step: 1,
-      unit: '',
-      description: `Apply the contributed reform that makes ${programs.state_name}'s EITC fully refundable.`,
-    });
+  if (isContrib) {
+    if (refundableReady) {
+      params.push({
+        name: 'make_refundable',
+        label: 'Make refundable',
+        control: 'toggle',
+        min_value: 0,
+        max_value: 1,
+        default_value: 0,
+        step: 1,
+        unit: '',
+        description: `Apply the contributed reform that makes ${programs.state_name}'s EITC fully refundable.`,
+      });
+    }
+    // The match path is a baseline state parameter, so the slider works on
+    // its own: adjusting it alone changes the NONREFUNDABLE credit, and the
+    // toggle above layers refundability on top. Never gate the slider
+    // behind the toggle.
     params.push({
       name: 'match_rate',
       label: 'Match rate',
@@ -795,8 +805,7 @@ function buildEitcOptions(
       default_value: current_rate,
       step: 1,
       unit: '%',
-      depends_on: 'make_refundable',
-      description: `Percentage of federal EITC once refundable. Current: ${current_rate}%.`,
+      description: `Percentage of the federal EITC. Current: ${current_rate}%. Adjusting the rate alone keeps the credit non-refundable.`,
     });
   }
 

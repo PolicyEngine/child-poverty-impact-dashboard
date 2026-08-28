@@ -144,6 +144,16 @@ export default function ReportBuilderPage() {
 
   const currentStepIndex = STEPS.findIndex(s => s.key === step);
 
+  /** Navigate between wizard steps. Returning to the state step dumps all
+   *  reform selections and parameter values, so options configured for one
+   *  state can never compute against a different, later-selected state. */
+  const goToStep = (target: Step) => {
+    if (target === 'state') {
+      setConfig((c) => ({ ...c, selectedReforms: [], parameterValues: {} }));
+    }
+    setStep(target);
+  };
+
   const handleReformChange = (selectedReforms: string[]) => {
     setConfig(c => ({ ...c, selectedReforms }));
   };
@@ -311,7 +321,7 @@ export default function ReportBuilderPage() {
               return (
                 <button
                   key={s.key}
-                  onClick={() => isClickable && setStep(s.key)}
+                  onClick={() => isClickable && goToStep(s.key)}
                   disabled={!isClickable}
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
                     isActive
@@ -360,7 +370,7 @@ export default function ReportBuilderPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mt-4">
+                <div className="grid grid-cols-5 sm:grid-cols-[repeat(13,minmax(0,1fr))] md:grid-cols-[repeat(17,minmax(0,1fr))] gap-2 mt-4">
                   {Object.entries(US_STATES).map(([code, name]) => {
                     const selected = config.states[0] === code;
                     const select = () =>
@@ -490,7 +500,7 @@ export default function ReportBuilderPage() {
                 />
 
                 <div className="flex justify-between items-center mt-8 pt-6 border-t border-pe-gray-100">
-                  <button onClick={() => setStep('state')} className="btn btn-ghost">
+                  <button onClick={() => goToStep('state')} className="btn btn-ghost">
                     Back
                   </button>
                   <button
@@ -515,24 +525,36 @@ export default function ReportBuilderPage() {
           {/* Step 3: Optional household example */}
           {step === 'household' && (
             <div className="space-y-6">
-              <div className="card bg-pe-teal-50 border-pe-teal-200">
-                <h2 className="text-xl font-semibold text-pe-teal-800">
-                  Add a household example (optional)
-                </h2>
-                <p className="text-sm text-pe-teal-700 mt-1">
-                  Specify a household to also see how the reform affects that
-                  family's net income, CTC, EITC, and SNAP. Skip to go
-                  straight to the statewide impacts — the microsimulation
-                  always runs.
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => handleRunReport({ skipHousehold: true })}
-                    disabled={isRunning}
-                    className="btn btn-secondary"
-                  >
-                    Skip and run statewide only
-                  </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="card bg-pe-teal-50 border-pe-teal-200">
+                  <h2 className="text-lg font-semibold text-pe-teal-800">
+                    Add a household example
+                  </h2>
+                  <p className="text-sm text-pe-teal-700 mt-1">
+                    See how the reform changes this family's net income,
+                    credits, and SNAP.
+                  </p>
+                  <p className="text-xs text-pe-teal-600 mt-2">
+                    Fill in the details below, then run the analysis.
+                  </p>
+                </div>
+                <div className="card">
+                  <h2 className="text-lg font-semibold text-pe-gray-800">
+                    Or skip this step
+                  </h2>
+                  <p className="text-sm text-pe-gray-600 mt-1">
+                    Go straight to the statewide impacts. The
+                    microsimulation always runs.
+                  </p>
+                  <div className="mt-3">
+                    <button
+                      onClick={() => handleRunReport({ skipHousehold: true })}
+                      disabled={isRunning}
+                      className="btn btn-secondary"
+                    >
+                      Skip and run statewide only
+                    </button>
+                  </div>
                 </div>
               </div>
 
