@@ -11,6 +11,12 @@ import { eitcStructured, eitcIsWfc } from '@/lib/state-programs';
 // children — so they stack.)
 const SINGLE_SELECT_CATEGORIES = new Set<string>(['federal_ctc']);
 
+/** Float-safe "still at current law" check — slider/typed values must
+ *  compare equal to decimal defaults (e.g. 4.5) without FP noise. */
+function isAtDefault(value: number | undefined, dflt: number): boolean {
+  return value === undefined || Math.abs(value - dflt) < 1e-9;
+}
+
 // Track parameter values for configurable options
 export interface ParameterValues {
   [optionId: string]: {
@@ -161,18 +167,17 @@ export default function ReformOptionsSelector({
   // builders emit only changed values, so these are no-ops. Created programs
   // (selection alone is a reform) and preset options without adjustable
   // params (selection flips the reform on) are never no-ops.
+  const isNoOpSelection = (o: ReformOption): boolean => {
+    if (o.creates_program) return false;
+    const ps = o.adjustable_params ?? [];
+    if (!o.is_configurable || ps.length === 0) return false;
+    const pv = parameterValues[o.id] || {};
+    return ps.every((p) => isAtDefault(pv[p.name], p.default_value));
+  };
   const noOpCount = tabs
     .flatMap((t) => t.options)
-    .filter((o) => {
-      if (!selectedOptions.includes(o.id)) return false;
-      if (o.creates_program) return false;
-      const ps = o.adjustable_params ?? [];
-      if (!o.is_configurable || ps.length === 0) return false;
-      const pv = parameterValues[o.id] || {};
-      return ps.every(
-        (p) => pv[p.name] === undefined || pv[p.name] === p.default_value,
-      );
-    }).length;
+    .filter((o) => selectedOptions.includes(o.id) && isNoOpSelection(o))
+    .length;
 
   return (
     <div className="space-y-4">
@@ -247,11 +252,11 @@ export default function ReformOptionsSelector({
       <div className="border-b border-gray-200">
         <div className="flex overflow-x-auto">
           {tabs.map((tab) => {
-            // Badge shows how many reforms in this category are ACTIVE (not
-            // how many are available), so users can see at a glance what
-            // they're calculating.
-            const activeCount = tab.options.filter((o) =>
-              selectedOptions.includes(o.id),
+            // Badge shows how many reforms in this category actually CHANGE
+            // policy — selected no-ops (everything still at current law)
+            // don't count, so resetting values returns the tab to no badge.
+            const activeCount = tab.options.filter(
+              (o) => selectedOptions.includes(o.id) && !isNoOpSelection(o),
             ).length;
             return (
               <button
@@ -312,11 +317,20 @@ export default function ReformOptionsSelector({
               available for this state
             </p>
             {activeTab === 'ctc' && (
-              <p className="text-sm mt-2">
-                This state has no Child Tax Credit. To create one, use the
-                Child Allowance tab — an income phase-out turns it into a
-                CTC-style credit.
-              </p>
+              <div className="mt-3">
+                <p className="text-sm">
+                  This state has no Child Tax Credit. You can create one with
+                  the child allowance: add an income phase-out to make it a
+                  CTC-style credit.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('allowance')}
+                  className="btn btn-primary mt-3"
+                >
+                  Create one with the Child Allowance
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -349,10 +363,9 @@ function ReformOptionCard({
     isSelected &&
     !option.creates_program &&
     hasAdjustableParams &&
-    option.adjustable_params!.every((p) => {
-      const v = parameterValues[p.name];
-      return v === undefined || v === p.default_value;
-    });
+    option.adjustable_params!.every((p) =>
+      isAtDefault(parameterValues[p.name], p.default_value),
+    );
   // Child allowance + state CTC tabs have a single option, so show its
   // inputs as a wizard immediately (no card-click to expand) and use typed
   // input boxes rather than sliders.
@@ -385,6 +398,11 @@ function ReformOptionCard({
             {inDevelopment && (
               <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
                 In development
+              </span>
+            )}
+            {option.creates_program && (
+              <span className="text-xs bg-pe-teal-100 text-pe-teal-700 px-2 py-0.5 rounded">
+                Creates a new program
               </span>
             )}
             {isNoOp && (
