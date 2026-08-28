@@ -83,7 +83,7 @@ export default function AboutPage() {
           <div>
             <h3 className="font-semibold text-gray-800">State CTCs</h3>
             <p className="text-gray-600">
-              Adjust the 21 existing state child tax credits (amounts, age limits,
+              Adjust the 21 existing state Child Tax Credits (amounts, age limits,
               phase-outs, refundability), revive Idaho&apos;s expired credit, or create a
               new credit in any state.
             </p>
@@ -91,7 +91,7 @@ export default function AboutPage() {
           <div>
             <h3 className="font-semibold text-gray-800">State EITCs</h3>
             <p className="text-gray-600">
-              Adjust the 31 existing state earned income tax credits (match rates,
+              Adjust the 31 existing state Earned Income Tax Credits (match rates,
               refundability, structured credits like Washington&apos;s WFTC and
               Minnesota&apos;s Working Family Credit) or create one where none exists.
             </p>
