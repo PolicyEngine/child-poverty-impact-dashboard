@@ -403,11 +403,6 @@ export default function ReportBuilderPage() {
                   })}
                 </div>
 
-                <p className="text-xs text-pe-gray-500 mt-3">
-                  {config.states.length === 0
-                    ? 'No state selected.'
-                    : US_STATES[config.states[0]]}
-                </p>
               </div>
 
               {/* Year Selection */}
@@ -531,8 +526,7 @@ export default function ReportBuilderPage() {
                     Add a household example
                   </h2>
                   <p className="text-sm text-pe-teal-700 mt-1">
-                    See how the reform changes this family's net income,
-                    credits, and SNAP.
+                    See how the reform changes this family's net income.
                   </p>
                   <p className="text-xs text-pe-teal-600 mt-2">
                     Fill in the details below, then run the analysis.
