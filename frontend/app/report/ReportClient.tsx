@@ -370,8 +370,9 @@ export default function ReportBuilderPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-5 sm:grid-cols-[repeat(13,minmax(0,1fr))] md:grid-cols-[repeat(17,minmax(0,1fr))] gap-2 mt-4">
-                  {Object.entries(US_STATES).map(([code, name]) => {
+                {(() => {
+                  const entries = Object.entries(US_STATES);
+                  const stateTile = ([code, name]: [string, string]) => {
                     const selected = config.states[0] === code;
                     const select = () =>
                       setConfig((c) =>
@@ -391,7 +392,7 @@ export default function ReportBuilderPage() {
                         onClick={select}
                         title={name}
                         aria-pressed={selected}
-                        className={`flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                        className={`flex flex-1 items-center justify-center p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
                           selected
                             ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
                             : 'border-pe-gray-200 text-pe-gray-700'
@@ -400,8 +401,31 @@ export default function ReportBuilderPage() {
                         <span className="font-semibold text-sm">{code}</span>
                       </button>
                     );
-                  })}
-                </div>
+                  };
+                  // 51 tiles as 10 / 10 / 11 / 10 / 10 — the extra tile sits
+                  // in the middle row so every row reads as full.
+                  const rowSizes = [10, 10, 11, 10, 10];
+                  const rows: [string, string][][] = [];
+                  let start = 0;
+                  for (const size of rowSizes) {
+                    rows.push(entries.slice(start, start + size));
+                    start += size;
+                  }
+                  return (
+                    <>
+                      <div className="hidden sm:flex flex-col gap-2 mt-4">
+                        {rows.map((row, i) => (
+                          <div key={i} className="flex gap-2">
+                            {row.map(stateTile)}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mt-4 sm:hidden">
+                        {entries.map(stateTile)}
+                      </div>
+                    </>
+                  );
+                })()}
 
               </div>
 
