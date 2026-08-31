@@ -93,7 +93,7 @@ export default function LayoutShell({
 
           <div className="border-t border-pe-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-pe-gray-400">
-              Data updated 2024. Built with PolicyEngine microsimulation.
+              Built on 2024 microdata projected to the analysis year with PolicyEngine microsimulation.
             </p>
             <div className="flex items-center gap-2">
               <span className="text-xs text-pe-gray-400">Powered by</span>

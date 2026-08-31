@@ -11,6 +11,7 @@ import type {
   StatePrograms,
 } from '@/lib/household-types';
 import type { ParameterValues } from '@/components/ReformOptionsSelector';
+import { selectionChangesPolicy } from '@/components/ReformOptionsSelector';
 import { US_STATES } from '@/lib/household-types';
 import { SHARE_PARAM, encodeReportConfig } from '@/lib/share-link';
 import {
@@ -270,8 +271,17 @@ export default function ReportBuilderPage() {
           return `${p.label} ${value}`;
         })
         .filter(Boolean);
-      return params.length ? `${name}: ${params.join(', ')}` : name;
-    });
+      if (params.length) return `${name}: ${params.join(', ')}`;
+      // A configurable option with every value still at current law is a
+      // no-op — the builders emit nothing for it, so it gets no chip.
+      // Presets without adjustable params (federal bills) and created
+      // programs are real reforms on selection and keep their chip.
+      const isNoOp =
+        !opt?.creates_program &&
+        opt?.is_configurable &&
+        (opt?.adjustable_params?.length ?? 0) > 0;
+      return isNoOp ? null : name;
+    }).filter((l): l is string => l !== null);
 
     const payload = {
       ...config,
@@ -285,7 +295,24 @@ export default function ReportBuilderPage() {
     router.push(`/report/results?${SHARE_PARAM}=${encodeReportConfig(payload)}`);
   };
 
-  const canProceedToHousehold = config.selectedReforms.length > 0;
+  // Running requires at least one reform that actually changes policy —
+  // selections with every value at current law are no-ops the builders
+  // emit nothing for.
+  const allSelectableOptions = reformOptions
+    ? [
+        ...reformOptions.ctc_options,
+        ...reformOptions.eitc_options,
+        ...reformOptions.dependent_exemption_options,
+        ...reformOptions.grocery_credit_options,
+        ...reformOptions.snap_options,
+        ...reformOptions.child_allowance_options,
+        ...reformOptions.federal_options,
+      ]
+    : [];
+  const canProceedToHousehold = config.selectedReforms.some((id) => {
+    const opt = allSelectableOptions.find((o) => o.id === id);
+    return opt ? selectionChangesPolicy(opt, config.parameterValues?.[id]) : false;
+  });
 
   return (
     <div className="min-h-screen bg-pe-gray-50/30">
