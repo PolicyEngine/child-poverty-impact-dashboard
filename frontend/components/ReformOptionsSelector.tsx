@@ -197,8 +197,8 @@ export default function ReformOptionsSelector({
             Current Programs in {statePrograms.state_name}
           </h3>
           <p className="text-xs text-gray-500 mb-3">
-            Every existing program is always part of the calculation under
-            current law. Select a program below only to change it.
+            These programs are already included in every calculation. You
+            only need to select one if you want to change it.
           </p>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-start gap-2">
