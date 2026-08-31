@@ -17,6 +17,20 @@ function isAtDefault(value: number | undefined, dflt: number): boolean {
   return value === undefined || Math.abs(value - dflt) < 1e-9;
 }
 
+/** Whether selecting this option actually changes policy. The reform
+ *  builders emit only values changed from current law, so a configurable
+ *  option with every param at its default is a no-op. Created programs and
+ *  presets without adjustable params are reforms on selection alone. */
+export function selectionChangesPolicy(
+  option: ReformOption,
+  pv: { [paramName: string]: number } | undefined,
+): boolean {
+  if (option.creates_program) return true;
+  const ps = option.adjustable_params ?? [];
+  if (!option.is_configurable || ps.length === 0) return true;
+  return ps.some((p) => !isAtDefault(pv?.[p.name], p.default_value));
+}
+
 // Track parameter values for configurable options
 export interface ParameterValues {
   [optionId: string]: {
@@ -167,13 +181,8 @@ export default function ReformOptionsSelector({
   // builders emit only changed values, so these are no-ops. Created programs
   // (selection alone is a reform) and preset options without adjustable
   // params (selection flips the reform on) are never no-ops.
-  const isNoOpSelection = (o: ReformOption): boolean => {
-    if (o.creates_program) return false;
-    const ps = o.adjustable_params ?? [];
-    if (!o.is_configurable || ps.length === 0) return false;
-    const pv = parameterValues[o.id] || {};
-    return ps.every((p) => isAtDefault(pv[p.name], p.default_value));
-  };
+  const isNoOpSelection = (o: ReformOption): boolean =>
+    !selectionChangesPolicy(o, parameterValues[o.id]);
   const noOpCount = tabs
     .flatMap((t) => t.options)
     .filter((o) => selectedOptions.includes(o.id) && isNoOpSelection(o))
@@ -359,13 +368,7 @@ function ReformOptionCard({
   // programs (child allowance) are the exception — their defaults are a
   // real reform. Surface the no-op state so "selected" isn't mistaken
   // for "changing policy".
-  const isNoOp =
-    isSelected &&
-    !option.creates_program &&
-    hasAdjustableParams &&
-    option.adjustable_params!.every((p) =>
-      isAtDefault(parameterValues[p.name], p.default_value),
-    );
+  const isNoOp = isSelected && !selectionChangesPolicy(option, parameterValues);
   // Child allowance + state CTC tabs have a single option, so show its
   // inputs as a wizard immediately (no card-click to expand) and use typed
   // input boxes rather than sliders.
