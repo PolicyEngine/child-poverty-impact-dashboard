@@ -196,6 +196,10 @@ export default function ReformOptionsSelector({
           <h3 className="font-semibold text-gray-800 mb-3">
             Current Programs in {statePrograms.state_name}
           </h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Every existing program is always part of the calculation under
+            current law. Select a program below only to change it.
+          </p>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-start gap-2">
               <span className={statePrograms.has_state_ctc ? 'text-green-600' : 'text-gray-400'}>
