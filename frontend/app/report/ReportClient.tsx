@@ -270,8 +270,17 @@ export default function ReportBuilderPage() {
           return `${p.label} ${value}`;
         })
         .filter(Boolean);
-      return params.length ? `${name}: ${params.join(', ')}` : name;
-    });
+      if (params.length) return `${name}: ${params.join(', ')}`;
+      // A configurable option with every value still at current law is a
+      // no-op — the builders emit nothing for it, so it gets no chip.
+      // Presets without adjustable params (federal bills) and created
+      // programs are real reforms on selection and keep their chip.
+      const isNoOp =
+        !opt?.creates_program &&
+        opt?.is_configurable &&
+        (opt?.adjustable_params?.length ?? 0) > 0;
+      return isNoOp ? null : name;
+    }).filter((l): l is string => l !== null);
 
     const payload = {
       ...config,
