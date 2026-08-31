@@ -320,6 +320,18 @@ export function StatewideFiscal({ results, year }: TabProps) {
     { name: 'SNAP', value: fiscal_cost.snap_cost_billions },
     { name: 'Dependent exemption', value: fiscal_cost.dependent_exemption_cost_billions },
   ].filter((p) => Math.abs(p.value) > 0.001);
+  // The per-program rows attribute each credit's direct change; the total
+  // also carries interactions those rows don't capture (for example, full
+  // refundability moving income tax beyond the credit amount). Surface the
+  // remainder so the table always sums to the Total card.
+  const attributedCost = programBreakdown.reduce((acc, p) => acc + p.value, 0);
+  const interactionCost = fiscal_cost.total_cost_billions - attributedCost;
+  if (Math.abs(interactionCost) > 0.001) {
+    programBreakdown.push({
+      name: 'Other tax and benefit interactions',
+      value: interactionCost,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -349,6 +361,11 @@ export function StatewideFiscal({ results, year }: TabProps) {
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-gray-500 italic mt-2">
+            Program rows show each credit's direct change. The interactions
+            row captures knock-on effects on other taxes and benefits, so
+            the rows sum to the total below.
+          </p>
           {fiscal_cost.state === 'MN' && (
             <p className="text-xs text-gray-500 italic mt-2">
               Note: Minnesota administers its Working Family Credit as part of
