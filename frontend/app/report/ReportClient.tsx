@@ -392,7 +392,7 @@ export default function ReportBuilderPage() {
                         onClick={select}
                         title={name}
                         aria-pressed={selected}
-                        className={`flex flex-1 items-center justify-center p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
+                        className={`flex sm:flex-none sm:basis-[calc((100%-5rem)/11)] items-center justify-center p-2 rounded-lg border cursor-pointer transition-all hover:border-pe-teal-300 hover:bg-pe-teal-50 ${
                           selected
                             ? 'border-pe-teal-500 bg-pe-teal-50 text-pe-teal-700'
                             : 'border-pe-gray-200 text-pe-gray-700'
@@ -415,7 +415,7 @@ export default function ReportBuilderPage() {
                     <>
                       <div className="hidden sm:flex flex-col gap-2 mt-4">
                         {rows.map((row, i) => (
-                          <div key={i} className="flex gap-2">
+                          <div key={i} className="flex justify-center gap-2">
                             {row.map(stateTile)}
                           </div>
                         ))}
