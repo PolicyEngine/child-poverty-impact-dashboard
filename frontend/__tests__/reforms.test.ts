@@ -1072,17 +1072,18 @@ describe('buildReformDict', () => {
     const refundable = buildReformDict(['id_ctc'], { id_ctc: { make_refundable: 1 } }, 2026);
     expect(refundable[`${C}.in_effect`]).toBe(true);
     expect(refundable[`${C}.refundable.in_effect`]).toBe(true);
-    // $205 is the enacted refundable cap, so it is not re-emitted.
-    expect(refundable[`${C}.refundable.amount`]).toBeUndefined();
-    const capped = buildReformDict(
+    // The refundable cap always tracks the credit amount, so the full
+    // credit pays out as a refund whatever amount the user sets.
+    expect(refundable[`${C}.refundable.amount`]).toBe(205);
+    const bigger = buildReformDict(
       ['id_ctc'],
-      { id_ctc: { make_refundable: 1, refundable_amount: 300 } },
+      { id_ctc: { make_refundable: 1, amount: 500 } },
       2026,
     );
-    expect(capped[`${C}.refundable.amount`]).toBe(300);
-    // Refundable inputs are ignored while the toggle is off.
+    expect(bigger[`${C}.refundable.amount`]).toBe(500);
+    // No refundable emission while the toggle is off.
     expect(
-      buildReformDict(['id_ctc'], { id_ctc: { refundable_amount: 300 } }, 2026),
+      buildReformDict(['id_ctc'], { id_ctc: {} }, 2026),
     ).toEqual({ [`${C}.in_effect`]: true });
   });
 

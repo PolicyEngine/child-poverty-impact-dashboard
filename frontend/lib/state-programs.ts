@@ -151,6 +151,12 @@ export function buildStateEitcReform(
   const entry = EITC_REFORMS[code];
   if (!entry || typeof entry === 'string') return {};
   const reform: Record<string, number | boolean> = {};
+  // A created credit only exists once a positive match rate is set — with
+  // no rate the selection is a no-op, matching the wizard's no-change
+  // banner and run gate.
+  if (entry.creates_credit && !((opts.matchRate ?? 0) > 0)) {
+    return {};
+  }
   if (
     entry.type === 'contrib' &&
     entry.in_effect &&
@@ -743,10 +749,6 @@ function buildEitcOptions(
         category: 'state_eitc',
         is_configurable: true,
         estimated_household_impact: 500,
-        // A creates_credit state has no baseline EITC — selecting the option
-        // creates one, so mark it as a new program (card badge, chip
-        // defaults, never a no-op).
-        ...(entry?.creates_credit ? { creates_program: true } : {}),
         // Some create-state contrib EITC reforms delete the state's baseline
         // refundable credits upstream (policyengine-us#8775), producing
         // negative-cost results; grey them out until a fixed PE-US ships.
@@ -757,10 +759,15 @@ function buildEitcOptions(
             label: 'Match rate',
             min_value: 0,
             max_value: 100,
-            default_value: current_rate,
+            // A state without an EITC has a current-law rate of 0 — the
+            // credit only exists once the user sets a percentage, so the
+            // no-change banner and the builder agree at the default.
+            default_value: entry?.creates_credit ? 0 : current_rate,
             step: 1,
             unit: '%',
-            description: `Percentage of federal EITC. Current: ${current_rate}%.`,
+            description: entry?.creates_credit
+              ? 'Percentage of the federal EITC. Set a rate to create the credit.'
+              : `Percentage of the federal EITC. Current: ${current_rate}%.`,
           },
         ],
       },
@@ -1545,6 +1552,9 @@ interface CtcRegistryEntry {
    *  current modelling is too rough to expose as a reform (e.g. NE's Child
    *  Care Tax Credit, whose licensed-care gate PE only approximates). */
   in_development?: boolean;
+  /** Selection alone changes policy (e.g. ID's revive flips a contrib
+   *  in_effect flag) — never a no-op, chip shows defaults. */
+  creates_program?: boolean;
 }
 
 const AMT = (
@@ -1731,6 +1741,10 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   },
   ID: {
     name: 'Revive the expired Idaho Child Tax Credit',
+    // Selection alone re-activates the expired credit (the builder always
+    // emits the contrib in_effect flag), so it is effective with every
+    // param at its default.
+    creates_program: true,
     description:
       "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026 (us#8856 contributed reform); optionally adjust the amount or add a refundable portion.",
     params: [
@@ -1746,20 +1760,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below.',
-      },
-      {
-        name: 'refundable_amount',
-        label: 'Refundable portion per child',
-        path: '',
-        default_value: 205,
-        min_value: 0,
-        max_value: 3000,
-        step: 5,
-        unit: '$',
-        depends_on: 'make_refundable',
-        description:
-          'Maximum refunded per child beyond tax owed. Defaults to $205 (the full credit); raise it alongside the credit amount for a fully refundable higher credit.',
+          'Pay the full credit amount as a refund when it exceeds tax owed.',
       },
     ],
   },
@@ -2401,6 +2402,7 @@ export function buildStateCtcOptions(
       category: 'state_ctc',
       is_configurable: !entry.in_development,
       ...(entry.in_development ? { in_development: true } : {}),
+      ...(entry.creates_program ? { creates_program: true } : {}),
       adjustable_params,
     },
   ];
@@ -2579,7 +2581,7 @@ function buildGaCtcReform(
  *  current-law credit to no-op against. The baseline $205 amount param still
  *  exists (only the credit-list entry lapsed), so amount edits set it
  *  directly and the contrib reads it. The refundable top-up works like UT/GA. */
-const ID_REFORM_PARAM_NAMES = new Set(['make_refundable', 'refundable_amount']);
+const ID_REFORM_PARAM_NAMES = new Set(['make_refundable']);
 
 function buildIdCtcReform(
   pv?: Record<string, number>,
@@ -2592,10 +2594,9 @@ function buildIdCtcReform(
   };
   if (pv?.make_refundable) {
     out['gov.contrib.states.id.ctc.refundable.in_effect'] = true;
-    const refundable = pv?.refundable_amount ?? 205;
-    if (refundable !== 205) {
-      out['gov.contrib.states.id.ctc.refundable.amount'] = refundable;
-    }
+    // The refundable cap always tracks the credit amount, so the full
+    // credit pays out as a refund whatever amount the user sets.
+    out['gov.contrib.states.id.ctc.refundable.amount'] = pv?.amount ?? 205;
   }
   return out;
 }
