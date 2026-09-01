@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-08-20c-buildp-acs-local+pe-us-1.808.0"})
+    .env({"CPID_BUILD_REV": "2026-09-01c-buildp-acs-local+pe-us-1.808.0"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -391,6 +391,35 @@ def _own_state_credit_vars(sim, state_code: str, year: int, kind: str) -> list:
     ]
 
 
+# Per-state credits that get their own display line (household card,
+# sweep hovercard, and economy program row) instead of folding into the
+# CTC/EITC buckets or the interactions residual.
+STATE_EXTRA_CREDITS = {
+    "ID": [("grocery_credit", "id_grocery_credit")],
+}
+
+
+def _state_extra_credits(state_code: str) -> list:
+    return STATE_EXTRA_CREDITS.get(state_code.upper(), [])
+
+
+ID_REVIVE_FLAG = "gov.contrib.states.id.ctc.in_effect"
+
+
+def _id_ctc_var_lists(state_code: str, reform_payload, ctc_vars, ctc_extras):
+    """Idaho's id_ctc reports the worksheet entitlement even while the
+    credit is EXPIRED (a phantom ~$410/2-kid value in the 2026+ baseline),
+    so it must never be counted on the baseline side — and on the reform
+    side only when the revive contrib is active. Returns adjusted
+    (ctc_vars, ctc_extras)."""
+    if state_code.upper() != "ID":
+        return ctc_vars, ctc_extras
+    vars_wo = [v for v in ctc_vars if v != "id_ctc"]
+    revive = bool((reform_payload or {}).get(ID_REVIVE_FLAG))
+    extras = list(ctc_extras) + (["id_ctc"] if revive else [])
+    return vars_wo, extras
+
+
 def _reform_created_credit_vars(
     sim_baseline, sim_reform, state_code: str
 ) -> tuple[list, list]:
@@ -415,11 +444,23 @@ def _reform_created_credit_vars(
     ):
         if name not in b_vars and name in r_vars:
             bucket.append(name)
+    # Idaho's revived id_ctc reports the full worksheet entitlement (not the
+    # liability-capped amount like ga_ctc/ut_ctc), and id_refundable_ctc pays
+    # only the UNUSED portion — summing both double-counts the refund. With
+    # the refund cap pinned to the credit amount, id_ctc alone equals the
+    # delivered total, so drop the top-up from the sum.
+    if st == "id" and f"{st}_refundable_ctc" in ctc_extras:
+        ctc_extras.remove(f"{st}_refundable_ctc")
     return eitc_extras, ctc_extras
 
 
 def _household_point(
-    sim_baseline, sim_reform, year: int, state_code: str, sim_dep=None
+    sim_baseline,
+    sim_reform,
+    year: int,
+    state_code: str,
+    sim_dep=None,
+    reform_payload=None,
 ) -> dict:
     """Compute the per-point payload the React client expects.
 
@@ -443,6 +484,9 @@ def _household_point(
     eitc_extras, ctc_extras = _reform_created_credit_vars(
         sim_baseline, sim_reform, state_code
     )
+    ctc_vars, ctc_extras = _id_ctc_var_lists(
+        state_code, reform_payload, ctc_vars, ctc_extras
+    )
 
     def _sum(sim, names: list) -> float:
         return float(sum(_val(sim, n) for n in names))
@@ -459,6 +503,10 @@ def _household_point(
             "child_allowance": _val(sim, "basic_income"),
             "snap_benefits": _val(sim, "snap"),
             "in_poverty": bool(_val(sim, "in_poverty") > 0),
+            **{
+                key: _val(sim, var)
+                for key, var in _state_extra_credits(state_code)
+            },
         }
 
     base_row = _row(sim_baseline)
@@ -528,7 +576,14 @@ def compute_household_sweep(payload: dict) -> dict:
             if dep_reform is not None
             else None
         )
-        point = _household_point(sim_b, sim_r, year, state_code, sim_dep=sim_dep)
+        point = _household_point(
+            sim_b,
+            sim_r,
+            year,
+            state_code,
+            sim_dep=sim_dep,
+            reform_payload=payload.get("reform"),
+        )
         data_points = [{"income": float(incomes[0]), **point["reform"]}]
         baseline_data_points = [{"income": float(incomes[0]), **point["baseline"]}]
     else:
@@ -549,6 +604,9 @@ def compute_household_sweep(payload: dict) -> dict:
         # them when summing the reform rows (created e.g. by ND's 10% EITC).
         eitc_extras, ctc_extras = _reform_created_credit_vars(
             sim_b, sim_r, state_code
+        )
+        ctc_vars, ctc_extras = _id_ctc_var_lists(
+            state_code, payload.get("reform"), ctc_vars, ctc_extras
         )
         n = len(incomes)
 
@@ -575,6 +633,10 @@ def compute_household_sweep(payload: dict) -> dict:
             ca = _arr(sim, "basic_income")
             snap = _arr(sim, "snap")
             pov = _arr(sim, "in_poverty")
+            extras = {
+                key: _arr(sim, var)
+                for key, var in _state_extra_credits(state_code)
+            }
             return [
                 {
                     "income": float(incomes[i]),
@@ -588,6 +650,7 @@ def compute_household_sweep(payload: dict) -> dict:
                     "child_allowance": float(ca[i]),
                     "snap_benefits": float(snap[i]),
                     "in_poverty": bool(pov[i] > 0),
+                    **{key: float(arr[i]) for key, arr in extras.items()},
                 }
                 for i in range(n)
             ]
@@ -761,11 +824,30 @@ def compute_economy(payload: dict) -> dict:
     state_ctc_change = (
         _delta("state_ctc")
         + _reform_only_sum(f"{st_l}_ctc")
-        + _reform_only_sum(f"{st_l}_refundable_ctc")
+        # id_ctc reports the full entitlement and its refundable contrib
+        # pays only the unused portion, so adding id_refundable_ctc would
+        # double-count the refund (see _reform_created_credit_vars).
+        + (
+            _reform_only_sum(f"{st_l}_refundable_ctc")
+            if st_l != "id"
+            else 0.0
+        )
     )
+    # Idaho phantom-baseline correction: id_ctc reports its worksheet value
+    # even while expired, so delta(state_ctc) nets the revive against a
+    # baseline that never pays. Add the phantom baseline back when the
+    # revive is active (without it the id_ctc delta is zero anyway).
+    if st_l == "id" and bool((reform_payload or {}).get(ID_REVIVE_FLAG)):
+        state_ctc_change += _hh_sum(sim_baseline, "id_ctc")
     state_eitc_change = _delta("state_eitc") + _reform_only_sum(f"{st_l}_eitc")
     # ubi_center basic income — the child allowance / baby bonus reforms.
     ubi_change = _delta("basic_income")
+    # Per-state extra credits (e.g. Idaho's grocery credit) get their own
+    # program rows instead of landing in the interactions residual.
+    extra_credit_changes = {
+        f"{key}_change": _delta(var)
+        for key, var in _state_extra_credits(state_code)
+    }
     _log("fiscal done")
 
     # Dependent exemption/credit cost — isolated. A dependent exemption only
@@ -1148,6 +1230,7 @@ def compute_economy(payload: dict) -> dict:
             "state_eitc_change": state_eitc_change,
             "ubi_change": ubi_change,
             "dependent_exemption_change": dependent_exemption_change,
+            **extra_credit_changes,
         },
         "poverty": {
             "overall_baseline_rate": _rate(pov_bl_arr, all_mask),

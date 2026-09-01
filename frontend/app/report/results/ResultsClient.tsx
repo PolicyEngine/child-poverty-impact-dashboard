@@ -1059,6 +1059,7 @@ interface ChartPoint {
    *  exemption is raised, negative when shrunk/eliminated, keeping the sign
    *  convention of the benefit rows above. */
   dependent_exemption_change: number;
+  grocery_credit_change: number;
 }
 
 function NetIncomeChangeTooltip({
@@ -1105,6 +1106,12 @@ function NetIncomeChangeTooltip({
           <span>Dependent exemption</span>
           <span>{fmt(p.dependent_exemption_change)}</span>
         </div>
+        {p.grocery_credit_change !== 0 && (
+          <div className="flex justify-between gap-3">
+            <span>Grocery credit</span>
+            <span>{fmt(p.grocery_credit_change)}</span>
+          </div>
+        )}
       </div>
       <div className="border-t border-pe-gray-200 mt-1 pt-1 flex justify-between gap-3 font-semibold text-pe-gray-800">
         <span>Net income change</span>
@@ -1154,6 +1161,18 @@ function HouseholdOverviewTab({
       label: 'Dependent exemption',
       change: reform.dependent_exemption_change ?? 0,
     },
+    // Per-state extra credit (currently Idaho's grocery credit) — only
+    // rendered for states that return the field.
+    ...(reform.grocery_credit !== undefined ||
+    baselineHH.grocery_credit !== undefined
+      ? [
+          {
+            label: 'Grocery credit',
+            change:
+              (reform.grocery_credit ?? 0) - (baselineHH.grocery_credit ?? 0),
+          },
+        ]
+      : []),
   ];
 
   // Waterfall: each nonzero provision steps the running total from 0 toward
@@ -1210,6 +1229,8 @@ function HouseholdOverviewTab({
         // Already an isolated baseline−reform delta from the backend; use the
         // reform point's value directly rather than differencing the series.
         dependent_exemption_change: r.dependent_exemption_change ?? 0,
+        grocery_credit_change:
+          (r.grocery_credit ?? 0) - (b.grocery_credit ?? 0),
       });
     }
     return out;

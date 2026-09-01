@@ -132,6 +132,9 @@ function mapEconomyToAnalysisResponse(
   // ubi_change covers the child allowance / baby bonus (ubi_center basic
   // income). Older Modal deployments don't return it — falls back to 0.
   const ubiCostBillions = (economy.fiscal?.ubi_change ?? 0) / 1e9;
+  // Per-state extra credit (currently Idaho's grocery credit).
+  const groceryCreditCostBillions =
+    (economy.fiscal?.grocery_credit_change ?? 0) / 1e9;
 
   const dist = economy.distributional;
 
@@ -167,6 +170,7 @@ function mapEconomyToAnalysisResponse(
       eitc_cost_billions: eitcCostBillions,
       dependent_exemption_cost_billions: dependentExemptionCostBillions,
       ubi_cost_billions: ubiCostBillions,
+      grocery_credit_cost_billions: groceryCreditCostBillions,
       snap_cost_billions: snapCostBillions,
       state_ctc_cost_billions: stateCtcCostBillions,
       state_eitc_cost_billions: stateEitcCostBillions,

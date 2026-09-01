@@ -63,6 +63,9 @@ export interface HouseholdResults {
    *  exemption is raised, negative when shrunk/eliminated; 0 when no
    *  dependent-exemption reform is applied. */
   dependent_exemption_change?: number;
+  /** Per-state extra credit (currently Idaho's grocery credit); absent for
+   *  states without one and on results cached before 2026-09-01. */
+  grocery_credit?: number;
 }
 
 export interface HouseholdImpact {
@@ -157,6 +160,8 @@ export interface IncomeSweepDataPoint {
   /** Isolated dependent-exemption portion of the state income-tax change at
    *  this income point (baseline state tax − dependent-only state tax). */
   dependent_exemption_change?: number;
+  /** Per-state extra credit (currently Idaho's grocery credit). */
+  grocery_credit?: number;
 }
 
 export interface IncomeSweepResponse {
