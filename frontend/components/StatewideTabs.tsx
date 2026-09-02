@@ -317,6 +317,7 @@ export function StatewideFiscal({ results, year }: TabProps) {
     { name: 'State CTC', value: fiscal_cost.state_ctc_cost_billions },
     { name: 'State EITC', value: fiscal_cost.state_eitc_cost_billions },
     { name: 'Child allowance', value: fiscal_cost.ubi_cost_billions },
+    { name: 'Grocery credit', value: fiscal_cost.grocery_credit_cost_billions ?? 0 },
     { name: 'SNAP', value: fiscal_cost.snap_cost_billions },
     { name: 'Dependent exemption', value: fiscal_cost.dependent_exemption_cost_billions },
   ].filter((p) => Math.abs(p.value) > 0.001);

@@ -62,6 +62,7 @@ function pointToResults(
     snap_benefits: number;
     in_poverty: boolean;
     dependent_exemption_change?: number;
+    grocery_credit?: number;
   },
 ): HouseholdResults {
   const grossIncome =
@@ -92,6 +93,7 @@ function pointToResults(
     effective_tax_rate: 0,
     total_child_benefits: point.federal_ctc + point.federal_eitc,
     dependent_exemption_change: point.dependent_exemption_change ?? 0,
+    grocery_credit: point.grocery_credit,
   };
 }
 

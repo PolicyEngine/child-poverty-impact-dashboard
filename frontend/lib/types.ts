@@ -118,6 +118,7 @@ export interface FiscalCostResponse {
   eitc_cost_billions: number;
   dependent_exemption_cost_billions: number;
   ubi_cost_billions: number;
+  grocery_credit_cost_billions?: number;
   snap_cost_billions: number;
   state_ctc_cost_billions: number;
   state_eitc_cost_billions: number;

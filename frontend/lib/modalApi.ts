@@ -83,6 +83,8 @@ export interface EconomyImpactResult {
     /** Basic-income (child allowance / baby bonus) outlay. Optional:
      *  older Modal deployments don't return it. */
     ubi_change?: number;
+    /** Per-state extra credit rows (currently Idaho's grocery credit). */
+    grocery_credit_change?: number;
     /** Isolated state income-tax change from the dependent-exemption portion
      *  of the reform. Optional: returned only when a dependent-exemption
      *  sub-reform is sent and the deployment supports it. */
