@@ -1475,12 +1475,6 @@ function buildGroceryCreditOptions(stateCode: string): ReformOption[] {
 
 function buildFederalOptions(stateCode?: string): ReformOption[] {
   // KNOWN UPSTREAM BUG (policyengine-us): ok_federal_ctc does
-  // non_refundable_credits.index("non_refundable_ctc"), and the AFA reform
-  // removes that credit from the list (fully-refundable restructure), so
-  // any OK simulation under the AFA crashes. Grey the option out for OK
-  // until the upstream guard ships; remove this with the next pin bump
-  // that includes the fix.
-  const afaBrokenForState = stateCode?.toUpperCase() === 'OK';
   return [
     {
       id: 'federal_ctc_expanded',
@@ -1492,11 +1486,9 @@ function buildFederalOptions(stateCode?: string): ReformOption[] {
     {
       id: 'federal_afa',
       name: 'American Family Act',
-      description: afaBrokenForState
-        ? 'Temporarily unavailable for Oklahoma: a policyengine-us issue makes the AFA restructure incompatible with the OK child care/Child Tax Credit computation. A fix is queued upstream.'
-        : "Sen. Bennet's American Family Act: a fully-refundable CTC of $3,600/child (1.2× for under-6), with a baby bonus in the first month and income phase-out.",
+      description:
+        "Sen. Bennet's American Family Act: a fully-refundable CTC of $3,600/child (1.2× for under-6), with a baby bonus in the first month and income phase-out.",
       category: 'federal_ctc',
-      ...(afaBrokenForState ? { in_development: true } : {}),
     },
     {
       // ID must not end in `_eitc` (that routes to the state-EITC builder).

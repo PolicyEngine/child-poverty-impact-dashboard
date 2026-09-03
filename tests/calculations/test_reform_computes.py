@@ -289,12 +289,7 @@ _ALL_STATES = [
 # (option-ids tuple) -> states excluded from the all-state sim because of a
 # KNOWN upstream bug. Every entry must cite the tracking issue and should be
 # removed with the pin bump that ships the fix.
-_KNOWN_BROKEN_STATES: dict[tuple, list] = {
-    # ok_federal_ctc crashes when the AFA removes non_refundable_ctc from
-    # the federal non-refundable credit list (policyengine-us bug; the
-    # dashboard greys the AFA out for OK until the guard ships upstream).
-    ("federal_afa",): ["OK"],
-}
+_KNOWN_BROKEN_STATES: dict[tuple, list] = {}
 
 
 def _national_entries() -> list[dict]:

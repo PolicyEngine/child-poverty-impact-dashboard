@@ -62,7 +62,7 @@ jobs:
       # Keep policyengine-us in sync with pyproject.toml,
       # backend/requirements.txt, and scripts/modal_cpid_endpoint.py.
       - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us==1.808.0" pytest
+        run: pip install "policyengine-us==1.822.2" pytest
       # Fast gate: resolve every option's parameter paths against pinned PE-US
       # (all entries) + a representative end-to-end compute per dispatch branch
       # + one behavioral (net-income-moves) check per option category
@@ -106,7 +106,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us==1.808.0" pytest
+        run: pip install "policyengine-us==1.822.2" pytest
       # Each shard fully computes its slice of every non-empty reform, plus
       # its slice of the behavioral matrix (every configurable option's
       # generosity bump must actually raise a household's net income).
