@@ -8,7 +8,7 @@
 --
 -- Apply with: supabase db push, or paste into the SQL editor.
 
-create table if not exists impact_results (
+create table if not exists cpid_impact_results (
   cache_key text primary key,
   kind text not null check (kind in ('economy', 'household')),
   build_rev text not null,
@@ -22,8 +22,8 @@ create table if not exists impact_results (
 -- The Modal backend is the only client and uses the service-role key,
 -- which bypasses RLS. Enable RLS with no policies so the anon key can
 -- read nothing if it ever leaks into a frontend bundle.
-alter table impact_results enable row level security;
+alter table cpid_impact_results enable row level security;
 
 -- Launch-day queries: everything for the current build, newest first.
-create index if not exists impact_results_build_rev_idx
-  on impact_results (build_rev, created_at desc);
+create index if not exists cpid_impact_results_build_rev_idx
+  on cpid_impact_results (build_rev, created_at desc);

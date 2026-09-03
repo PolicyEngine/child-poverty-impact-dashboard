@@ -260,6 +260,35 @@ export interface HouseholdSweepPayload {
   taxable_interest_income?: number;
 }
 
+/** Mint a short share id for a report config. Throws when the share
+ *  store is unavailable — callers fall back to the long encoded link. */
+export async function createShareLink(config: unknown): Promise<number> {
+  const base = modalCpidUrl();
+  if (!base) throw new Error('NEXT_PUBLIC_MODAL_CPID_URL is not set.');
+  const resp = await fetch(`${base}/share`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ config }),
+  });
+  if (!resp.ok) throw new Error(`share mint failed: ${resp.status}`);
+  const data = (await resp.json()) as { id: number };
+  return data.id;
+}
+
+/** Resolve a short share id back to its report config. */
+export async function fetchShareLink<T = unknown>(id: string): Promise<T | null> {
+  const base = modalCpidUrl();
+  if (!base) return null;
+  try {
+    const resp = await fetch(`${base}/share/${encodeURIComponent(id)}`);
+    if (!resp.ok) return null;
+    const data = (await resp.json()) as { config: T };
+    return data.config ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function runHouseholdSweepOnModal(
   payload: HouseholdSweepPayload,
   signal?: AbortSignal,

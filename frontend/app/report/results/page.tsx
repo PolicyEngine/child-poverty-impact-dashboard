@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import ReportResultsPage from './ResultsClient';
-import { SHARE_PARAM, decodeReportConfig } from '@/lib/share-link';
+import { SHARE_PARAM, SHORT_PARAM, decodeReportConfig } from '@/lib/share-link';
 import { US_STATES } from '@/lib/household-types';
 
 const DEFAULT_TITLE = 'Report Results';
@@ -25,7 +25,25 @@ export async function generateMetadata({
   const params = await searchParams;
   const raw = params[SHARE_PARAM];
   const encoded = typeof raw === 'string' ? raw : undefined;
-  const config = encoded ? decodeReportConfig<SharedConfig>(encoded) : null;
+  let config = encoded ? decodeReportConfig<SharedConfig>(encoded) : null;
+
+  // Short share ids (?r=123) resolve through the backend's share store —
+  // best-effort, so an unreachable store just yields the generic title.
+  const shortRaw = params[SHORT_PARAM];
+  const shortId = typeof shortRaw === 'string' ? shortRaw : undefined;
+  if (!config && shortId && process.env.NEXT_PUBLIC_MODAL_CPID_URL) {
+    try {
+      const resp = await fetch(
+        `${process.env.NEXT_PUBLIC_MODAL_CPID_URL}/share/${encodeURIComponent(shortId)}`,
+        { next: { revalidate: 3600 } },
+      );
+      if (resp.ok) {
+        config = ((await resp.json()) as { config: SharedConfig }).config;
+      }
+    } catch {
+      // generic title fallback
+    }
+  }
 
   let title = DEFAULT_TITLE;
   let description = DEFAULT_DESCRIPTION;

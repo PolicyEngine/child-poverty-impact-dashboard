@@ -107,12 +107,16 @@ results_cache = modal.Dict.from_name("cpid-results-cache", create_if_missing=Tru
 
 
 def _optional_supabase_secrets() -> list:
-    """Deploy-time opt-in so a missing secret can't fail today's deploys."""
-    import os
+    """The cpid-supabase secret, attached unconditionally.
 
-    if os.environ.get("CPID_ATTACH_SUPABASE") == "1":
-        return [modal.Secret.from_name("cpid-supabase")]
-    return []
+    The old deploy-time CPID_ATTACH_SUPABASE opt-in evaluated the env var
+    AGAIN when the container re-imports this module (where it is never
+    set), so the function declared one dependency while Modal attached
+    two — a crash loop ("Function has 1 dependencies but container got 2
+    object ids"). The secret exists now, so attach it always; the kill
+    switch is CPID_SUPABASE_ENABLED=0 inside the secret.
+    """
+    return [modal.Secret.from_name("cpid-supabase")]
 
 
 def _supabase_cfg():
@@ -137,7 +141,7 @@ def _supabase_get(key: str):
         import requests
 
         resp = requests.get(
-            f"{url}/rest/v1/impact_results",
+            f"{url}/rest/v1/cpid_impact_results",
             params={"cache_key": f"eq.{key}", "select": "result"},
             headers={
                 "apikey": service_key,
@@ -162,7 +166,7 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
         import requests
 
         requests.post(
-            f"{url}/rest/v1/impact_results",
+            f"{url}/rest/v1/cpid_impact_results",
             json={
                 "cache_key": key,
                 "kind": kind,
@@ -181,6 +185,66 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
         )
     except Exception:
         pass
+
+
+def _share_create(config: dict):
+    """Store a share config under a short numeric id; returns the id.
+
+    Deduped by config hash, so the same report always mints the same id.
+    Best-effort: returns None when Supabase is off/unreachable and the
+    frontend falls back to the long encoded-config link.
+    """
+    cfg = _supabase_cfg()
+    if cfg is None:
+        return None
+    url, service_key = cfg
+    try:
+        import hashlib
+        import json
+
+        import requests
+
+        canonical = json.dumps(config, sort_keys=True, separators=(",", ":"))
+        config_hash = hashlib.sha256(canonical.encode()).hexdigest()[:32]
+        resp = requests.post(
+            f"{url}/rest/v1/cpid_share_links",
+            params={"on_conflict": "config_hash"},
+            json={"config_hash": config_hash, "config": config},
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+                "Prefer": "resolution=merge-duplicates,return=representation",
+            },
+            timeout=5,
+        )
+        rows = resp.json() if resp.ok else []
+        return int(rows[0]["id"]) if rows else None
+    except Exception:
+        return None
+
+
+def _share_fetch(link_id: int):
+    """Config for a share id, or None."""
+    cfg = _supabase_cfg()
+    if cfg is None:
+        return None
+    url, service_key = cfg
+    try:
+        import requests
+
+        resp = requests.get(
+            f"{url}/rest/v1/cpid_share_links",
+            params={"id": f"eq.{int(link_id)}", "select": "config"},
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+            },
+            timeout=5,
+        )
+        rows = resp.json() if resp.ok else []
+        return rows[0]["config"] if rows else None
+    except Exception:
+        return None
 
 
 def _cache_key(kind: str, payload: dict) -> str:
@@ -1322,6 +1386,26 @@ def web():
     @api.get("/household/status/{job_id}")
     def household_status(job_id: str):
         return _status(job_id)
+
+    @api.post("/share")
+    def share_create(payload: dict) -> dict:
+        """Mint a short share id for a report config (PE-app-style ids)."""
+        config = payload.get("config")
+        if not isinstance(config, dict):
+            raise HTTPException(status_code=422, detail="config required")
+        link_id = _share_create(config)
+        if link_id is None:
+            raise HTTPException(
+                status_code=503, detail="Share store unavailable."
+            )
+        return {"id": link_id}
+
+    @api.get("/share/{link_id}")
+    def share_get(link_id: int) -> dict:
+        config = _share_fetch(link_id)
+        if config is None:
+            raise HTTPException(status_code=404, detail="Unknown share id.")
+        return {"config": config}
 
     def _status(job_id: str) -> dict:
         # Cache-backed pseudo-jobs: the start endpoint found a stored result
