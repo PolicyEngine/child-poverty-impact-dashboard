@@ -187,6 +187,66 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
         pass
 
 
+def _share_create(config: dict):
+    """Store a share config under a short numeric id; returns the id.
+
+    Deduped by config hash, so the same report always mints the same id.
+    Best-effort: returns None when Supabase is off/unreachable and the
+    frontend falls back to the long encoded-config link.
+    """
+    cfg = _supabase_cfg()
+    if cfg is None:
+        return None
+    url, service_key = cfg
+    try:
+        import hashlib
+        import json
+
+        import requests
+
+        canonical = json.dumps(config, sort_keys=True, separators=(",", ":"))
+        config_hash = hashlib.sha256(canonical.encode()).hexdigest()[:32]
+        resp = requests.post(
+            f"{url}/rest/v1/cpid_share_links",
+            params={"on_conflict": "config_hash"},
+            json={"config_hash": config_hash, "config": config},
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+                "Prefer": "resolution=merge-duplicates,return=representation",
+            },
+            timeout=5,
+        )
+        rows = resp.json() if resp.ok else []
+        return int(rows[0]["id"]) if rows else None
+    except Exception:
+        return None
+
+
+def _share_fetch(link_id: int):
+    """Config for a share id, or None."""
+    cfg = _supabase_cfg()
+    if cfg is None:
+        return None
+    url, service_key = cfg
+    try:
+        import requests
+
+        resp = requests.get(
+            f"{url}/rest/v1/cpid_share_links",
+            params={"id": f"eq.{int(link_id)}", "select": "config"},
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+            },
+            timeout=5,
+        )
+        rows = resp.json() if resp.ok else []
+        return rows[0]["config"] if rows else None
+    except Exception:
+        return None
+
+
 def _cache_key(kind: str, payload: dict) -> str:
     import hashlib
     import json
@@ -1326,6 +1386,26 @@ def web():
     @api.get("/household/status/{job_id}")
     def household_status(job_id: str):
         return _status(job_id)
+
+    @api.post("/share")
+    def share_create(payload: dict) -> dict:
+        """Mint a short share id for a report config (PE-app-style ids)."""
+        config = payload.get("config")
+        if not isinstance(config, dict):
+            raise HTTPException(status_code=422, detail="config required")
+        link_id = _share_create(config)
+        if link_id is None:
+            raise HTTPException(
+                status_code=503, detail="Share store unavailable."
+            )
+        return {"id": link_id}
+
+    @api.get("/share/{link_id}")
+    def share_get(link_id: int) -> dict:
+        config = _share_fetch(link_id)
+        if config is None:
+            raise HTTPException(status_code=404, detail="Unknown share id.")
+        return {"config": config}
 
     def _status(job_id: str) -> dict:
         # Cache-backed pseudo-jobs: the start endpoint found a stored result

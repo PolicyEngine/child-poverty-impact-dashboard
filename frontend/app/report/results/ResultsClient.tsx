@@ -12,7 +12,8 @@ import type {
   IncomeSweepResponse,
 } from '@/lib/household-types';
 import type { AnalysisResponse } from '@/lib/types';
-import { SHARE_PARAM, decodeReportConfig, encodeReportConfig, shareUrl } from '@/lib/share-link';
+import { SHARE_PARAM, SHORT_PARAM, decodeReportConfig, encodeReportConfig, shareUrl, shortShareUrl } from '@/lib/share-link';
+import { createShareLink, fetchShareLink } from '@/lib/modalApi';
 import { US_STATES } from '@/lib/household-types';
 import DistrictImpacts from '@/components/DistrictImpacts';
 import {
@@ -138,8 +139,22 @@ function ShareButton({ config }: { config: ReportConfig | null }) {
     <button
       className="btn btn-ghost"
       onClick={async () => {
+        // Mint a short PE-app-style id (?r=123); the long encoded link is
+        // the fallback when the share store is unavailable.
+        let url: string;
         try {
-          await navigator.clipboard.writeText(shareUrl(config));
+          const id = await createShareLink(config);
+          url = shortShareUrl(id);
+          window.history.replaceState(
+            null,
+            '',
+            `${window.location.pathname}?${SHORT_PARAM}=${id}`,
+          );
+        } catch {
+          url = shareUrl(config);
+        }
+        try {
+          await navigator.clipboard.writeText(url);
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         } catch {
@@ -322,7 +337,25 @@ export default function ReportResultsPage() {
       return true;
     };
 
-    const encoded = new URLSearchParams(window.location.search).get(SHARE_PARAM);
+    const search = new URLSearchParams(window.location.search);
+
+    // Short share id (?r=123): resolve via the backend's share store.
+    const shortId = search.get(SHORT_PARAM);
+    if (shortId) {
+      fetchShareLink<ReportConfig>(shortId).then((fromStore) => {
+        if (fromStore && adopt(fromStore)) {
+          sessionStorage.setItem('reportConfig', JSON.stringify(fromStore));
+        } else {
+          setConfigError(
+            'This share link could not be read. Please ask for a fresh link.',
+          );
+        }
+        setConfigReady(true);
+      });
+      return;
+    }
+
+    const encoded = search.get(SHARE_PARAM);
     if (encoded) {
       const fromUrl = decodeReportConfig<ReportConfig>(encoded);
       if (fromUrl && adopt(fromUrl)) {

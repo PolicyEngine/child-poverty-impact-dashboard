@@ -19,6 +19,15 @@ const SHARE_VERSION = 1;
 /** Query parameter carrying the encoded config on /report/results. */
 export const SHARE_PARAM = 'c';
 
+/** Query parameter carrying a short numeric share id (Supabase-backed).
+ *  Long `c=` links remain a legacy fallback and keep working. */
+export const SHORT_PARAM = 'r';
+
+/** Absolute short share URL for a minted id. */
+export function shortShareUrl(id: number): string {
+  return `${window.location.origin}/report/results?${SHORT_PARAM}=${id}`;
+}
+
 export function encodeReportConfig(config: unknown): string {
   // lz-string's "URI component" alphabet still emits '+', which
   // URLSearchParams decodes as a space and silently corrupts the payload.
