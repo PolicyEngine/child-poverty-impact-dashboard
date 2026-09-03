@@ -107,12 +107,16 @@ results_cache = modal.Dict.from_name("cpid-results-cache", create_if_missing=Tru
 
 
 def _optional_supabase_secrets() -> list:
-    """Deploy-time opt-in so a missing secret can't fail today's deploys."""
-    import os
+    """The cpid-supabase secret, attached unconditionally.
 
-    if os.environ.get("CPID_ATTACH_SUPABASE") == "1":
-        return [modal.Secret.from_name("cpid-supabase")]
-    return []
+    The old deploy-time CPID_ATTACH_SUPABASE opt-in evaluated the env var
+    AGAIN when the container re-imports this module (where it is never
+    set), so the function declared one dependency while Modal attached
+    two — a crash loop ("Function has 1 dependencies but container got 2
+    object ids"). The secret exists now, so attach it always; the kill
+    switch is CPID_SUPABASE_ENABLED=0 inside the secret.
+    """
+    return [modal.Secret.from_name("cpid-supabase")]
 
 
 def _supabase_cfg():
@@ -137,7 +141,7 @@ def _supabase_get(key: str):
         import requests
 
         resp = requests.get(
-            f"{url}/rest/v1/impact_results",
+            f"{url}/rest/v1/cpid_impact_results",
             params={"cache_key": f"eq.{key}", "select": "result"},
             headers={
                 "apikey": service_key,
@@ -162,7 +166,7 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
         import requests
 
         requests.post(
-            f"{url}/rest/v1/impact_results",
+            f"{url}/rest/v1/cpid_impact_results",
             json={
                 "cache_key": key,
                 "kind": kind,

@@ -7,10 +7,11 @@ immutable-per-build contract. Modal remains the source of truth: Supabase
 is a pure cache, every helper is best-effort, and the dashboard behaves
 identically with it off. The frontend never talks to Supabase.
 
-**Status: wired but dark.** No secret is attached to the deployed app, so
-`_supabase_cfg()` returns `None` and every read/write is a no-op.
-Activation is planned for launch week (after the dataset lock on 8/31),
-so pre-warmed results are keyed to the final build rev.
+**Status: ACTIVE (2026-09-03).** The store lives in the org's
+consolidated Supabase project ("database", ref usugnrssspkdutcjeevk),
+which also hosts the core platform schema — hence the `cpid_` table
+prefix. The `cpid-supabase` Modal secret is attached and deploys run
+with `CPID_ATTACH_SUPABASE=1`.
 
 ## What it adds once active
 
@@ -43,7 +44,7 @@ so pre-warmed results are keyed to the final build rev.
    ```
 
 Verify: `GET /healthz` reports `"supabase": "enabled"`, then run any
-report twice — the row should appear in `impact_results` and the second
+report twice — the row should appear in `cpid_impact_results` and the second
 run should return `cached: true` instantly even after
 `modal dict clear cpid-results-cache` (or waiting out Dict eviction).
 
@@ -62,4 +63,4 @@ Modal-Dict behavior, so an unreachable Supabase never breaks a report.
 - Rows are keyed by build rev. After a pin bump (PE-US, Populace
   revision, or compute-code change bumps `CPID_BUILD_REV`), old rows are
   simply never read again; prune them whenever convenient:
-  `delete from impact_results where build_rev <> '<current>';`
+  `delete from cpid_impact_results where build_rev <> '<current>';`
