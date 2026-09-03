@@ -42,7 +42,7 @@ app = modal.App("cpid-backend")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "policyengine-us==1.808.0",
+        "policyengine-us==1.822.2",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-01c-buildp-acs-local+pe-us-1.808.0"})
+    .env({"CPID_BUILD_REV": "2026-09-03-buildp-acs-local+pe-us-1.822.2"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area

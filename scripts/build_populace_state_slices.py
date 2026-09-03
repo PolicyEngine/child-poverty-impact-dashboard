@@ -32,7 +32,7 @@ app = modal.App("cpid-populace-slice-builder")
 
 # Same pins as the endpoint image (scripts/modal_cpid_endpoint.py).
 image = modal.Image.debian_slim(python_version="3.11").pip_install(
-    "policyengine-us==1.808.0",
+    "policyengine-us==1.822.2",
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "huggingface_hub",
