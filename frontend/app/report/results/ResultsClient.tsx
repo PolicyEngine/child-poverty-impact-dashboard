@@ -139,19 +139,27 @@ function ShareButton({ config }: { config: ReportConfig | null }) {
     <button
       className="btn btn-ghost"
       onClick={async () => {
-        // Mint a short PE-app-style id (?r=123); the long encoded link is
-        // the fallback when the share store is unavailable.
+        // The results page mints eagerly on load, so the URL is usually
+        // already ?r=<id> — copy it instantly. Otherwise mint here, with
+        // the long encoded link as the fallback.
         let url: string;
-        try {
-          const id = await createShareLink(config);
-          url = shortShareUrl(id);
-          window.history.replaceState(
-            null,
-            '',
-            `${window.location.pathname}?${SHORT_PARAM}=${id}`,
-          );
-        } catch {
-          url = shareUrl(config);
+        const settled = new URLSearchParams(window.location.search).get(
+          SHORT_PARAM,
+        );
+        if (settled) {
+          url = shortShareUrl(Number(settled));
+        } else {
+          try {
+            const id = await createShareLink(config);
+            url = shortShareUrl(id);
+            window.history.replaceState(
+              null,
+              '',
+              `${window.location.pathname}?${SHORT_PARAM}=${id}`,
+            );
+          } catch {
+            url = shareUrl(config);
+          }
         }
         try {
           await navigator.clipboard.writeText(url);
@@ -339,6 +347,24 @@ export default function ReportResultsPage() {
 
     const search = new URLSearchParams(window.location.search);
 
+    // Eagerly mint a short id for the adopted config and settle the URL
+    // on ?r=<id> (deduped server-side, so repeat visits reuse the same
+    // id). The long ?c= form stays in place until the mint returns, and
+    // permanently if the share store is unavailable.
+    const settleShortUrl = (cfg: ReportConfig) => {
+      createShareLink(cfg)
+        .then((id) => {
+          window.history.replaceState(
+            null,
+            '',
+            `${window.location.pathname}?${SHORT_PARAM}=${id}`,
+          );
+        })
+        .catch(() => {
+          // Long link keeps working; nothing to do.
+        });
+    };
+
     // Short share id (?r=123): resolve via the backend's share store.
     const shortId = search.get(SHORT_PARAM);
     if (shortId) {
@@ -362,6 +388,7 @@ export default function ReportResultsPage() {
         // Same-tab navigation elsewhere (e.g. "New Report") keeps working
         // off sessionStorage, so mirror the shared config into it.
         sessionStorage.setItem('reportConfig', JSON.stringify(fromUrl));
+        settleShortUrl(fromUrl);
         setConfigReady(true);
         return;
       }
@@ -382,12 +409,14 @@ export default function ReportResultsPage() {
       const parsed: ReportConfig = JSON.parse(stored);
       if (adopt(parsed)) {
         // Direct navigation without ?c=: put the encoded config in the URL
-        // so copying the address bar shares this exact report.
+        // immediately so copying the address bar always shares this exact
+        // report, then settle on the short ?r= form once minted.
         window.history.replaceState(
           null,
           '',
           `${window.location.pathname}?${SHARE_PARAM}=${encodeReportConfig(parsed)}`,
         );
+        settleShortUrl(parsed);
       } else {
         setConfigError('Invalid report configuration. Please start a new report.');
       }
