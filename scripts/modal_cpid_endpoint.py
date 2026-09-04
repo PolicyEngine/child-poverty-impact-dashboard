@@ -372,7 +372,17 @@ def _attribution_group(param_key: str, st_l: str) -> str | None:
         f"gov.contrib.states.{st_l}.",
     )
     if key.startswith(state_prefixes):
-        return "state_eitc" if "eitc" in key else "state_ctc"
+        # State EITC parameter paths aren't uniformly named: CA/IA/IN/UT/WI
+        # use "earned_income", MO's is the WFTC, WA's the Working Families
+        # Tax Credit. MN's cwfc deliberately stays in state_ctc — the
+        # dashboard reports the combined Child & Working Families Credit
+        # under the CTC row (see the MN table footnote).
+        eitc_markers = ("eitc", "earned_income", "wftc", "working_families")
+        return (
+            "state_eitc"
+            if any(m in key for m in eitc_markers)
+            else "state_ctc"
+        )
     return None
 
 
