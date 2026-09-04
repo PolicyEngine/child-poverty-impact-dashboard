@@ -321,16 +321,39 @@ export function StatewideFiscal({ results, year }: TabProps) {
     { name: 'SNAP', value: fiscal_cost.snap_cost_billions },
     { name: 'Dependent exemption', value: fiscal_cost.dependent_exemption_cost_billions },
   ].filter((p) => Math.abs(p.value) > 0.001);
-  // The per-program rows attribute each credit's direct change; the total
-  // also carries interactions those rows don't capture (for example, full
-  // refundability moving income tax beyond the credit amount). Surface the
-  // remainder so the table always sums to the Total card.
-  const attributedCost = programBreakdown.reduce((acc, p) => acc + p.value, 0);
-  const interactionCost = fiscal_cost.total_cost_billions - attributedCost;
-  if (Math.abs(interactionCost) > 0.001) {
+  // The per-program rows attribute each credit's direct change; the totals
+  // also carry interactions those rows don't capture (for example, full
+  // refundability moving income tax beyond the credit amount, or a
+  // nonrefundable state credit exceeding a family's liability). Each
+  // program row has a known jurisdiction, and the federal/state budget
+  // totals are already split, so the remainder splits by level of
+  // government with no extra computation — federal interactions = federal
+  // total minus the federal rows, likewise for state. The two rows sum to
+  // the old combined remainder, so the table still reconciles to Total.
+  const federalRowsCost =
+    fiscal_cost.ctc_cost_billions
+    + fiscal_cost.eitc_cost_billions
+    + fiscal_cost.snap_cost_billions;
+  const stateRowsCost =
+    fiscal_cost.state_ctc_cost_billions
+    + fiscal_cost.state_eitc_cost_billions
+    + fiscal_cost.dependent_exemption_cost_billions
+    + (fiscal_cost.grocery_credit_cost_billions ?? 0)
+    + (fiscal_cost.ubi_cost_billions ?? 0);
+  // -federalImpact / -stateImpact = positive-cost totals matching the
+  // budget cards (benefits fold into federal; child allowance into state).
+  const federalInteraction = -federalImpact - federalRowsCost;
+  const stateInteraction = -stateImpact - stateRowsCost;
+  if (Math.abs(federalInteraction) > 0.001) {
     programBreakdown.push({
-      name: 'Other tax and benefit interactions',
-      value: interactionCost,
+      name: 'Federal tax and benefit interactions',
+      value: federalInteraction,
+    });
+  }
+  if (Math.abs(stateInteraction) > 0.001) {
+    programBreakdown.push({
+      name: 'State tax interactions',
+      value: stateInteraction,
     });
   }
 
@@ -363,9 +386,16 @@ export function StatewideFiscal({ results, year }: TabProps) {
             </table>
           </div>
           <p className="text-xs text-gray-500 italic mt-2">
-            Program rows show each credit's direct change. The interactions
-            row captures knock-on effects on other taxes and benefits, so
-            the rows sum to the total below.
+            Program rows show each credit's direct change. The interaction
+            rows capture effects the credit amounts don't — refundable
+            payouts beyond the credit value, portions of nonrefundable
+            credits above a family's tax liability, and knock-on effects on
+            other taxes and benefits — split by level of government, so the
+            rows sum to the total below. All figures cover
+            {' '}
+            {(fiscal_cost.state && US_STATES[fiscal_cost.state]) || 'state'}
+            {' '}residents only; federal figures are this state's share of
+            federal costs.
           </p>
           {fiscal_cost.state === 'MN' && (
             <p className="text-xs text-gray-500 italic mt-2">
