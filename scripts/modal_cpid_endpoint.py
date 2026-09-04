@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-04-buildp-acs-local+pe-us-1.822.2"})
+    .env({"CPID_BUILD_REV": "2026-09-05-stacked+pe-us-1.822.2"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -335,6 +335,55 @@ def _build_core_reform_dict(reform: dict | None, year: int) -> dict | None:
         else:
             out[path] = {default_date: spec}
     return out
+
+
+# Stacked provision scoring (JCT convention): the fiscal table's provision
+# rows are scored sequentially — each row's cost is the change in total
+# budgetary impact from adding that provision's parameters on top of the
+# provisions stacked above it. Federal provisions stack before state ones
+# (state credits ride on federal law), so e.g. a state %-of-federal-CTC
+# credit's row includes the extra cost from a federal CTC expansion below
+# it in the stack. Rows sum to the package total by construction; there is
+# no separate "interactions" line.
+_STACK_ORDER = ["federal_ctc", "federal_eitc", "state_ctc", "state_eitc"]
+
+
+def _attribution_group(param_key: str, st_l: str) -> str | None:
+    """Bucket a reform parameter into a stacked-scoring group.
+
+    Params returning None (child allowance, SNAP, dependent exemptions,
+    grocery credit) are non-credit provisions: they stack first as a
+    bundle and their rows report direct outlay deltas, which are already
+    actual costs.
+    """
+    key = param_key.lower()
+    if "exemption" in key or "grocery" in key:
+        return None
+    if key.startswith("gov.irs.credits.ctc") or key.startswith(
+        "gov.contrib.congress.afa"
+    ):
+        return "federal_ctc"
+    if key.startswith("gov.irs.credits.eitc") or key.startswith(
+        "gov.contrib.congress.mcdonald_rivet"
+    ):
+        return "federal_eitc"
+    state_prefixes = (
+        f"gov.states.{st_l}.",
+        f"gov.contrib.states.{st_l}.",
+    )
+    if key.startswith(state_prefixes):
+        # State EITC parameter paths aren't uniformly named: CA/IA/IN/UT/WI
+        # use "earned_income", MO's is the WFTC, WA's the Working Families
+        # Tax Credit. MN's cwfc deliberately stays in state_ctc — the
+        # dashboard reports the combined Child & Working Families Credit
+        # under the CTC row (see the MN table footnote).
+        eitc_markers = ("eitc", "earned_income", "wftc", "working_families")
+        return (
+            "state_eitc"
+            if any(m in key for m in eitc_markers)
+            else "state_ctc"
+        )
+    return None
 
 
 _ALLOW_ORIGINS = [
@@ -1006,6 +1055,10 @@ def compute_economy(payload: dict) -> dict:
     # the third national sim is built only after the baseline/reform sims are
     # released (three concurrent national sims would strain even 32GB).
     baseline_state_tax_total = _hh_sum(sim_baseline, "state_income_tax")
+    # Scalars for the stacked-scoring sims, captured while the baseline sim
+    # is still alive.
+    baseline_federal_tax_total = _hh_sum(sim_baseline, "income_tax")
+    baseline_benefits_total = _hh_sum(sim_baseline, "household_benefits")
 
     # ---- Poverty: overall, children, young children (0-3), deep child poverty.
     age_arr = np.array(sim_baseline.calculate("age", period=year))[person_mask]
@@ -1352,6 +1405,87 @@ def compute_economy(payload: dict) -> dict:
         gc.collect()
         _log("dependent-exemption isolation done")
 
+    # ---- Stacked provision scoring (see _STACK_ORDER). One extra sim per
+    # intermediate stack step, run sequentially after the main sims are
+    # released (the last step IS the full reform, so a single-group reform
+    # with no non-credit provisions costs zero extra sims; the worst case
+    # is capped at len(_STACK_ORDER) - 1 + 1 extras). Budget-signed raw
+    # dollars (negative = cost), state-resident-scoped.
+    stacked: dict = {}
+    if reform_dict:
+        import gc
+
+        groups: dict = {}
+        nongroup: dict = {}
+        for k, v in (reform_payload or {}).items():
+            g = _attribution_group(k, st_l)
+            if g:
+                groups.setdefault(g, {})[k] = v
+            else:
+                nongroup[k] = v
+        order = [g for g in _STACK_ORDER if g in groups]
+        if order:
+            if not dep_dict:
+                del sim_reform, sim_baseline
+                gc.collect()
+
+            def _budget_at(payload_subset: dict):
+                """(federal, state) budget-signed deltas vs baseline for a
+                partial stack of the reform's parameters."""
+                sub = _build_core_reform_dict(payload_subset, year)
+                sim = Microsimulation(
+                    dataset=_dataset(), reform=Reform.from_dict(sub)
+                )
+                fed = (
+                    _hh_sum(sim, "income_tax") - baseline_federal_tax_total
+                ) - (
+                    _hh_sum(sim, "household_benefits")
+                    - baseline_benefits_total
+                )
+                st_delta = (
+                    _hh_sum(sim, "state_income_tax") - baseline_state_tax_total
+                )
+                del sim
+                gc.collect()
+                return fed, st_delta
+
+            full_federal = federal_tax_change - benefit_change
+            full_state = state_tax_change
+            cum_payload = dict(nongroup)
+            prev_fed, prev_state = (
+                _budget_at(cum_payload) if nongroup else (0.0, 0.0)
+            )
+            base_fed, base_state = prev_fed, prev_state
+            if nongroup:
+                _log("stacked step done: non-credit bundle")
+            rows = []
+            for i, g in enumerate(order):
+                cum_payload.update(groups[g])
+                if i == len(order) - 1:
+                    # Final stack step is the full reform — already computed.
+                    fed, st_delta = full_federal, full_state
+                else:
+                    fed, st_delta = _budget_at(cum_payload)
+                    _log(f"stacked step done: {g}")
+                rows.append(
+                    {
+                        "key": g,
+                        "federal": fed - prev_fed,
+                        "state": st_delta - prev_state,
+                    }
+                )
+                prev_fed, prev_state = fed, st_delta
+            stacked = {
+                "order": order,
+                "rows": rows,
+                # Non-credit provisions (child allowance, SNAP, dependent
+                # exemption, grocery credit...) stack first as a bundle;
+                # this is that bundle's budget effect vs baseline.
+                "base_federal": base_fed,
+                "base_state": base_state,
+            }
+            _log("stacked scoring done")
+
     result = {
         "state": state_code,
         "year": year,
@@ -1370,6 +1504,7 @@ def compute_economy(payload: dict) -> dict:
             "ubi_change": ubi_change,
             "dependent_exemption_change": dependent_exemption_change,
             **extra_credit_changes,
+            "stacked": stacked,
         },
         "poverty": {
             "overall_baseline_rate": _rate(pov_bl_arr, all_mask),

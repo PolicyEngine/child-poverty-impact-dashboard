@@ -307,6 +307,62 @@ export function StatewideFiscal({ results, year }: TabProps) {
   const hasChildAllowance =
     Math.abs(fiscal_cost.ubi_cost_billions ?? 0) > 0.001;
 
+  // Stacked provision scoring (2026-09-05+ payloads): each provision row
+  // is its actual marginal budget effect, scored JCT-style against the
+  // provisions stacked above it (federal before state), split by
+  // jurisdiction. Non-credit provisions (child allowance, SNAP, grocery,
+  // dependent exemption) stack first as a bundle — their rows show direct
+  // outlay deltas, and any small remainder of the bundle (tax knock-ons)
+  // gets its own row so columns still sum exactly. Budget-signed billions
+  // throughout (negative = cost), matching the cards.
+  const stackedLabels: Record<string, string> = {
+    federal_ctc: 'Federal Child Tax Credit',
+    federal_eitc: 'Federal Earned Income Tax Credit',
+    state_ctc: 'State Child Tax Credit',
+    state_eitc: 'State Earned Income Tax Credit',
+  };
+  const stackedGroupRows = (fiscal_cost.stacked_rows ?? []).map((r) => ({
+    name: stackedLabels[r.key] ?? r.key.replace(/_/g, ' '),
+    federal: r.federal_billions,
+    state: r.state_billions,
+  }));
+  // Move the child allowance from the benefits side (federal in the raw
+  // base) to the State column, mirroring the budget cards.
+  const ubiCost = fiscal_cost.ubi_cost_billions ?? 0;
+  const stackedBaseFederal =
+    (fiscal_cost.stacked_base_federal_billions ?? 0) + ubiCost;
+  const stackedBaseState =
+    (fiscal_cost.stacked_base_state_billions ?? 0) - ubiCost;
+  const nonCreditRows = [
+    { name: 'Child allowance', federal: 0, state: -ubiCost },
+    { name: 'SNAP', federal: -fiscal_cost.snap_cost_billions, state: 0 },
+    {
+      name: 'Grocery credit',
+      federal: 0,
+      state: -(fiscal_cost.grocery_credit_cost_billions ?? 0),
+    },
+    {
+      name: 'Dependent exemption',
+      federal: 0,
+      state: -fiscal_cost.dependent_exemption_cost_billions,
+    },
+  ].filter((r) => Math.abs(r.federal) > 0.001 || Math.abs(r.state) > 0.001);
+  const nonCreditRemainder = {
+    name: 'Other effects of the provisions above',
+    federal:
+      stackedBaseFederal - nonCreditRows.reduce((a, r) => a + r.federal, 0),
+    state: stackedBaseState - nonCreditRows.reduce((a, r) => a + r.state, 0),
+  };
+  const stackedTable = [
+    ...nonCreditRows,
+    ...(Math.abs(nonCreditRemainder.federal) > 0.001
+      || Math.abs(nonCreditRemainder.state) > 0.001
+      ? [nonCreditRemainder]
+      : []),
+    ...stackedGroupRows,
+  ].filter((r) => Math.abs(r.federal) > 0.001 || Math.abs(r.state) > 0.001);
+  const hasStacked = stackedGroupRows.length > 0;
+
   // One row per program that actually moved. Federal vs. state EITC/CTC are
   // distinct Modal deltas — earlier this table labelled the FEDERAL eitc
   // change as "State EITC", so a state-EITC reform (federal delta ≈ 0) showed
@@ -361,7 +417,84 @@ export function StatewideFiscal({ results, year }: TabProps) {
     <div className="space-y-6">
       {/* Program breakdown first, totals after — reading order builds from
           the per-program pieces up to the reconciled totals. */}
-      {programBreakdown.length > 0 && (
+      {hasStacked ? (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Impact by provision ({year})</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-300">
+                  <th className="text-left px-4 py-3 font-medium text-gray-900">Provision</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-900">Federal</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-900">State</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-900">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {stackedTable.map((r) => {
+                  const cell = (v: number) => (
+                    <td
+                      className="px-4 py-3 text-right font-semibold"
+                      style={{
+                        color:
+                          Math.abs(v) <= 0.001
+                            ? '#9CA3AF'
+                            : v < 0
+                              ? COLORS.primary
+                              : '#4B5563',
+                      }}
+                    >
+                      {Math.abs(v) <= 0.001 ? '—' : formatBillions(v)}
+                    </td>
+                  );
+                  return (
+                    <tr key={r.name} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-900">{r.name}</td>
+                      {cell(r.federal)}
+                      {cell(r.state)}
+                      {cell(r.federal + r.state)}
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-gray-300 font-semibold">
+                  <td className="px-4 py-3 text-gray-900">Total</td>
+                  <td className="px-4 py-3 text-right" style={{ color: federalImpact < 0 ? COLORS.primary : '#4B5563' }}>
+                    {formatBillions(federalImpact)}
+                  </td>
+                  <td className="px-4 py-3 text-right" style={{ color: stateImpact < 0 ? COLORS.primary : '#4B5563' }}>
+                    {formatBillions(stateImpact)}
+                  </td>
+                  <td className="px-4 py-3 text-right" style={{ color: totalImpact < 0 ? COLORS.primary : '#4B5563' }}>
+                    {formatBillions(totalImpact)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p className="text-xs text-gray-500 italic mt-2">
+            Each row is the provision's actual budgetary effect, scored in
+            stacking order (federal provisions first, then state) against
+            the provisions above it — so a state credit that matches the
+            federal Child Tax Credit is costed on the expanded federal
+            amount, and a nonrefundable credit is costed at what families
+            can actually use. Rows sum to the totals. All figures cover
+            {' '}
+            {(fiscal_cost.state && US_STATES[fiscal_cost.state]) || 'state'}
+            {' '}residents only; federal figures are this state's share of
+            federal costs.
+          </p>
+          {fiscal_cost.state === 'MN' && (
+            <p className="text-xs text-gray-500 italic mt-2">
+              Note: Minnesota administers its Working Family Credit as part of
+              the combined Child &amp; Working Families Credit, so a change to
+              the Working Family Credit appears under “State Child Tax
+              Credit” above rather than “State Earned Income Tax Credit.”
+            </p>
+          )}
+        </div>
+      ) : programBreakdown.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Impact by program ({year})</h3>
           <div className="overflow-x-auto">
