@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-03-buildp-acs-local+pe-us-1.822.2"})
+    .env({"CPID_BUILD_REV": "2026-09-04-buildp-acs-local+pe-us-1.822.2"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -469,6 +469,44 @@ def _state_extra_credits(state_code: str) -> list:
 
 ID_REVIVE_FLAG = "gov.contrib.states.id.ctc.in_effect"
 
+# Make-refundable EITC contribs (MO/OH/SC/UT) deliver the credit through a
+# NEW uncapped variable while the registry variable keeps computing its
+# liability-capped value as an orphaned phantom. When the flag is active,
+# the reform-side sum must swap the registry variable for the replacement:
+# baseline keeps the capped registry value (the actual baseline benefit),
+# reform counts only the replacement (the actual delivered credit).
+REFUNDABLE_EITC_CONVERSIONS = {
+    "MO": {
+        "flag": "gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect",
+        "registry_var": "mo_wftc",
+        "replacement": "mo_refundable_wftc",
+    },
+    "OH": {
+        "flag": "gov.contrib.states.oh.child_poverty_impact_dashboard.eitc.in_effect",
+        "registry_var": "oh_eitc",
+        "replacement": "oh_refundable_eitc",
+    },
+    "SC": {
+        "flag": "gov.contrib.states.sc.child_poverty_impact_dashboard.eitc.in_effect",
+        "registry_var": "sc_eitc",
+        "replacement": "sc_fully_refundable_eitc",
+    },
+    "UT": {
+        "flag": "gov.contrib.states.ut.child_poverty_impact_dashboard.eitc.in_effect",
+        "registry_var": "ut_eitc",
+        "replacement": "ut_fully_refundable_eitc",
+    },
+}
+
+
+def _refundable_eitc_conversion(state_code: str, reform_payload):
+    """Active conversion entry for this state's make-refundable flag, or
+    None."""
+    conv = REFUNDABLE_EITC_CONVERSIONS.get(state_code.upper())
+    if conv and bool((reform_payload or {}).get(conv["flag"])):
+        return conv
+    return None
+
 
 def _id_ctc_var_lists(state_code: str, reform_payload, ctc_vars, ctc_extras):
     """Idaho's id_ctc reports the worksheet entitlement even while the
@@ -551,11 +589,20 @@ def _household_point(
     ctc_vars, ctc_extras = _id_ctc_var_lists(
         state_code, reform_payload, ctc_vars, ctc_extras
     )
+    conv = _refundable_eitc_conversion(state_code, reform_payload)
+    reform_eitc_excludes = [conv["registry_var"]] if conv else []
+    if conv:
+        eitc_extras = list(eitc_extras) + [conv["replacement"]]
 
     def _sum(sim, names: list) -> float:
         return float(sum(_val(sim, n) for n in names))
 
-    def _row(sim, extra_eitc: list = [], extra_ctc: list = []) -> dict:
+    def _row(
+        sim,
+        extra_eitc: list = [],
+        extra_ctc: list = [],
+        exclude_eitc: list = [],
+    ) -> dict:
         return {
             "net_income": _val(sim, "household_net_income"),
             "federal_income_tax": _val(sim, "income_tax"),
@@ -563,7 +610,10 @@ def _household_point(
             "federal_ctc": _val(sim, "ctc"),
             "federal_eitc": _val(sim, "eitc"),
             "state_ctc": _sum(sim, ctc_vars + extra_ctc),
-            "state_eitc": _sum(sim, eitc_vars + extra_eitc),
+            "state_eitc": _sum(
+                sim,
+                [v for v in eitc_vars if v not in exclude_eitc] + extra_eitc,
+            ),
             "child_allowance": _val(sim, "basic_income"),
             "snap_benefits": _val(sim, "snap"),
             "in_poverty": bool(_val(sim, "in_poverty") > 0),
@@ -574,7 +624,9 @@ def _household_point(
         }
 
     base_row = _row(sim_baseline)
-    reform_row = _row(sim_reform, eitc_extras, ctc_extras)
+    reform_row = _row(
+        sim_reform, eitc_extras, ctc_extras, exclude_eitc=reform_eitc_excludes
+    )
     # Isolated dependent-exemption portion (signed as a benefit: positive when
     # the exemption is raised, negative when shrunk/eliminated). 0 when no
     # dependent-exemption sub-reform is sent.
@@ -672,6 +724,10 @@ def compute_household_sweep(payload: dict) -> dict:
         ctc_vars, ctc_extras = _id_ctc_var_lists(
             state_code, payload.get("reform"), ctc_vars, ctc_extras
         )
+        conv = _refundable_eitc_conversion(state_code, payload.get("reform"))
+        reform_eitc_excludes = [conv["registry_var"]] if conv else []
+        if conv:
+            eitc_extras = list(eitc_extras) + [conv["replacement"]]
         n = len(incomes)
 
         def _arr(sim, name: str):
@@ -686,14 +742,22 @@ def compute_household_sweep(payload: dict) -> dict:
                 total = total + _arr(sim, nm)
             return total
 
-        def _rows(sim, extra_eitc: list = [], extra_ctc: list = []):
+        def _rows(
+            sim,
+            extra_eitc: list = [],
+            extra_ctc: list = [],
+            exclude_eitc: list = [],
+        ):
             net = _arr(sim, "household_net_income")
             fit = _arr(sim, "income_tax")
             sit = _arr(sim, "state_income_tax")
             fctc = _arr(sim, "ctc")
             feitc = _arr(sim, "eitc")
             sctc = _sum_arr(sim, ctc_vars + extra_ctc)
-            seitc = _sum_arr(sim, eitc_vars + extra_eitc)
+            seitc = _sum_arr(
+                sim,
+                [v for v in eitc_vars if v not in exclude_eitc] + extra_eitc,
+            )
             ca = _arr(sim, "basic_income")
             snap = _arr(sim, "snap")
             pov = _arr(sim, "in_poverty")
@@ -726,7 +790,9 @@ def compute_household_sweep(payload: dict) -> dict:
         )
 
         baseline_data_points = _rows(sim_b)
-        data_points = _rows(sim_r, eitc_extras, ctc_extras)
+        data_points = _rows(
+            sim_r, eitc_extras, ctc_extras, exclude_eitc=reform_eitc_excludes
+        )
 
         # Isolated dependent-exemption portion per income point: baseline state
         # income tax − dependent-only state income tax. 0 everywhere when no
@@ -904,6 +970,15 @@ def compute_economy(payload: dict) -> dict:
     if st_l == "id" and bool((reform_payload or {}).get(ID_REVIVE_FLAG)):
         state_ctc_change += _hh_sum(sim_baseline, "id_ctc")
     state_eitc_change = _delta("state_eitc") + _reform_only_sum(f"{st_l}_eitc")
+    # Make-refundable conversions (MO/OH/SC/UT): the registry variable keeps
+    # computing its liability-capped value as a phantom under the reform
+    # while the credit is delivered through the replacement variable — swap
+    # them on the reform side of the attribution.
+    _conv = _refundable_eitc_conversion(state_code, reform_payload)
+    if _conv:
+        state_eitc_change += _hh_sum(
+            sim_reform, _conv["replacement"]
+        ) - _hh_sum(sim_reform, _conv["registry_var"])
     # ubi_center basic income — the child allowance / baby bonus reforms.
     ubi_change = _delta("basic_income")
     # Per-state extra credits (e.g. Idaho's grocery credit) get their own
