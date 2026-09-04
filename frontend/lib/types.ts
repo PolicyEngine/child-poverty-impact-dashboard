@@ -110,10 +110,25 @@ export interface PovertyImpactResponse {
   state: string | null;
 }
 
+// One stacked-scoring provision row (billions, budget-signed: negative =
+// cost). JCT convention: the marginal budget effect of adding this
+// provision group on top of the groups stacked above it (federal groups
+// stack before state ones). State-resident-scoped.
+export interface StackedProvisionRow {
+  key: string;
+  federal_billions: number;
+  state_billions: number;
+}
+
 export interface FiscalCostResponse {
   total_cost_billions: number;
   federal_cost_billions: number;
   state_cost_billions: number;
+  // Stacked provision scoring (absent on payloads computed before the
+  // 2026-09-05 build; the table falls back to the legacy display).
+  stacked_rows?: StackedProvisionRow[];
+  stacked_base_federal_billions?: number;
+  stacked_base_state_billions?: number;
   ctc_cost_billions: number;
   eitc_cost_billions: number;
   dependent_exemption_cost_billions: number;

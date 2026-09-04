@@ -166,6 +166,17 @@ function mapEconomyToAnalysisResponse(
       total_cost_billions: totalCostBillions,
       federal_cost_billions: federalCostBillions,
       state_cost_billions: stateCostBillions,
+      // Stacked provision scoring (budget-signed dollars → billions, sign
+      // preserved: negative = cost).
+      stacked_rows: economy.fiscal?.stacked?.rows?.map((r) => ({
+        key: r.key,
+        federal_billions: r.federal / 1e9,
+        state_billions: r.state / 1e9,
+      })),
+      stacked_base_federal_billions:
+        (economy.fiscal?.stacked?.base_federal ?? 0) / 1e9,
+      stacked_base_state_billions:
+        (economy.fiscal?.stacked?.base_state ?? 0) / 1e9,
       ctc_cost_billions: ctcCostBillions,
       eitc_cost_billions: eitcCostBillions,
       dependent_exemption_cost_billions: dependentExemptionCostBillions,

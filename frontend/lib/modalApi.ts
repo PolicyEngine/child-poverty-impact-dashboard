@@ -89,6 +89,20 @@ export interface EconomyImpactResult {
      *  of the reform. Optional: returned only when a dependent-exemption
      *  sub-reform is sent and the deployment supports it. */
     dependent_exemption_change?: number;
+    /** JCT-style stacked provision scoring (raw dollars, budget-signed:
+     *  negative = cost). Each row is the marginal budget effect of adding
+     *  that provision group on top of the ones stacked above it; federal
+     *  groups stack before state ones. base_* is the effect of the
+     *  non-credit provisions (child allowance, SNAP, exemptions...) which
+     *  stack first as a bundle. Optional: absent (or empty) on results
+     *  computed before the 2026-09-05 build or when no credit-group
+     *  parameters are in the reform. */
+    stacked?: {
+      order: string[];
+      rows: Array<{ key: string; federal: number; state: number }>;
+      base_federal: number;
+      base_state: number;
+    };
   };
   poverty: {
     overall_baseline_rate: number;
