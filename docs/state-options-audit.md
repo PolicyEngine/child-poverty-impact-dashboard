@@ -79,7 +79,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Arizona Dependent Tax Credit - $100
+- State CTC: Arizona Dependent Tax Credit - $125
 - State EITC: None
 - CDCC: yes | Dependent exemption: no
 

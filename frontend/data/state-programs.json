@@ -1274,7 +1274,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Arizona Dependent Tax Credit",
-   "max_amount": 100,
+   "max_amount": 125,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -1283,7 +1283,7 @@
    "income_limit": null,
    "phaseout_start": null,
    "phaseout_rate": null,
-   "notes": "",
+   "notes": "Raised from $100 to $125 per dependent under 17 by HB 4168 (2026 omnibus), effective TY2026; $25 for dependents 17+.",
    "pe_variable": "az_dependent_tax_credit"
   },
   "eitc": null,
