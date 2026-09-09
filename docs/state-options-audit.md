@@ -65,7 +65,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Arkansas Dependent credit**
-  - _Adjust, partially repeal, or eliminate Arkansas's dependent credit. Pair it with a state EITC or child allowance to model a swap. Dependent slice of AR's personal tax credit ($29/dependent), separated by the contributed reform (us#8696) so it can be edited or eliminated._
+  - _Adjust, partially repeal, or eliminate Arkansas's dependent credit. Pair it with a state EITC or child allowance to model a swap. Dependent slice of AR's personal tax credit ($29/dependent), separated by the contributed reform so it can be edited or eliminated._
   - Eliminate the dependent credit (eliminate): default 0, range 0-1
     - _Repeal Arkansas's dependent credit entirely (set it to $0)._
   - Amount per dependent (amount): default 29$, range 0-10000$
@@ -297,7 +297,7 @@ then parameter defaults vs the actual statute.
   - Eligible if under age (age): default 6yr, range 0-19yr
     - _Age limit for an eligible child._
   - Make the credit refundable (make_refundable): default 0, range 0-1
-    - _Pay credit beyond tax owed as a refund, capped per child at the refundable amount below (us#8856 contributed reform)._
+    - _Pay credit beyond tax owed as a refund, capped per child at the refundable amount below._
   - Refundable portion per child (refundable_amount): default 250$, range 0-3000$, shown when make_refundable
     - _Maximum refunded per child beyond tax owed. Defaults to $250 (the full current credit); raise it alongside the credit amount for a fully refundable higher credit._
 
@@ -335,7 +335,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Hawaii Dependent exemption**
-  - _Adjust, partially repeal, or eliminate Hawaii's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate Hawaii's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption._
   - Eliminate the dependent exemption (eliminate): default 0, range 0-1
     - _Repeal Hawaii's dependent exemption entirely (set it to $0)._
   - Amount per dependent (amount): default 1144$, range 0-10000$
@@ -381,7 +381,7 @@ then parameter defaults vs the actual statute.
 
 **State CTC options:**
 - **Revive the expired Idaho Child Tax Credit** [CREATES PROGRAM]
-  - _Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026 (us#8856 contributed reform); optionally adjust the amount or add a refundable portion._
+  - _Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026; optionally adjust the amount or add a refundable portion._
   - Credit amount (amount): default 205$, range 0-3000$
     - _Maximum credit per eligible child._
   - Make the revived credit refundable (make_refundable): default 0, range 0-1
@@ -653,7 +653,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Michigan Dependent exemption**
-  - _Adjust, partially repeal, or eliminate Michigan's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate Michigan's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption._
   - Eliminate the dependent exemption (eliminate): default 0, range 0-1
     - _Repeal Michigan's dependent exemption entirely (set it to $0)._
   - Amount per dependent (amount): default 5950$, range 0-11900$
@@ -721,7 +721,7 @@ then parameter defaults vs the actual statute.
 - **Missouri EITC**
   - _Convert Missouri's nonrefundable EITC to refundable and adjust the match rate. Current: 20% (nonrefundable)._
   - Make refundable (make_refundable): default 0, range 0-1
-    - _Apply the contributed reform that makes Missouri's EITC fully refundable._
+    - _Make Missouri's EITC fully refundable._
   - Match rate (match_rate): default 20%, range 0-150%
     - _Percentage of the federal EITC. Current: 20%. Adjusting the rate alone keeps the credit non-refundable._
 
@@ -815,7 +815,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Nebraska Dependent credit**
-  - _Adjust, partially repeal, or eliminate Nebraska's dependent credit. Pair it with a state EITC or child allowance to model a swap. Dependent portion of NE's personal-exemption credit, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate Nebraska's dependent credit. Pair it with a state EITC or child allowance to model a swap. Dependent portion of NE's personal-exemption credit._
   - Eliminate the dependent credit (eliminate): default 0, range 0-1
     - _Repeal Nebraska's dependent credit entirely (set it to $0)._
   - Amount per dependent (amount): default 175$, range 0-10000$
@@ -1005,7 +1005,7 @@ then parameter defaults vs the actual statute.
 - **Ohio EITC**
   - _Convert Ohio's nonrefundable EITC to refundable and adjust the match rate. Current: 30% (nonrefundable)._
   - Make refundable (make_refundable): default 0, range 0-1
-    - _Apply the contributed reform that makes Ohio's EITC fully refundable._
+    - _Make Ohio's EITC fully refundable._
   - Match rate (match_rate): default 30%, range 0-150%
     - _Percentage of the federal EITC. Current: 30%. Adjusting the rate alone keeps the credit non-refundable._
 
@@ -1043,7 +1043,7 @@ then parameter defaults vs the actual statute.
   - Credit (% of federal CTC/CDCC) (rate): default 5%, range 0-100%
     - _Percentage of the greater of the federal CTC or CDCC. Current: 5%._
   - Make the credit refundable (make_refundable): default 0, range 0-1
-    - _Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families (us#9394 contributed reform)._
+    - _Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families._
 
 **State EITC options:**
 - **Oklahoma EITC**
@@ -1053,7 +1053,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Oklahoma Dependent exemption**
-  - _Adjust, partially repeal, or eliminate Oklahoma's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate Oklahoma's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption._
   - Eliminate the dependent exemption (eliminate): default 0, range 0-1
     - _Repeal Oklahoma's dependent exemption entirely (set it to $0)._
   - Amount per dependent (amount): default 1000$, range 0-10000$
@@ -1153,7 +1153,7 @@ then parameter defaults vs the actual statute.
 - **South Carolina EITC**
   - _Convert South Carolina's nonrefundable EITC to refundable and adjust the match rate. Current: 125% (nonrefundable)._
   - Make refundable (make_refundable): default 0, range 0-1
-    - _Apply the contributed reform that makes South Carolina's EITC fully refundable._
+    - _Make South Carolina's EITC fully refundable._
   - Match rate (match_rate): default 125%, range 0-150%
     - _Percentage of the federal EITC. Current: 125%. Adjusting the rate alone keeps the credit non-refundable._
   - Eliminate the cap (eliminate_cap): default 0, range 0-1
@@ -1227,7 +1227,7 @@ then parameter defaults vs the actual statute.
   - Phase-out rate (phaseout_rate): default 10%, range 0-100%
     - _Share of income above the threshold that reduces the credit._
   - Make the credit (partially) refundable (make_refundable): default 0, range 0-1
-    - _Apply a PROPOSED restructure of Utah Code 59-10-1047 (contributed reform, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies._
+    - _Apply a proposed restructure of Utah Code 59-10-1047 (a proposal, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies._
   - Reform credit amount (reform_amount): default 1000$, range 0-5000$, shown when make_refundable
     - _Per-child amount under the proposed restructure. Reform default: $1,000._
   - Refundable portion per child (refundable_amount): default 800$, range 0-5000$, shown when make_refundable
@@ -1237,7 +1237,7 @@ then parameter defaults vs the actual statute.
 - **Utah EITC**
   - _Convert Utah's nonrefundable EITC to refundable and adjust the match rate. Current: 20% (nonrefundable)._
   - Make refundable (make_refundable): default 0, range 0-1
-    - _Apply the contributed reform that makes Utah's EITC fully refundable._
+    - _Make Utah's EITC fully refundable._
   - Match rate (match_rate): default 20%, range 0-150%
     - _Percentage of the federal EITC. Current: 20%. Adjusting the rate alone keeps the credit non-refundable._
 
@@ -1303,7 +1303,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Vermont Dependent exemption**
-  - _Adjust, partially repeal, or eliminate Vermont's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate Vermont's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption._
   - Eliminate the dependent exemption (eliminate): default 0, range 0-1
     - _Repeal Vermont's dependent exemption entirely (set it to $0)._
   - Amount per dependent (amount): default 5400$, range 0-10800$
@@ -1359,7 +1359,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **Wisconsin Dependent exemption**
-  - _Adjust, partially repeal, or eliminate Wisconsin's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate Wisconsin's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption._
   - Eliminate the dependent exemption (eliminate): default 0, range 0-1
     - _Repeal Wisconsin's dependent exemption entirely (set it to $0)._
   - Amount per dependent (amount): default 700$, range 0-10000$
@@ -1385,7 +1385,7 @@ then parameter defaults vs the actual statute.
 
 **Dependent exemption options:**
 - **West Virginia Dependent exemption**
-  - _Adjust, partially repeal, or eliminate West Virginia's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696)._
+  - _Adjust, partially repeal, or eliminate West Virginia's dependent exemption. Pair it with a state EITC or child allowance to model a swap. Dependent portion of the state's personal exemption._
   - Eliminate the dependent exemption (eliminate): default 0, range 0-1
     - _Repeal West Virginia's dependent exemption entirely (set it to $0)._
   - Amount per dependent (amount): default 2000$, range 0-10000$

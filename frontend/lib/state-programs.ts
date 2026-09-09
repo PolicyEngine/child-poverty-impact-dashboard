@@ -844,7 +844,7 @@ function buildEitcOptions(
         default_value: 0,
         step: 1,
         unit: '',
-        description: `Apply the contributed reform that makes ${programs.state_name}'s EITC fully refundable.`,
+        description: `Make ${programs.state_name}'s EITC fully refundable.`,
       });
     }
     // The match path is a baseline state parameter, so the slider works on
@@ -1761,7 +1761,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below (us#8856 contributed reform).',
+          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below.',
       },
       {
         name: 'refundable_amount',
@@ -1785,7 +1785,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     // param at its default.
     creates_program: true,
     description:
-      "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026 (us#8856 contributed reform); optionally adjust the amount or add a refundable portion.",
+      "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026; optionally adjust the amount or add a refundable portion.",
     params: [
       AMT('gov.states.id.tax.income.credits.ctc.amount', 205, 3000),
       {
@@ -2021,7 +2021,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          'Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families (us#9394 contributed reform).',
+          'Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families.',
       },
     ],
   },
@@ -2048,7 +2048,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          "Apply a PROPOSED restructure of Utah Code 59-10-1047 (contributed reform, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
+          "Apply a proposed restructure of Utah Code 59-10-1047 (a proposal, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
       },
       {
         name: 'reform_amount',
