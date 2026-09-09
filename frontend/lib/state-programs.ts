@@ -90,6 +90,10 @@ type EitcReformEntry =
        *  while its upstream reform is broken — e.g. the create-state EITCs that
        *  delete baseline refundable credits (policyengine-us#8775). */
       in_development?: boolean;
+      /** 'adjustment_factor': the lever scales the state's OWN credit
+       *  schedule (e.g. CalEITC's statutory 85% factor) rather than
+       *  matching a percentage of the federal EITC — label it honestly. */
+      kind?: 'adjustment_factor';
       note?: string;
     };
 
@@ -566,6 +570,15 @@ export function eitcStructured(stateCode: string): boolean {
   return stateCode.toUpperCase() in STRUCTURED_EITC;
 }
 
+/** True when the state's EITC lever is an adjustment factor scaling its
+ *  own credit schedule (CalEITC), not a percentage of the federal EITC. */
+export function eitcIsAdjustmentFactor(stateCode: string): boolean {
+  const entry = EITC_REFORMS[stateCode.toUpperCase()];
+  return (
+    !!entry && typeof entry !== 'string' && entry.kind === 'adjustment_factor'
+  );
+}
+
 /** True only for Working Family (Tax) Credit states (MN, WA) — not for
  *  multi-rate federal-EITC matches (WI, OR), which stay labelled "EITC". */
 export function eitcIsWfc(stateCode: string): boolean {
@@ -678,6 +691,18 @@ function describeEitcAction(programs: StateProgramRecord): {
       description: `Convert ${programs.state_name}'s nonrefundable EITC to refundable and adjust the match rate. Current: ${current_rate}% (nonrefundable).`,
     };
   }
+  if (has_existing && eitcIsAdjustmentFactor(programs.state_code)) {
+    return {
+      action: 'adjust',
+      current_rate,
+      description:
+        `${programs.state_name}'s credit has its own schedule (CalEITC pays ` +
+        `earners up to about $32,000), scaled by a statutory adjustment ` +
+        `factor rather than matching the federal EITC. Raise or lower the ` +
+        `factor to scale every credit amount proportionally; 100% pays the ` +
+        `full schedule. Current: ${current_rate}%.`,
+    };
+  }
   if (has_existing) {
     return {
       action: 'adjust',
@@ -747,7 +772,9 @@ function buildEitcOptions(
     return [
       {
         id: `${programs.state_code.toLowerCase()}_eitc`,
-        name: `${programs.state_name} EITC`,
+        name: eitcIsAdjustmentFactor(programs.state_code)
+          ? `${programs.state_name} EITC adjustment factor`
+          : `${programs.state_name} EITC`,
         description,
         category: 'state_eitc',
         is_configurable: true,
@@ -757,21 +784,38 @@ function buildEitcOptions(
         // negative-cost results; grey them out until a fixed PE-US ships.
         ...(entry?.in_development ? { in_development: true } : {}),
         adjustable_params: [
-          {
-            name: 'match_rate',
-            label: 'Match rate',
-            min_value: 0,
-            max_value: 100,
-            // A state without an EITC has a current-law rate of 0 — the
-            // credit only exists once the user sets a percentage, so the
-            // no-change banner and the builder agree at the default.
-            default_value: entry?.creates_credit ? 0 : current_rate,
-            step: 1,
-            unit: '%',
-            description: entry?.creates_credit
-              ? 'Percentage of the federal EITC. Set a rate to create the credit.'
-              : `Percentage of the federal EITC. Current: ${current_rate}%.`,
-          },
+          eitcIsAdjustmentFactor(programs.state_code)
+            ? {
+                // Keeps the `match_rate` plumbing key (share links, the
+                // reform builder, and current-law defaults key on it) but
+                // presents the lever as what it is: CalEITC's statutory
+                // factor scaling the state's own credit schedule.
+                name: 'match_rate',
+                label: 'Adjustment factor',
+                min_value: 0,
+                max_value: 150,
+                default_value: current_rate,
+                step: 1,
+                unit: '%',
+                description:
+                  `Scales every amount in the state's own credit schedule; ` +
+                  `not a percentage of the federal EITC. Current: ${current_rate}%.`,
+              }
+            : {
+                name: 'match_rate',
+                label: 'Match rate',
+                min_value: 0,
+                max_value: 100,
+                // A state without an EITC has a current-law rate of 0 — the
+                // credit only exists once the user sets a percentage, so the
+                // no-change banner and the builder agree at the default.
+                default_value: entry?.creates_credit ? 0 : current_rate,
+                step: 1,
+                unit: '%',
+                description: entry?.creates_credit
+                  ? 'Percentage of the federal EITC. Set a rate to create the credit.'
+                  : `Percentage of the federal EITC. Current: ${current_rate}%.`,
+              },
         ],
       },
     ];
