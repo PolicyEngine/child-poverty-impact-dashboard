@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ReformOption, StateReformOptions, StatePrograms, AdjustableParameter } from '@/lib/household-types';
-import { eitcStructured, eitcIsWfc } from '@/lib/state-programs';
+import { eitcStructured, eitcIsWfc, eitcIsAdjustmentFactor } from '@/lib/state-programs';
 
 // Reform categories where only one option may be active at a time. The
 // federal CTC options are competing whole-credit restructurings, so they're
@@ -228,9 +228,14 @@ export default function ReformOptionsSelector({
                   <span className="text-gray-600 ml-1">
                     {statePrograms.eitc_name}
                     {/* MN/WA aren't a percentage of the federal EITC, so the
-                        "% match" descriptor is misleading — show name only. */}
-                    {!eitcStructured(statePrograms.state_code) &&
+                        "% match" descriptor is misleading — show name only.
+                        CA's 85% is its adjustment factor scaling CalEITC's
+                        own schedule, not a federal match. */}
+                    {eitcIsAdjustmentFactor(statePrograms.state_code) &&
                     statePrograms.eitc_match_rate != null
+                      ? ` - own schedule, ${(statePrograms.eitc_match_rate * 100).toFixed(0)}% adjustment factor`
+                      : !eitcStructured(statePrograms.state_code) &&
+                        statePrograms.eitc_match_rate != null
                       ? ` - ${(statePrograms.eitc_match_rate * 100).toFixed(0)}% match`
                       : ''}
                   </span>
