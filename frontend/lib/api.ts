@@ -189,11 +189,9 @@ function mapEconomyToAnalysisResponse(
         (economy.fiscal?.federal_tax_change ?? 0) / 1e9
         + (economy.fiscal?.state_tax_change ?? 0) / 1e9,
       payroll_tax_change_billions: 0,
-      // Cost-per-child metrics are intentionally NOT displayed anywhere in
-      // the dashboard (product decision) — these fields only satisfy the
-      // response type. Do not surface them in the UI without redefining
-      // cost_per_child, which does not divide by the state's children.
-      cost_per_child: 0,
+      // Cost-per-child was removed as a metric (product decision); only
+      // the cost-per-child-LIFTED figure remains, used solely by the
+      // dormant multi-state CompareTab.
       cost_per_child_lifted_from_poverty:
         childrenLifted > 0 ? (totalCostBillions * 1e9) / childrenLifted : 0,
       state,

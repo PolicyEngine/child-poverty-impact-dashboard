@@ -1748,7 +1748,6 @@ interface CompareRow {
   reformRate: number;
   childrenLifted: number;
   costBillions: number;
-  costPerChild: number;
   costPerChildLifted: number;
 }
 
@@ -1781,7 +1780,6 @@ function CompareTab({
         reformRate: pov.reform_child_poverty_rate,
         childrenLifted: pov.children_lifted_out_of_poverty,
         costBillions: fisc.total_cost_billions,
-        costPerChild: fisc.cost_per_child,
         costPerChildLifted: fisc.cost_per_child_lifted_from_poverty,
       };
     });
