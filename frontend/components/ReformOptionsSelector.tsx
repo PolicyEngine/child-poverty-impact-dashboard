@@ -214,6 +214,11 @@ export default function ReformOptionsSelector({
                 ) : (
                   <span className="text-gray-500 ml-1">None</span>
                 )}
+                {statePrograms.ctc_note && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {statePrograms.ctc_note}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-start gap-2">

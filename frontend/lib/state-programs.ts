@@ -48,6 +48,9 @@ export interface StateProgramRecord {
   state_name: string;
   has_income_tax: boolean;
   ctc: StateCTCRecord | null;
+  /** Shown when ctc is null but the state has a near-miss program (e.g.
+   *  Nebraska's care-enrollment-gated Child Care Tax Credit). */
+  ctc_note?: string;
   eitc: StateEITCRecord | null;
   exemption: {
     personal_amount: number;
@@ -2686,6 +2689,7 @@ export interface StateProgramsSummary {
   state_name: string;
   has_income_tax: boolean;
   has_state_ctc: boolean;
+  ctc_note?: string;
   ctc_name?: string;
   ctc_max_amount?: number;
   ctc_age_limit?: number;
@@ -2707,6 +2711,7 @@ export function getStateProgramsSummary(
     state_name: p.state_name,
     has_income_tax: p.has_income_tax,
     has_state_ctc: p.ctc !== null,
+    ctc_note: p.ctc_note,
     ctc_name: p.ctc?.name,
     ctc_max_amount: p.ctc?.max_amount,
     ctc_age_limit: p.ctc?.age_limit,
