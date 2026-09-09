@@ -147,7 +147,7 @@ function ShareButton({ config }: { config: ReportConfig | null }) {
           SHORT_PARAM,
         );
         if (settled) {
-          url = shortShareUrl(Number(settled));
+          url = shortShareUrl(settled);
         } else {
           try {
             const id = await createShareLink(config);
@@ -392,7 +392,14 @@ export default function ReportResultsPage() {
         setConfigReady(true);
         return;
       }
-      // A malformed link falls through to sessionStorage before erroring.
+      // A present-but-unreadable link is an ERROR, not a cue to show
+      // whatever report this browser happened to view last: falling
+      // through to sessionStorage displayed unrelated results.
+      setConfigError(
+        'This share link could not be read. Please ask for a fresh link.',
+      );
+      setConfigReady(true);
+      return;
     }
 
     const stored = sessionStorage.getItem('reportConfig');
@@ -683,7 +690,7 @@ export default function ReportResultsPage() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
             <ShareButton config={config} />
             <button
               onClick={() => router.push('/report')}
@@ -712,6 +719,8 @@ export default function ReportResultsPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
+                aria-label={tab.label}
+                aria-current={activeTab === tab.key ? 'page' : undefined}
                 className="flex items-center gap-2 px-4 py-4 border-b-2 font-medium transition-all"
                 style={{
                   borderColor: activeTab === tab.key ? COLORS.primary : 'transparent',

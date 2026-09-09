@@ -202,7 +202,7 @@ export default function ReformOptionsSelector({
           </p>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-start gap-2">
-              <span className={statePrograms.has_state_ctc ? 'text-green-600' : 'text-gray-400'}>
+              <span className={statePrograms.has_state_ctc ? 'text-green-600' : 'text-gray-500'}>
                 {statePrograms.has_state_ctc ? '✓' : '✗'}
               </span>
               <div>
@@ -212,12 +212,12 @@ export default function ReformOptionsSelector({
                     {statePrograms.ctc_name} - ${statePrograms.ctc_max_amount}
                   </span>
                 ) : (
-                  <span className="text-gray-400 ml-1">None</span>
+                  <span className="text-gray-500 ml-1">None</span>
                 )}
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <span className={statePrograms.has_state_eitc ? 'text-green-600' : 'text-gray-400'}>
+              <span className={statePrograms.has_state_eitc ? 'text-green-600' : 'text-gray-500'}>
                 {statePrograms.has_state_eitc ? '✓' : '✗'}
               </span>
               <div>
@@ -235,7 +235,7 @@ export default function ReformOptionsSelector({
                       : ''}
                   </span>
                 ) : (
-                  <span className="text-gray-400 ml-1">None</span>
+                  <span className="text-gray-500 ml-1">None</span>
                 )}
               </div>
             </div>
@@ -392,9 +392,24 @@ function ReformOptionCard({
       }`}
       aria-disabled={inDevelopment}
     >
-      {/* Header - clickable to toggle (disabled while in development) */}
+      {/* Header - clickable to toggle (disabled while in development).
+          role="button" + tabIndex + onKeyDown keep it keyboard-operable
+          without a real <button>, which can't wrap the heading/paragraph
+          layout inside. */}
       <div
+        role="button"
+        tabIndex={inDevelopment ? -1 : 0}
+        aria-pressed={isSelected}
+        aria-disabled={inDevelopment}
         onClick={inDevelopment ? undefined : onToggle}
+        onKeyDown={(e) => {
+          if (inDevelopment) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            // Space scrolls the page by default; Enter is safe.
+            if (e.key === ' ') e.preventDefault();
+            onToggle();
+          }
+        }}
         className={`flex items-start justify-between ${
           inDevelopment ? 'cursor-not-allowed' : 'cursor-pointer'
         }`}
@@ -460,10 +475,12 @@ function ReformOptionCard({
 
             // Checkbox control (stored as 0/1).
             if (param.control === 'toggle') {
+              const toggleId = `${option.id}-${param.name}`;
               return (
                 <div key={param.name} className="flex items-start gap-2">
                   <input
                     type="checkbox"
+                    id={toggleId}
                     checked={currentValue > 0}
                     onChange={(e) =>
                       onParameterChange(param.name, e.target.checked ? 1 : 0)
@@ -472,7 +489,7 @@ function ReformOptionCard({
                     className="mt-0.5 h-4 w-4 accent-pe-teal-500"
                   />
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
+                    <label htmlFor={toggleId} className="text-sm font-medium text-gray-700">
                       {param.label}
                     </label>
                     {param.description && (
@@ -483,10 +500,11 @@ function ReformOptionCard({
               );
             }
 
+            const inputId = `${option.id}-${param.name}`;
             return (
               <div key={param.name} className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
                     {param.label}
                   </label>
                   {/* Bordered box with the $ / % sign inside it. */}
@@ -496,6 +514,7 @@ function ReformOptionCard({
                     )}
                     <input
                       type="number"
+                      id={inputId}
                       value={currentValue}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
@@ -517,9 +536,10 @@ function ReformOptionCard({
                 {/* Slider only outside wizard mode (CTC / child allowance use typed boxes). */}
                 {!wizardMode && (
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 w-8">{param.unit === '$' ? `$${param.min_value}` : `${param.min_value}${param.unit}`}</span>
+                    <span className="text-xs text-gray-500 w-8">{param.unit === '$' ? `$${param.min_value}` : `${param.min_value}${param.unit}`}</span>
                     <input
                       type="range"
+                      aria-label={param.label}
                       value={currentValue}
                       onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
                       min={param.min_value}
@@ -528,7 +548,7 @@ function ReformOptionCard({
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pe-teal-500"
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <span className="text-xs text-gray-400 w-10 text-right">{param.unit === '$' ? `$${param.max_value}` : `${param.max_value}${param.unit}`}</span>
+                    <span className="text-xs text-gray-500 w-10 text-right">{param.unit === '$' ? `$${param.max_value}` : `${param.max_value}${param.unit}`}</span>
                   </div>
                 )}
                 {param.description && (

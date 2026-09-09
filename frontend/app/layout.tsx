@@ -136,7 +136,16 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${GA_ID}', { tool_name: '${TOOL_NAME}' });
+            // Report URLs can carry an encoded report config (?c=...);
+            // strip the query from collected page paths, keeping only the
+            // opaque short share slug (?r=) when present.
+            var cpidQuery = new URLSearchParams(window.location.search);
+            var cpidKept = cpidQuery.get('r') ? '?r=' + cpidQuery.get('r') : '';
+            gtag('config', '${GA_ID}', {
+              tool_name: '${TOOL_NAME}',
+              page_path: window.location.pathname + cpidKept,
+              page_location: window.location.origin + window.location.pathname + cpidKept,
+            });
           `}
         </Script>
         <Script id="engagement-tracking" strategy="afterInteractive">

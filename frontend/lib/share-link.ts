@@ -19,12 +19,13 @@ const SHARE_VERSION = 1;
 /** Query parameter carrying the encoded config on /report/results. */
 export const SHARE_PARAM = 'c';
 
-/** Query parameter carrying a short numeric share id (Supabase-backed).
- *  Long `c=` links remain a legacy fallback and keep working. */
+/** Query parameter carrying a short share slug (Supabase-backed; legacy
+ *  links carried a sequential numeric id, which still resolves). Long
+ *  `c=` links remain a fallback and keep working. */
 export const SHORT_PARAM = 'r';
 
-/** Absolute short share URL for a minted id. */
-export function shortShareUrl(id: number): string {
+/** Absolute short share URL for a minted slug (or legacy numeric id). */
+export function shortShareUrl(id: string | number): string {
   return `${window.location.origin}/report/results?${SHORT_PARAM}=${id}`;
 }
 
@@ -45,6 +46,11 @@ export function decodeReportConfig<T = unknown>(encoded: string): T | null {
     if (!json) return null;
     const parsed = JSON.parse(json);
     if (!parsed || typeof parsed !== 'object' || !('config' in parsed)) {
+      return null;
+    }
+    // Reject links from a future/unknown codec version instead of
+    // guessing at their shape.
+    if ((parsed as { v?: unknown }).v !== SHARE_VERSION) {
       return null;
     }
     return (parsed as { config: T }).config ?? null;
