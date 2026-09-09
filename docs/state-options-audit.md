@@ -109,7 +109,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Young Child Tax Credit (CalYCTC) - $1117
+- State CTC: Young Child Tax Credit (CalYCTC) - $1216
 - State EITC: California Earned Income Tax Credit (CalEITC) - own schedule, 85% adjustment factor
 - CDCC: yes | Dependent exemption: yes
 
@@ -213,7 +213,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: DC Child Tax Credit - $420
+- State CTC: DC Child Tax Credit - $1000
 - State EITC: DC EITC - 100% match
 - CDCC: yes | Dependent exemption: no
 
@@ -285,7 +285,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Georgia Child Tax Credit - $3000
+- State CTC: Georgia Child Tax Credit - $250
 - State EITC: None
 - CDCC: yes | Dependent exemption: yes
 
@@ -375,7 +375,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Idaho Child Tax Credit - $205
+- State CTC: None (note: Idaho's $205-per-child nonrefundable credit expired at the end of 2025. The Child Tax Credit reform option revives it from 2026.)
 - State EITC: None
 - CDCC: yes | Dependent exemption: no
 
@@ -611,17 +611,17 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Maine Dependent Exemption Tax Credit - $300
+- State CTC: Maine Dependent Exemption Tax Credit - $310
 - State EITC: Maine EITC - 25% match
 - CDCC: yes | Dependent exemption: yes
 
 **State CTC options:**
 - **Maine Dependent Exemption Tax Credit**
-  - _Maine's Child Tax Credit (officially the Dependent Exemption Tax Credit): $305 per dependent, doubled to $610 for children under 6 (new in 2025), phasing out above income thresholds that vary by filing status._
+  - _Maine's Child Tax Credit (officially the Dependent Exemption Tax Credit): $310 per dependent in 2026 (indexed), doubled to $620 for children under 6 (young-child boost new in 2025), phasing out above income thresholds that vary by filing status._
   - Credit amount per dependent (amount): default 310$, range 0-3000$
-    - _Base credit per dependent (before the young-child multiplier). Current: $305._
+    - _Base credit per dependent (before the young-child multiplier). Current: $310 (2026, indexed)._
   - Young child multiplier (under 6) (young_child_multiplier): default 2x, range 1-4x
-    - _Multiplier on the credit for children under 6. Current: 2× (i.e. $610), new in 2025; set to 1 to remove the young-child boost._
+    - _Multiplier on the credit for children under 6. Current: 2× (i.e. $620 in 2026), new in 2025; set to 1 to remove the young-child boost._
   - Young-child boost applies under age (young_child_age): default 6yr, range 0-19yr
     - _Age limit for an eligible child._
   - Phase-out start (AGI) (phaseout_start): default 102266$, range 0-400000$
@@ -667,13 +667,13 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Child and Working Families Credits - $1750
+- State CTC: Child and Working Families Credits - $1800
 - State EITC: Minnesota Working Family Credit (structured; name only)
 - CDCC: yes | Dependent exemption: yes
 
 **State CTC options:**
 - **Minnesota Child Tax Credit**
-  - _Refundable credit ($1,750/child). Phases out against the larger of earned income or AGI._
+  - _Refundable credit ($1,800/child in 2026; the statutory $1,750 indexes from 2026). Phases out against the larger of earned income or AGI._
   - Credit amount (amount): default 1800$, range 0-6000$
     - _Maximum credit per eligible child._
   - Eligible if under age (age): default 18yr, range 0-19yr
@@ -893,13 +893,13 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: New Mexico Child Income Tax Credit - $600
+- State CTC: New Mexico Child Income Tax Credit - $651
 - State EITC: New Mexico EITC - 25% match
 - CDCC: yes | Dependent exemption: yes
 
 **State CTC options:**
 - **New Mexico Child Income Tax Credit**
-  - _Refundable credit for all qualifying children, stepping down with federal AGI ($637 down to $26). Edit each tier amount._
+  - _Refundable credit for all qualifying children, stepping down with federal AGI ($651 down to about $27 in 2026, indexed). Edit each tier amount._
   - Tier 1 amount (lowest AGI) (tier1): default 651$, range 0-2000$
     - _Per-child credit for this income tier._
   - Tier 2 amount (tier2): default 434$, range 0-2000$
@@ -1033,7 +1033,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Oklahoma Child Care/Child Tax Credit - $100
+- State CTC: Oklahoma Child Care/Child Tax Credit - $110
 - State EITC: Oklahoma EITC - 5% match
 - CDCC: yes | Dependent exemption: yes
 
@@ -1067,7 +1067,7 @@ then parameter defaults vs the actual statute.
 
 **Income tax:** yes
 **Current Programs panel:**
-- State CTC: Oregon Kids Credit - $1000
+- State CTC: Oregon Kids Credit - $1050
 - State EITC: Oregon EITC (structured; name only)
 - CDCC: yes | Dependent exemption: yes
 
@@ -1227,9 +1227,9 @@ then parameter defaults vs the actual statute.
   - Phase-out rate (phaseout_rate): default 10%, range 0-100%
     - _Share of income above the threshold that reduces the credit._
   - Make the credit (partially) refundable (make_refundable): default 0, range 0-1
-    - _Apply Utah's CTC restructure (Utah Code 59-10-1047, from 2026): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies._
+    - _Apply a PROPOSED restructure of Utah Code 59-10-1047 (contributed reform, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies._
   - Reform credit amount (reform_amount): default 1000$, range 0-5000$, shown when make_refundable
-    - _Per-child amount under the restructure. Current (2026 reform): $1,000._
+    - _Per-child amount under the proposed restructure. Reform default: $1,000._
   - Refundable portion per child (refundable_amount): default 800$, range 0-5000$, shown when make_refundable
     - _Maximum refunded per child beyond tax owed. $800 under the 2026 reform; set it equal to the credit amount for a fully refundable credit, or 0 for nonrefundable._
 
