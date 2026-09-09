@@ -87,20 +87,7 @@
   "state_code": "CT",
   "state_name": "Connecticut",
   "has_income_tax": true,
-  "ctc": {
-   "name": "Connecticut Child Tax Rebate",
-   "max_amount": 250,
-   "amount_young": null,
-   "amount_older": null,
-   "age_limit": 17,
-   "young_child_age": 6,
-   "refundable": true,
-   "income_limit": 100000,
-   "phaseout_start": null,
-   "phaseout_rate": null,
-   "notes": "Per-child rebate program",
-   "pe_variable": "ct_child_tax_rebate"
-  },
+  "ctc": null,
   "eitc": {
    "name": "Connecticut EITC",
    "match_rate": 0.305,
@@ -123,7 +110,8 @@
    "max_expenses": 6000,
    "refundable": false,
    "notes": ""
-  }
+  },
+  "ctc_note": "Connecticut's Child Tax Rebate was a one-time 2022 payment and has ended. The ongoing $250-per-child amount is the EITC qualifying-child bonus, shown under State EITC."
  },
  "DC": {
   "state_code": "DC",
@@ -615,20 +603,7 @@
   "state_code": "RI",
   "state_name": "Rhode Island",
   "has_income_tax": true,
-  "ctc": {
-   "name": "Rhode Island Child Tax Rebate",
-   "max_amount": 250,
-   "amount_young": null,
-   "amount_older": null,
-   "age_limit": 17,
-   "young_child_age": 6,
-   "refundable": true,
-   "income_limit": 100000,
-   "phaseout_start": null,
-   "phaseout_rate": null,
-   "notes": "",
-   "pe_variable": "ri_child_tax_rebate"
-  },
+  "ctc": null,
   "eitc": {
    "name": "Rhode Island EITC",
    "match_rate": 0.16,
@@ -651,7 +626,8 @@
    "max_expenses": 6000,
    "refundable": false,
    "notes": ""
-  }
+  },
+  "ctc_note": "Rhode Island's Child Tax Rebate was a one-time 2022 payment. The state's $330 Child Tax Credit (H 7127) takes effect in 2027, so it appears as a reform option for 2027 or later analysis years."
  },
  "VT": {
   "state_code": "VT",
