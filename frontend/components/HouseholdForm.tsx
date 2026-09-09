@@ -244,11 +244,12 @@ export default function HouseholdForm({
         {/* Employment income (+ spouse when married) */}
         <div className="space-y-3">
           <div>
-            <label className={labelCls}>Employment income</label>
+            <label htmlFor="employment-income" className={labelCls}>Employment income</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-500 text-sm">$</span>
               <input
                 type="text"
+                id="employment-income"
                 inputMode="numeric"
                 className="input pl-7"
                 value={(household.income.employment_income || 0).toLocaleString('en-US')}
@@ -267,9 +268,10 @@ export default function HouseholdForm({
         <div>
           <div className={married ? 'grid grid-cols-2 gap-3' : ''}>
             <div>
-              <label className={labelCls}>Your age</label>
+              <label htmlFor="your-age" className={labelCls}>Your age</label>
               <input
                 type="number"
+                id="your-age"
                 className="input"
                 value={household.adults[0]?.age ?? 30}
                 min={18}
@@ -328,9 +330,10 @@ export default function HouseholdForm({
           flowing underneath, instead of a card per child). */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
         <div>
-          <label className={labelCls}>Children</label>
+          <label htmlFor="children-count" className={labelCls}>Children</label>
           <input
             type="number"
+            id="children-count"
             className="input"
             value={household.children.length}
             min={0}
@@ -376,6 +379,7 @@ export default function HouseholdForm({
             <label className="block text-sm font-medium text-pe-gray-600">Other income</label>
             {availableOtherIncome.length > 0 && (
               <select
+                aria-label="Add income source"
                 className="text-sm border border-pe-gray-200 rounded-lg px-2 py-1 text-pe-teal-600 bg-white font-medium"
                 value=""
                 onChange={(e) => {
@@ -400,14 +404,14 @@ export default function HouseholdForm({
                 return (
                   <div key={key}>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-medium text-pe-gray-500 truncate" title={label}>
+                      <label htmlFor={`other-income-${key}`} className="block text-xs font-medium text-pe-gray-500 truncate" title={label}>
                         {label}
                       </label>
                       <button
                         type="button"
                         onClick={() => removeOtherIncome(key)}
                         aria-label={`Remove ${label}`}
-                        className="text-pe-gray-400 hover:text-red-500 ml-2"
+                        className="text-pe-gray-500 hover:text-red-500 ml-2"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -415,9 +419,10 @@ export default function HouseholdForm({
                       </button>
                     </div>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-400 text-sm">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pe-gray-500 text-sm">$</span>
                       <input
                         type="text"
+                        id={`other-income-${key}`}
                         inputMode="numeric"
                         className="input pl-7"
                         value={(household.income[key] || 0).toLocaleString('en-US')}

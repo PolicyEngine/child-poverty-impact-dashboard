@@ -199,10 +199,6 @@ function FiscalCostSection({ results }: { results: AnalysisResponse }) {
           />
           <div className="border-t pt-4 mt-4">
             <MetricRow
-              label="Cost per Child"
-              value={`$${Math.round(fiscal_cost.cost_per_child).toLocaleString()}`}
-            />
-            <MetricRow
               label="Cost per Child Lifted from Poverty"
               value={
                 fiscal_cost.cost_per_child_lifted_from_poverty < 1e10

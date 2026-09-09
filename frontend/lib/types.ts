@@ -139,7 +139,6 @@ export interface FiscalCostResponse {
   state_eitc_cost_billions: number;
   income_tax_change_billions: number;
   payroll_tax_change_billions: number;
-  cost_per_child: number;
   cost_per_child_lifted_from_poverty: number;
   state: string | null;
 }

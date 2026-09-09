@@ -1963,6 +1963,19 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
       'Nonrefundable credit worth a percentage of the greater of the federal Child Tax Credit or the federal Child and Dependent Care Credit, for filers below the state income limit.',
     params: [
       RATE('rate', 'Credit (% of federal CTC/CDCC)', 'gov.states.ok.tax.income.credits.child.ctc_fraction', 5, 'Percentage of the greater of the federal CTC or CDCC. Current: 5%.'),
+      {
+        name: 'make_refundable',
+        label: 'Make the credit refundable',
+        control: 'toggle',
+        path: '',
+        default_value: 0,
+        min_value: 0,
+        max_value: 1,
+        step: 1,
+        unit: '',
+        description:
+          'Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families (us#9394 contributed reform).',
+      },
     ],
   },
   UT: {
@@ -2426,6 +2439,7 @@ export function buildStateCtcReform(
   if (code === 'UT') return buildUtCtcReform(paramValues, year);
   if (code === 'GA') return buildGaCtcReform(paramValues, year);
   if (code === 'ID') return buildIdCtcReform(paramValues, year);
+  if (code === 'OK') return buildOkCtcReform(paramValues, year);
   const entry = CTC_REFORMS[code];
   if (!entry) return {};
   return emitAnchoredParams(
@@ -2536,6 +2550,32 @@ function buildUtCtcReform(
     if (refundable !== 800) {
       out['gov.contrib.states.ut.ctc.refundable.amount'] = refundable;
     }
+  }
+  return out;
+}
+
+/** Oklahoma CTC: the baseline rate lever plus the us#9394 refundability
+ *  conversion (gov.contrib.states.ok.child_poverty_impact_dashboard.ctc).
+ *  The flag only emits when its toggle is on; the toggle alone is the clean
+ *  "make it refundable" reform — under it the full worksheet credit pays out
+ *  past liability instead of being capped by 68 O.S. § 2357. */
+const OK_REFORM_PARAM_NAMES = new Set(['make_refundable']);
+
+function buildOkCtcReform(
+  pv?: Record<string, number>,
+  year = 2026,
+): Record<string, number | boolean> {
+  const entry = CTC_REFORMS.OK;
+  const out: Record<string, number | boolean> = emitAnchoredParams(
+    'ok_ctc',
+    entry.params,
+    pv,
+    year,
+    OK_REFORM_PARAM_NAMES,
+  );
+  if (pv?.make_refundable) {
+    out['gov.contrib.states.ok.child_poverty_impact_dashboard.ctc.in_effect'] =
+      true;
   }
   return out;
 }

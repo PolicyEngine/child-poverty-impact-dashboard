@@ -42,7 +42,7 @@ app = modal.App("cpid-backend")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "policyengine-us==1.822.2",
+        "policyengine-us==1.824.7",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-05-stacked+pe-us-1.822.2"})
+    .env({"CPID_BUILD_REV": "2026-09-09-okrefund+pe-us-1.824.7"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -188,11 +188,13 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
 
 
 def _share_create(config: dict):
-    """Store a share config under a short numeric id; returns the id.
+    """Store a share config under a short unguessable slug; returns it.
 
-    Deduped by config hash, so the same report always mints the same id.
-    Best-effort: returns None when Supabase is off/unreachable and the
-    frontend falls back to the long encoded-config link.
+    The slug is the first 10 hex chars of the config hash (40 bits), so
+    ids cannot be enumerated the way the old sequential integers could.
+    Deduped by config hash, so the same report always mints the same
+    slug. Best-effort: returns None when Supabase is off/unreachable and
+    the frontend falls back to the long encoded-config link.
     """
     cfg = _supabase_cfg()
     if cfg is None:
@@ -206,10 +208,15 @@ def _share_create(config: dict):
 
         canonical = json.dumps(config, sort_keys=True, separators=(",", ":"))
         config_hash = hashlib.sha256(canonical.encode()).hexdigest()[:32]
+        slug = config_hash[:10]
         resp = requests.post(
             f"{url}/rest/v1/cpid_share_links",
             params={"on_conflict": "config_hash"},
-            json={"config_hash": config_hash, "config": config},
+            json={
+                "config_hash": config_hash,
+                "config": config,
+                "slug": slug,
+            },
             headers={
                 "apikey": service_key,
                 "Authorization": f"Bearer {service_key}",
@@ -218,13 +225,13 @@ def _share_create(config: dict):
             timeout=5,
         )
         rows = resp.json() if resp.ok else []
-        return int(rows[0]["id"]) if rows else None
+        return rows[0].get("slug") or config_hash[:10] if rows else None
     except Exception:
         return None
 
 
-def _share_fetch(link_id: int):
-    """Config for a share id, or None."""
+def _share_fetch(link_id: str):
+    """Config for a share slug (or a legacy numeric id), or None."""
     cfg = _supabase_cfg()
     if cfg is None:
         return None
@@ -232,9 +239,13 @@ def _share_fetch(link_id: int):
     try:
         import requests
 
+        ident = str(link_id).strip()
+        # Legacy links used the sequential integer primary key; new links
+        # use the hash slug. Both keep resolving.
+        field = "id" if ident.isdigit() else "slug"
         resp = requests.get(
             f"{url}/rest/v1/cpid_share_links",
-            params={"id": f"eq.{int(link_id)}", "select": "config"},
+            params={field: f"eq.{ident}", "select": "config"},
             headers={
                 "apikey": service_key,
                 "Authorization": f"Bearer {service_key}",
@@ -391,6 +402,8 @@ _ALLOW_ORIGINS = [
     "http://localhost:3009",
     "https://child-poverty-impact-dashboard.vercel.app",
     "https://child-poverty-impact-dashboard-sigma.vercel.app",
+    # Launch domain (metadata canonical URL in frontend/app/layout.tsx).
+    "https://child-poverty.policyengine.org",
 ]
 _ALLOW_ORIGIN_REGEX = (
     # Vercel preview deployments, plus any localhost port for local dev
@@ -1611,7 +1624,7 @@ def web():
         return {"id": link_id}
 
     @api.get("/share/{link_id}")
-    def share_get(link_id: int) -> dict:
+    def share_get(link_id: str) -> dict:
         config = _share_fetch(link_id)
         if config is None:
             raise HTTPException(status_code=404, detail="Unknown share id.")
