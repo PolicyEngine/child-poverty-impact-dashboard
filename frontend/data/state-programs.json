@@ -5,7 +5,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Young Child Tax Credit (CalYCTC)",
-   "max_amount": 1117,
+   "max_amount": 1216,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 5,
@@ -87,20 +87,7 @@
   "state_code": "CT",
   "state_name": "Connecticut",
   "has_income_tax": true,
-  "ctc": {
-   "name": "Connecticut Child Tax Rebate",
-   "max_amount": 250,
-   "amount_young": null,
-   "amount_older": null,
-   "age_limit": 17,
-   "young_child_age": 6,
-   "refundable": true,
-   "income_limit": 100000,
-   "phaseout_start": null,
-   "phaseout_rate": null,
-   "notes": "Per-child rebate program",
-   "pe_variable": "ct_child_tax_rebate"
-  },
+  "ctc": null,
   "eitc": {
    "name": "Connecticut EITC",
    "match_rate": 0.305,
@@ -123,7 +110,8 @@
    "max_expenses": 6000,
    "refundable": false,
    "notes": ""
-  }
+  },
+  "ctc_note": "Connecticut's Child Tax Rebate was a one-time 2022 payment and has ended. The ongoing $250-per-child amount is the EITC qualifying-child bonus, shown under State EITC."
  },
  "DC": {
   "state_code": "DC",
@@ -131,7 +119,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "DC Child Tax Credit",
-   "max_amount": 420,
+   "max_amount": 1000,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -173,7 +161,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Georgia Child Tax Credit",
-   "max_amount": 3000,
+   "max_amount": 250,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 5,
@@ -204,20 +192,7 @@
   "state_code": "ID",
   "state_name": "Idaho",
   "has_income_tax": true,
-  "ctc": {
-   "name": "Idaho Child Tax Credit",
-   "max_amount": 205,
-   "amount_young": null,
-   "amount_older": null,
-   "age_limit": 17,
-   "young_child_age": 6,
-   "refundable": false,
-   "income_limit": null,
-   "phaseout_start": null,
-   "phaseout_rate": null,
-   "notes": "Non-refundable credit",
-   "pe_variable": "id_ctc"
-  },
+  "ctc": null,
   "eitc": null,
   "exemption": {
    "personal_amount": 0,
@@ -231,7 +206,8 @@
    "max_expenses": 6000,
    "refundable": false,
    "notes": ""
-  }
+  },
+  "ctc_note": "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. The Child Tax Credit reform option revives it from 2026."
  },
  "IL": {
   "state_code": "IL",
@@ -365,7 +341,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Child and Working Families Credits",
-   "max_amount": 1750,
+   "max_amount": 1800,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -449,7 +425,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "New Mexico Child Income Tax Credit",
-   "max_amount": 600,
+   "max_amount": 651,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -533,7 +509,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Oklahoma Child Care/Child Tax Credit",
-   "max_amount": 100,
+   "max_amount": 110,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -575,7 +551,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Oregon Kids Credit",
-   "max_amount": 1000,
+   "max_amount": 1050,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 5,
@@ -615,20 +591,7 @@
   "state_code": "RI",
   "state_name": "Rhode Island",
   "has_income_tax": true,
-  "ctc": {
-   "name": "Rhode Island Child Tax Rebate",
-   "max_amount": 250,
-   "amount_young": null,
-   "amount_older": null,
-   "age_limit": 17,
-   "young_child_age": 6,
-   "refundable": true,
-   "income_limit": 100000,
-   "phaseout_start": null,
-   "phaseout_rate": null,
-   "notes": "",
-   "pe_variable": "ri_child_tax_rebate"
-  },
+  "ctc": null,
   "eitc": {
    "name": "Rhode Island EITC",
    "match_rate": 0.16,
@@ -651,7 +614,8 @@
    "max_expenses": 6000,
    "refundable": false,
    "notes": ""
-  }
+  },
+  "ctc_note": "Rhode Island's Child Tax Rebate was a one-time 2022 payment. The state's $330 Child Tax Credit (H 7127) takes effect in 2027, so it appears as a reform option for 2027 or later analysis years."
  },
  "VT": {
   "state_code": "VT",
@@ -875,7 +839,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Maine Dependent Exemption Tax Credit",
-   "max_amount": 300,
+   "max_amount": 310,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -1310,7 +1274,7 @@
   "has_income_tax": true,
   "ctc": {
    "name": "Arizona Dependent Tax Credit",
-   "max_amount": 100,
+   "max_amount": 125,
    "amount_young": null,
    "amount_older": null,
    "age_limit": 17,
@@ -1319,7 +1283,7 @@
    "income_limit": null,
    "phaseout_start": null,
    "phaseout_rate": null,
-   "notes": "",
+   "notes": "Raised from $100 to $125 per dependent under 17 by HB 4168 (2026 omnibus), effective TY2026; $25 for dependents 17+.",
    "pe_variable": "az_dependent_tax_credit"
   },
   "eitc": null,

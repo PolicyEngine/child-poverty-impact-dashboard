@@ -207,7 +207,7 @@
   "current_amount": 1144,
   "amount_editable": true,
   "kind": "exemption",
-  "note": "Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of the state's personal exemption.",
   "age_limit": {
    "in_effect": "gov.contrib.states.hi.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.hi.dependent_exemption.age_limit.threshold",
@@ -322,7 +322,7 @@
   "current_amount": 4400,
   "amount_editable": true,
   "kind": "exemption",
-  "note": "Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of the state's personal exemption.",
   "age_limit": {
    "in_effect": "gov.contrib.states.mi.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.mi.dependent_exemption.age_limit.threshold",
@@ -339,7 +339,7 @@
   "current_amount": 157,
   "amount_editable": true,
   "kind": "credit",
-  "note": "Dependent portion of NE's personal-exemption credit, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of NE's personal-exemption credit.",
   "age_limit": {
    "in_effect": "gov.contrib.states.ne.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.ne.dependent_exemption.age_limit.threshold",
@@ -404,7 +404,7 @@
   "current_amount": 1000,
   "amount_editable": true,
   "kind": "exemption",
-  "note": "Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of the state's personal exemption.",
   "age_limit": {
    "in_effect": "gov.contrib.states.ok.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.ok.dependent_exemption.age_limit.threshold",
@@ -421,7 +421,7 @@
   "current_amount": 5300,
   "amount_editable": true,
   "kind": "exemption",
-  "note": "Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of the state's personal exemption.",
   "age_limit": {
    "in_effect": "gov.contrib.states.vt.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.vt.dependent_exemption.age_limit.threshold",
@@ -438,7 +438,7 @@
   "current_amount": 700,
   "amount_editable": true,
   "kind": "exemption",
-  "note": "Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of the state's personal exemption.",
   "age_limit": {
    "in_effect": "gov.contrib.states.wi.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.wi.dependent_exemption.age_limit.threshold",
@@ -455,7 +455,7 @@
   "current_amount": 2000,
   "amount_editable": true,
   "kind": "exemption",
-  "note": "Dependent portion of the state's personal exemption, separated by the contributed reform (us#8696).",
+  "note": "Dependent portion of the state's personal exemption.",
   "age_limit": {
    "in_effect": "gov.contrib.states.wv.dependent_exemption.age_limit.in_effect",
    "threshold": "gov.contrib.states.wv.dependent_exemption.age_limit.threshold",
@@ -554,7 +554,7 @@
   "current_amount": 29,
   "amount_editable": true,
   "kind": "credit",
-  "note": "Dependent slice of AR's personal tax credit ($29/dependent), separated by the contributed reform (us#8696) so it can be edited or eliminated.",
+  "note": "Dependent slice of AR's personal tax credit ($29/dependent), separated by the contributed reform so it can be edited or eliminated.",
   "age_limit": {
    "in_effect": "gov.contrib.states.ar.dependent_credit.age_limit.in_effect",
    "threshold": "gov.contrib.states.ar.dependent_credit.age_limit.threshold",

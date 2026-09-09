@@ -844,7 +844,7 @@ function buildEitcOptions(
         default_value: 0,
         step: 1,
         unit: '',
-        description: `Apply the contributed reform that makes ${programs.state_name}'s EITC fully refundable.`,
+        description: `Make ${programs.state_name}'s EITC fully refundable.`,
       });
     }
     // The match path is a baseline state parameter, so the slider works on
@@ -1761,7 +1761,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below (us#8856 contributed reform).',
+          'Pay credit beyond tax owed as a refund, capped per child at the refundable amount below.',
       },
       {
         name: 'refundable_amount',
@@ -1785,7 +1785,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
     // param at its default.
     creates_program: true,
     description:
-      "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026 (us#8856 contributed reform); optionally adjust the amount or add a refundable portion.",
+      "Idaho's $205-per-child nonrefundable credit expired at the end of 2025. Selecting this reform revives it from 2026; optionally adjust the amount or add a refundable portion.",
     params: [
       AMT('gov.states.id.tax.income.credits.ctc.amount', 205, 3000),
       {
@@ -1905,7 +1905,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   ME: {
     name: 'Maine Dependent Exemption Tax Credit',
     description:
-      "Maine's Child Tax Credit (officially the Dependent Exemption Tax Credit): $305 per dependent, doubled to $610 for children under 6 (new in 2025), phasing out above income thresholds that vary by filing status.",
+      "Maine's Child Tax Credit (officially the Dependent Exemption Tax Credit): $310 per dependent in 2026 (indexed), doubled to $620 for children under 6 (young-child boost new in 2025), phasing out above income thresholds that vary by filing status.",
     params: [
       {
         name: 'amount',
@@ -1916,7 +1916,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         max_value: 3000,
         step: 5,
         unit: '$',
-        description: 'Base credit per dependent (before the young-child multiplier). Current: $305.',
+        description: 'Base credit per dependent (before the young-child multiplier). Current: $310 (2026, indexed).',
       },
       {
         name: 'young_child_multiplier',
@@ -1927,7 +1927,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         max_value: 4,
         step: 1,
         unit: 'x',
-        description: 'Multiplier on the credit for children under 6. Current: 2× (i.e. $610), new in 2025; set to 1 to remove the young-child boost.',
+        description: 'Multiplier on the credit for children under 6. Current: 2× (i.e. $620 in 2026), new in 2025; set to 1 to remove the young-child boost.',
       },
       AGE('gov.states.me.tax.income.credits.dependent_exemption.multiplier[1].threshold', 6, 'Young-child boost applies under age', 'young_child_age'),
       {
@@ -1974,7 +1974,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   MN: {
     name: 'Minnesota Child Tax Credit',
     description:
-      'Refundable credit ($1,750/child). Phases out against the larger of earned income or AGI.',
+      'Refundable credit ($1,800/child in 2026; the statutory $1,750 indexes from 2026). Phases out against the larger of earned income or AGI.',
     params: [
       AMT('gov.states.mn.tax.income.credits.cwfc.ctc.amount', 1750, 6000),
       AGE('gov.states.mn.tax.income.credits.cwfc.ctc.age_limit', 18),
@@ -2021,7 +2021,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          'Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families (us#9394 contributed reform).',
+          'Pay the full credit as a refund when it exceeds tax owed. Under 68 O.S. § 2357 the credit cannot exceed tax liability, which strands most of its value for low-income families.',
       },
     ],
   },
@@ -2048,7 +2048,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          "Apply Utah's CTC restructure (Utah Code 59-10-1047, from 2026): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
+          "Apply a proposed restructure of Utah Code 59-10-1047 (a proposal, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
       },
       {
         name: 'reform_amount',
@@ -2060,7 +2060,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 50,
         unit: '$',
         depends_on: 'make_refundable',
-        description: 'Per-child amount under the restructure. Current (2026 reform): $1,000.',
+        description: 'Per-child amount under the proposed restructure. Reform default: $1,000.',
       },
       {
         name: 'refundable_amount',
@@ -2147,7 +2147,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   NM: {
     name: 'New Mexico Child Income Tax Credit',
     description:
-      'Refundable credit for all qualifying children, stepping down with federal AGI ($637 down to $26). Edit each tier amount.',
+      'Refundable credit for all qualifying children, stepping down with federal AGI ($651 down to about $27 in 2026, indexed). Edit each tier amount.',
     params: [
       bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 0, 637, 'Tier 1 amount (lowest AGI)', 2000),
       bracketAmt('gov.states.nm.tax.income.credits.ctc.amount', 1, 424, 'Tier 2 amount', 2000),
