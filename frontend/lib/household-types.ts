@@ -132,6 +132,7 @@ export interface StatePrograms {
   state_name: string;
   has_income_tax: boolean;
   has_state_ctc: boolean;
+  ctc_note?: string;
   ctc_name?: string;
   ctc_max_amount?: number;
   ctc_age_limit?: number;
