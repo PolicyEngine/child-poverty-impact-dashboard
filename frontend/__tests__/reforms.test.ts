@@ -986,6 +986,34 @@ describe('buildReformDict', () => {
     expect(combo[`${U}.in_effect`]).toBe(true);
   });
 
+  it('applies the OK refundability conversion only when the toggle is on', () => {
+    const FLAG =
+      'gov.contrib.states.ok.child_poverty_impact_dashboard.ctc.in_effect';
+    // No-op at current law: selection alone produces no reform.
+    expect(buildReformDict(['ok_ctc'], undefined, 2026)).toEqual({});
+    // Toggle on alone: just the us#9394 conversion flag.
+    expect(
+      buildReformDict(['ok_ctc'], { ok_ctc: { make_refundable: 1 } }, 2026),
+    ).toEqual({ [FLAG]: true });
+    // Toggle plus a rate change: both emit.
+    const combo = buildReformDict(
+      ['ok_ctc'],
+      { ok_ctc: { make_refundable: 1, rate: 10 } },
+      2026,
+    );
+    expect(combo[FLAG]).toBe(true);
+    expect(
+      combo['gov.states.ok.tax.income.credits.child.ctc_fraction'],
+    ).toBe(0.1);
+    // Rate change without the toggle leaves the credit nonrefundable.
+    const rateOnly = buildReformDict(
+      ['ok_ctc'],
+      { ok_ctc: { rate: 10 } },
+      2026,
+    );
+    expect(rateOnly[FLAG]).toBeUndefined();
+  });
+
   // ---- Idaho grocery credit ------------------------------------------------
   it('wires the Idaho grocery credit (per-person amount + seniors add-on restore)', () => {
     const G = 'gov.states.id.tax.income.credits.grocery';

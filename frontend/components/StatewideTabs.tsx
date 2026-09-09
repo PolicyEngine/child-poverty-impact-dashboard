@@ -710,12 +710,40 @@ function WinnersLosersView({
     { key: 'loseMore5', label: 'Lose more than 5%', color: COLORS.loseMore5 },
   ] as const;
 
-  // "All" row uses aggregate 5-category data (with fallback to coarse data)
-  const allGainMore = distributional.all_gain_more_than_5_pct ?? 0;
-  const allGainLess = distributional.all_gain_less_than_5_pct ?? distributional.percent_gaining;
-  const allNoChange = distributional.all_no_change_pct ?? distributional.percent_unchanged;
-  const allLoseLess = distributional.all_lose_less_than_5_pct ?? distributional.percent_losing;
-  const allLoseMore = distributional.all_lose_more_than_5_pct ?? 0;
+  // "All" row: aggregate 5-category data when the backend supplies it;
+  // otherwise the population-weighted average of the decile rows. Deciles
+  // are equal-population by construction, so a plain mean is exact. (The
+  // old fallback dumped every gainer into "gain less than 5%", visibly
+  // contradicting the decile rows above it.)
+  const deciles = distributional.decile_impacts ?? [];
+  const decileMean = (key:
+    | 'gain_more_than_5_pct'
+    | 'gain_less_than_5_pct'
+    | 'no_change_pct'
+    | 'lose_less_than_5_pct'
+    | 'lose_more_than_5_pct'): number =>
+    deciles.length
+      ? deciles.reduce((acc, d) => acc + (d[key] ?? 0), 0) / deciles.length
+      : 0;
+  const hasDecileCategories = deciles.some(
+    (d) => (d.gain_more_than_5_pct ?? 0) + (d.gain_less_than_5_pct ?? 0) > 0,
+  );
+  const allGainMore = distributional.all_gain_more_than_5_pct
+    ?? (hasDecileCategories ? decileMean('gain_more_than_5_pct') : 0);
+  const allGainLess = distributional.all_gain_less_than_5_pct
+    ?? (hasDecileCategories
+      ? decileMean('gain_less_than_5_pct')
+      : distributional.percent_gaining);
+  const allNoChange = distributional.all_no_change_pct
+    ?? (hasDecileCategories
+      ? decileMean('no_change_pct')
+      : distributional.percent_unchanged);
+  const allLoseLess = distributional.all_lose_less_than_5_pct
+    ?? (hasDecileCategories
+      ? decileMean('lose_less_than_5_pct')
+      : distributional.percent_losing);
+  const allLoseMore = distributional.all_lose_more_than_5_pct
+    ?? (hasDecileCategories ? decileMean('lose_more_than_5_pct') : 0);
 
   // "All" first, then deciles 10 down to 1
   const sortedDeciles = [...distributional.decile_impacts].sort((a, b) => b.decile - a.decile);
@@ -794,13 +822,13 @@ function WinnersLosersView({
       {/* Average gain summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
-          <p className="text-sm text-gray-600">Average gain (all residents)</p>
+          <p className="text-sm text-gray-600">Average household gain (all residents)</p>
           <p className="text-2xl font-bold mt-1" style={{ color: distributional.average_gain_all >= 0 ? COLORS.primary : '#6B7280' }}>
             {formatCurrencyWithSign(distributional.average_gain_all)}
           </p>
         </div>
         <div className="rounded-lg p-4 border border-gray-200 bg-white">
-          <p className="text-sm text-gray-600">Average gain (bottom 50%)</p>
+          <p className="text-sm text-gray-600">Average household gain (bottom 50%)</p>
           <p className="text-2xl font-bold mt-1" style={{ color: distributional.average_gain_bottom_50 >= 0 ? COLORS.primary : '#6B7280' }}>
             {formatCurrencyWithSign(distributional.average_gain_bottom_50)}
           </p>

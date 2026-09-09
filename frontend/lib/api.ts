@@ -189,8 +189,17 @@ function mapEconomyToAnalysisResponse(
         (economy.fiscal?.federal_tax_change ?? 0) / 1e9
         + (economy.fiscal?.state_tax_change ?? 0) / 1e9,
       payroll_tax_change_billions: 0,
-      cost_per_child:
-        childrenLifted > 0 ? (totalCostBillions * 1e9) / childrenLifted : 0,
+      // Cost per child divides by ALL children in the state (district rows
+      // are an exact partition, so their child populations sum to the state
+      // total); cost per child LIFTED divides by children moved out of
+      // poverty. These were previously the identical formula.
+      cost_per_child: (() => {
+        const childPop = (economy.districts ?? []).reduce(
+          (acc, d) => acc + (d.child_population ?? 0),
+          0,
+        );
+        return childPop > 0 ? (totalCostBillions * 1e9) / childPop : 0;
+      })(),
       cost_per_child_lifted_from_poverty:
         childrenLifted > 0 ? (totalCostBillions * 1e9) / childrenLifted : 0,
       state,

@@ -202,7 +202,10 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
           Average impact per resident by congressional district
         </h3>
         <p className="text-sm text-pe-gray-500 mb-4">
-          Average change in annual net income per resident under the
+          Total district gains divided by district residents — a
+          per-capita measure, unlike the statewide “average household
+          gain” cards, which give each resident their household’s full
+          gain. Average change in annual net income per resident under the
           reform ({year}) within each of {state}&apos;s congressional
           districts (119th Congress boundaries), the same
           person-weighted measure as the statewide figures. Hover a

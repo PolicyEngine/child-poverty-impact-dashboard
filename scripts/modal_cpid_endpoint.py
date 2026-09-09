@@ -42,7 +42,7 @@ app = modal.App("cpid-backend")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "policyengine-us==1.822.2",
+        "policyengine-us==1.824.7",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-05-stacked+pe-us-1.822.2"})
+    .env({"CPID_BUILD_REV": "2026-09-09-okrefund+pe-us-1.824.7"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -391,6 +391,8 @@ _ALLOW_ORIGINS = [
     "http://localhost:3009",
     "https://child-poverty-impact-dashboard.vercel.app",
     "https://child-poverty-impact-dashboard-sigma.vercel.app",
+    # Launch domain (metadata canonical URL in frontend/app/layout.tsx).
+    "https://child-poverty.policyengine.org",
 ]
 _ALLOW_ORIGIN_REGEX = (
     # Vercel preview deployments, plus any localhost port for local dev

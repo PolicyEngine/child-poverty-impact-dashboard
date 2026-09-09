@@ -176,8 +176,10 @@ export default function AboutPage() {
           </p>
           <p>
             <strong>State child poverty:</strong> for 2024, the year the microdata
-            represents, simulated state child-SPM rates track the Census figures with
-            a median deviation under 5% (28 of 51 states within ±25%). The
+            represents, simulated state child-SPM rates run modestly above
+            the Census figures on net (a median <em>signed</em> deviation of
+            about +5%; absolute per-state errors are larger, with 28 of 51
+            states within ±25% and real outliers beyond that). The
             dashboard&apos;s <em>2026</em> baseline rates run roughly 20% below the
             latest (2023) Census print, largely because 2026 law is genuinely
             different: the $2,200 OBBBA Child Tax Credit, SNAP rule changes, and new
