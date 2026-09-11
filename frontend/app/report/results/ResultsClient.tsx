@@ -768,9 +768,10 @@ export default function ReportResultsPage() {
               sweepError={sweepError}
               sweepMax={sweepMax}
               onSweepMaxChange={setSweepMax}
+              onRetry={retryLeg}
             />
           ) : householdError ? (
-            <TabError message={householdError} />
+            <TabError message={householdError} onRetry={retryLeg} />
           ) : (
             <TabSkeleton
               title="Computing household impact"
@@ -1201,6 +1202,7 @@ function HouseholdOverviewTab({
   sweepError,
   sweepMax,
   onSweepMaxChange,
+  onRetry,
 }: {
   config: ReportConfig;
   results: HouseholdImpact;
@@ -1210,6 +1212,7 @@ function HouseholdOverviewTab({
   sweepError: string | null;
   sweepMax: number;
   onSweepMaxChange: (max: number) => void;
+  onRetry: () => void;
 }) {
   const { baseline: baselineHH, reform, net_income_change } = results;
   const [breakdownView, setBreakdownView] = useState<'cards' | 'waterfall'>(
@@ -1418,6 +1421,9 @@ function HouseholdOverviewTab({
               Chart unavailable for this reform
             </p>
             <p className="font-mono text-xs whitespace-pre-wrap">{sweepError}</p>
+            <button className="btn btn-ghost mt-3" onClick={onRetry}>
+              Retry
+            </button>
           </div>
         ) : chartData.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-pe-gray-500 text-sm">

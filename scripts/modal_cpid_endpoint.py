@@ -51,7 +51,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-09-okrefund+pe-us-1.824.7"})
+    .env({"CPID_BUILD_REV": "2026-09-11-netflows+pe-us-1.824.7"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
@@ -1116,6 +1116,15 @@ def compute_economy(payload: dict) -> dict:
             ((pov_bl_arr & ~pov_rf_arr) * person_weight * mask).sum()
         )
 
+    def _entered(mask):
+        # Entered = NOT in poverty baseline AND in poverty reform — the
+        # reverse flow. The headline metric is the NET (lifted - entered);
+        # reporting only the gross lifted count framed a poverty-increasing
+        # reform as "N children lifted out of poverty".
+        return float(
+            ((~pov_bl_arr & pov_rf_arr) * person_weight * mask).sum()
+        )
+
     _log("poverty done")
 
     # ---- Distributional analysis: per-decile averages, winners/losers,
@@ -1530,6 +1539,10 @@ def compute_economy(payload: dict) -> dict:
             "deep_child_reform_rate": _rate(deep_rf_arr, child_mask),
             "children_lifted": _lifted(child_mask),
             "young_children_lifted": _lifted(young_child_mask),
+            # Gross reverse flows; frontends net these against the lifted
+            # counts. Absent on results cached before 2026-09-11.
+            "children_entering": _entered(child_mask),
+            "young_children_entering": _entered(young_child_mask),
         },
         "districts": district_rows,
         "district_congress": 119,

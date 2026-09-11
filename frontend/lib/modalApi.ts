@@ -115,6 +115,10 @@ export interface EconomyImpactResult {
     deep_child_reform_rate: number;
     children_lifted: number;
     young_children_lifted: number;
+    /** Gross flows INTO poverty (absent on results cached before
+     *  2026-09-11); net lifted = lifted - entering. */
+    children_entering?: number;
+    young_children_entering?: number;
   };
   distributional: {
     deciles: EconomyDecileImpact[];
