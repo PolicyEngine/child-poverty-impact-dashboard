@@ -188,13 +188,16 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
 
 
 def _share_create(config: dict):
-    """Store a share config under a short unguessable slug; returns it.
+    """Store a share config under a short numeric id; returns it.
 
-    The slug is the first 10 hex chars of the config hash (40 bits), so
-    ids cannot be enumerated the way the old sequential integers could.
-    Deduped by config hash, so the same report always mints the same
-    slug. Best-effort: returns None when Supabase is off/unreachable and
-    the frontend falls back to the long encoded-config link.
+    Sequential ids by product choice — short memorable links (?r=6)
+    beat unguessability here; the stored configs are synthetic policy
+    scenarios, not personal data. The hash slug is still written and
+    still resolves, so links minted while slugs were the default keep
+    working. Deduped by config hash, so the same report always mints
+    the same id. Best-effort: returns None when Supabase is
+    off/unreachable and the frontend falls back to the long
+    encoded-config link.
     """
     cfg = _supabase_cfg()
     if cfg is None:
@@ -225,7 +228,7 @@ def _share_create(config: dict):
             timeout=5,
         )
         rows = resp.json() if resp.ok else []
-        return rows[0].get("slug") or config_hash[:10] if rows else None
+        return int(rows[0]["id"]) if rows else None
     except Exception:
         return None
 
