@@ -43,6 +43,10 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
         "policyengine-us==1.824.7",
+        # spm-calculator 1.0.0 (released 2026-09-11) removes the geoadj
+        # module policyengine-us imports; pin the last working version so
+        # image rebuilds stay reproducible.
+        "spm-calculator==0.3.1",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
