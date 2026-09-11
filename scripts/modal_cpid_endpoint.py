@@ -42,7 +42,7 @@ app = modal.App("cpid-backend")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "policyengine-us==1.824.7",
+        "policyengine-us==1.825.2",
         # spm-calculator 1.0.0 (released 2026-09-11) removes the geoadj
         # module policyengine-us imports; pin the last working version so
         # image rebuilds stay reproducible.
@@ -55,7 +55,7 @@ image = (
     )
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-11-netflows+pe-us-1.824.7"})
+    .env({"CPID_BUILD_REV": "2026-09-11b-qss+pe-us-1.825.2"})
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area

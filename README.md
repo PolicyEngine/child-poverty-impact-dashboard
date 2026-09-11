@@ -85,7 +85,7 @@ on the Vercel project (Production + Preview) and in
 `frontend/.env.local` for dev. When the env var is empty, the frontend
 falls back to the local FastAPI in `backend/` (handy for offline work).
 
-The Modal image pins `policyengine-us==1.824.7` for reproducibility —
+The Modal image pins `policyengine-us==1.825.2` for reproducibility —
 bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
 we want to refresh.
 
