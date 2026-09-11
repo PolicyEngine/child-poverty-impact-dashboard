@@ -70,23 +70,6 @@ function avgPerResident(d: DistrictImpact): number {
   return d.residents > 0 ? d.total_gain / d.residents : 0;
 }
 
-/** Relative (percent) change in the district child poverty rate. District
- *  rate levels and headcounts carry too much sampling uncertainty to show
- *  directly, so only this relative change is surfaced. */
-function povertyRelChange(d: DistrictImpact): number | null {
-  if (d.child_baseline_rate <= 0) return null;
-  return (
-    ((d.child_reform_rate - d.child_baseline_rate) / d.child_baseline_rate) *
-    100
-  );
-}
-
-function fmtRelChange(v: number | null): string {
-  if (v === null) return '—';
-  const sign = v > 0 ? '+' : v < 0 ? '−' : '';
-  return `${sign}${Math.abs(v).toFixed(1)}%`;
-}
-
 interface GeoFeature {
   type: string;
   properties: Record<string, string | number>;
@@ -268,8 +251,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
               <th className="py-2 pr-4">District</th>
               <th className="py-2 pr-4">Representative</th>
               <th className="py-2 pr-4 text-right">Avg change / resident</th>
-              <th className="py-2 pr-4 text-right">% gaining</th>
-              <th className="py-2 text-right">Child poverty change</th>
+              <th className="py-2 text-right">% gaining</th>
             </tr>
           </thead>
           <tbody>
@@ -304,19 +286,8 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
                   >
                     {fmtUsd(avgPerResident(d))}
                   </td>
-                  <td className="py-2 pr-4 text-right text-pe-gray-600">
+                  <td className="py-2 text-right text-pe-gray-600">
                     {d.percent_gaining.toFixed(1)}%
-                  </td>
-                  <td
-                    className={`py-2 text-right font-medium ${
-                      (povertyRelChange(d) ?? 0) < 0
-                        ? 'text-pe-teal-600'
-                        : (povertyRelChange(d) ?? 0) > 0
-                          ? 'text-red-600'
-                          : 'text-pe-gray-500'
-                    }`}
-                  >
-                    {fmtRelChange(povertyRelChange(d))}
                   </td>
                 </tr>
               );
@@ -328,10 +299,9 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
           roughly {Math.min(...sorted.map((d) => d.n_households)).toLocaleString()}
           &ndash;{Math.max(...sorted.map((d) => d.n_households)).toLocaleString()}{' '}
           sampled households per district; smaller districts carry more
-          sampling uncertainty than statewide figures. Child poverty is shown
-          as the relative change in each district&apos;s poverty rate;
-          district-level rate levels and headcounts carry too much sampling
-          uncertainty to report directly.
+          sampling uncertainty than statewide figures. District-level child
+          poverty estimates carry too much sampling uncertainty to report;
+          see the Poverty tab for the statewide impact.
         </p>
       </div>
     </div>
@@ -364,10 +334,6 @@ function DistrictTooltip({ hover, state }: { hover: Hover; state: string }) {
       <div className="flex justify-between">
         <span className="text-pe-gray-500">% gaining</span>
         <span>{row.percent_gaining.toFixed(1)}%</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-pe-gray-500">Child poverty change</span>
-        <span>{fmtRelChange(povertyRelChange(row))}</span>
       </div>
     </div>
   );
