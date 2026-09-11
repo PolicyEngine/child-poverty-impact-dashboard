@@ -1134,12 +1134,31 @@ interface ChartPoint {
   grocery_credit_change: number;
 }
 
+/** Per-provision rows of the sweep tooltip, in display order. Keys index
+ *  into ChartPoint; the same keys drive card/row visibility. */
+const SWEEP_PROVISION_ROWS: {
+  key: Exclude<keyof ChartPoint, 'income' | 'net_income_change'>;
+  label: string;
+}[] = [
+  { key: 'federal_ctc_change', label: 'Federal CTC' },
+  { key: 'federal_eitc_change', label: 'Federal EITC' },
+  { key: 'state_ctc_change', label: 'State CTC + Child Allowance' },
+  { key: 'state_eitc_change', label: 'State EITC' },
+  { key: 'snap_change', label: 'SNAP' },
+  { key: 'dependent_exemption_change', label: 'Dependent exemption' },
+  { key: 'grocery_credit_change', label: 'Grocery credit' },
+];
+
 function NetIncomeChangeTooltip({
   active,
   payload,
+  visibleKeys,
 }: {
   active?: boolean;
   payload?: Array<{ payload: ChartPoint }>;
+  /** Provisions the reform actually touches somewhere on the sweep; rows
+   *  outside this set are hidden so untouched programs don't show as $0. */
+  visibleKeys?: Set<string>;
 }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
@@ -1148,42 +1167,21 @@ function NetIncomeChangeTooltip({
     const sign = v > 0 ? '+' : '-';
     return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}`;
   };
+  const rows = SWEEP_PROVISION_ROWS.filter(
+    (r) => !visibleKeys || visibleKeys.has(r.key),
+  );
   return (
     <div className="bg-white border border-pe-gray-200 rounded-md shadow-lg px-3 py-2 text-xs min-w-[220px]">
       <p className="font-semibold text-pe-gray-800 mb-1">
         Employment income: ${Math.round(p.income).toLocaleString()}
       </p>
       <div className="space-y-0.5 text-pe-gray-600">
-        <div className="flex justify-between gap-3">
-          <span>Federal CTC</span>
-          <span>{fmt(p.federal_ctc_change)}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>Federal EITC</span>
-          <span>{fmt(p.federal_eitc_change)}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>State CTC + Child Allowance</span>
-          <span>{fmt(p.state_ctc_change)}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>State EITC</span>
-          <span>{fmt(p.state_eitc_change)}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>SNAP</span>
-          <span>{fmt(p.snap_change)}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>Dependent exemption</span>
-          <span>{fmt(p.dependent_exemption_change)}</span>
-        </div>
-        {p.grocery_credit_change !== 0 && (
-          <div className="flex justify-between gap-3">
-            <span>Grocery credit</span>
-            <span>{fmt(p.grocery_credit_change)}</span>
+        {rows.map((r) => (
+          <div key={r.key} className="flex justify-between gap-3">
+            <span>{r.label}</span>
+            <span>{fmt(p[r.key])}</span>
           </div>
-        )}
+        ))}
       </div>
       <div className="border-t border-pe-gray-200 mt-1 pt-1 flex justify-between gap-3 font-semibold text-pe-gray-800">
         <span>Net income change</span>
@@ -1229,11 +1227,16 @@ function HouseholdOverviewTab({
       const baseVal =
         (baselineHH[key] as number) +
         (key === 'state_ctc' ? baselineHH.child_allowance ?? 0 : 0);
-      return { label, change: reformVal - baseVal };
+      return {
+        label,
+        change: reformVal - baseVal,
+        sweepKey: key === 'snap_benefits' ? 'snap_change' : `${key}_change`,
+      };
     }),
     {
       label: 'Dependent exemption',
       change: reform.dependent_exemption_change ?? 0,
+      sweepKey: 'dependent_exemption_change',
     },
     // Per-state extra credit (currently Idaho's grocery credit) — only
     // rendered for states that return the field.
@@ -1244,6 +1247,7 @@ function HouseholdOverviewTab({
             label: 'Grocery credit',
             change:
               (reform.grocery_credit ?? 0) - (baselineHH.grocery_credit ?? 0),
+            sweepKey: 'grocery_credit_change',
           },
         ]
       : []),
@@ -1253,7 +1257,9 @@ function HouseholdOverviewTab({
   // the net-income change; a residual bar captures tax/benefit interactions
   // the provision fields don't isolate, so the steps always sum to the total.
   const waterfallData = (() => {
-    const steps = provisionChanges.filter((p) => Math.abs(p.change) >= 1);
+    const steps: { label: string; change: number }[] = provisionChanges
+      .filter((p) => Math.abs(p.change) >= 1)
+      .map(({ label, change }) => ({ label, change }));
     const stepSum = steps.reduce((acc, p) => acc + p.change, 0);
     const residual = net_income_change - stepSum;
     if (Math.abs(residual) >= 1) {
@@ -1309,6 +1315,21 @@ function HouseholdOverviewTab({
     }
     return out;
   })();
+
+  // Only surface provisions the reform actually touches: a card (or tooltip
+  // row) shows when its value moves at this household or anywhere on the
+  // income sweep. Untouched programs drop out entirely, while cross-program
+  // linkages stay visible (e.g. a state CTC shifting because a federal CTC
+  // expansion changed its base). While the sweep is still computing, the
+  // point values alone decide.
+  const touchedSweepKeys = new Set(
+    SWEEP_PROVISION_ROWS.map((r) => r.key).filter((key) =>
+      chartData.some((pt) => Math.abs(pt[key]) >= 1),
+    ) as string[],
+  );
+  const shownProvisions = provisionChanges.filter(
+    (p) => Math.abs(p.change) >= 1 || touchedSweepKeys.has(p.sweepKey),
+  );
 
   return (
     <div className="space-y-6">
@@ -1369,11 +1390,18 @@ function HouseholdOverviewTab({
           </div>
         </div>
         {breakdownView === 'cards' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {provisionChanges.map(({ label, change }) => (
-              <ChangeCard key={label} label={label} change={change} />
-            ))}
-          </div>
+          shownProvisions.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {shownProvisions.map(({ label, change }) => (
+                <ChangeCard key={label} label={label} change={change} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-pe-gray-500">
+              The selected reform doesn&apos;t change any of these programs
+              for this household at any income level.
+            </p>
+          )
         ) : (
           <WaterfallChart data={waterfallData} />
         )}
@@ -1453,7 +1481,9 @@ function HouseholdOverviewTab({
                 width={80}
               />
               <ReferenceLine y={0} stroke="#9CA3AF" />
-              <Tooltip content={<NetIncomeChangeTooltip />} />
+              <Tooltip
+                content={<NetIncomeChangeTooltip visibleKeys={touchedSweepKeys} />}
+              />
               <Line
                 type="monotone"
                 dataKey="net_income_change"
