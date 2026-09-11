@@ -2284,13 +2284,13 @@
   "ny_ctc.threshold_surviving_spouse": {
     "paths": {
       "gov.states.ny.tax.income.credits.ctc.post_2024.phase_out.threshold.SURVIVING_SPOUSE": {
-        "2026": 110000.0,
-        "2027": 110000.0
+        "2026": 75000.0,
+        "2027": 75000.0
       }
     },
     "ui_default": {
-      "2026": 110000.0,
-      "2027": 110000.0
+      "2026": 75000.0,
+      "2027": 75000.0
     }
   },
   "ny_ctc.young_amount": {

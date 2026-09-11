@@ -42,8 +42,9 @@ don't yet map to a PE-US lever are not offered (no zero-impact placeholders).
   instead. (Excluded: NC — repealed; WV — its credit is for seniors, not
   children; ID — dormant; OK — childcare hybrid.)
 
-**Shown but in development** (greyed-out, non-selectable until wired to a
-PE-US lever): SNAP benefit increases and the 50% federal EITC expansion.
+**Fully wired**: SNAP reforms (gross income limit, net income test,
+minimum benefit, earned-income deduction) are live, adjustable levers.
+The 50% federal EITC expansion remains greyed out pending a PE-US lever.
 
 ### Results Display
 - Fiscal costs (federal and state)
@@ -84,7 +85,7 @@ on the Vercel project (Production + Preview) and in
 `frontend/.env.local` for dev. When the env var is empty, the frontend
 falls back to the local FastAPI in `backend/` (handy for offline work).
 
-The Modal image pins `policyengine-us==1.824.7` for reproducibility —
+The Modal image pins `policyengine-us==1.825.2` for reproducibility —
 bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
 we want to refresh.
 

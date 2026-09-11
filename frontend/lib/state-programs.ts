@@ -2389,7 +2389,7 @@ function nyAgeParams(): AdjustableParameter[] {
     { name: 'threshold_joint', label: 'Phase-out (joint)', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (joint).' },
     { name: 'threshold_hoh', label: 'Phase-out (head of household)', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (HoH).' },
     { name: 'threshold_separate', label: 'Phase-out (separate)', min_value: 0, max_value: 500000, default_value: 55000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (separate).' },
-    { name: 'threshold_surviving_spouse', label: 'Phase-out (surviving spouse)', min_value: 0, max_value: 500000, default_value: 110000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (surviving spouse).' },
+    { name: 'threshold_surviving_spouse', label: 'Phase-out (surviving spouse)', min_value: 0, max_value: 500000, default_value: 75000, step: 1000, unit: '$', description: 'Federal AGI where phase-out begins (surviving spouse). The enacted S.3009-C groups surviving spouses with single and head of household at \$75,000.' },
     { name: 'rate', label: 'Reduction per increment', min_value: 0, max_value: 500, default_value: 16.5, step: 0.5, unit: '$', description: 'Dollars of credit lost for each AGI increment over the threshold (increments are rounded up).' },
     { name: 'increment', label: 'AGI increment size', min_value: 1, max_value: 20000, default_value: 1000, step: 100, unit: '$', description: 'Income step the phase-out counts: the credit drops by the reduction amount for each increment of AGI over the threshold.' },
   ];
