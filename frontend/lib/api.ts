@@ -104,8 +104,15 @@ function mapEconomyToAnalysisResponse(
   const baselineDeep = toFraction(economy.poverty?.deep_child_baseline_rate);
   const reformDeep = toFraction(economy.poverty?.deep_child_reform_rate);
 
-  const childrenLifted = economy.poverty?.children_lifted ?? 0;
-  const youngChildrenLifted = economy.poverty?.young_children_lifted ?? 0;
+  // NET flows: children lifted minus children pushed into poverty. The
+  // entering counts are absent on results cached before 2026-09-11, in
+  // which case the gross lifted count stands (matching old behavior).
+  const childrenLifted =
+    (economy.poverty?.children_lifted ?? 0)
+    - (economy.poverty?.children_entering ?? 0);
+  const youngChildrenLifted =
+    (economy.poverty?.young_children_lifted ?? 0)
+    - (economy.poverty?.young_children_entering ?? 0);
 
   // Modal returns raw-dollar fiscal numbers; AnalysisResponse uses
   // billions. Reform that reduces revenue → negative total_budgetary_impact

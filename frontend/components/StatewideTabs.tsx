@@ -24,7 +24,7 @@ const COLORS = {
   // Winners shaded by gain size; losers shaded grey (neutral)
   gainMore5: '#285E61',   // darker teal
   gainLess5: '#7EC2C0',   // lighter teal
-  noChange: '#E2E8F0',    // very light grey
+  noChange: '#CBD5E1',    // light grey (dark enough to read on white)
   loseLess5: '#9CA3AF',   // medium grey
   loseMore5: '#4B5563',   // dark grey
   baseline: '#6B7280',
@@ -134,9 +134,19 @@ export function StatewideOverview({ results, state, year }: TabProps) {
           positive={poverty_impact.child_poverty_percent_change < 0}
         />
         <HeadlineCard
-          label="Children lifted"
-          value={Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
-          subtext="Out of poverty"
+          label={
+            poverty_impact.children_lifted_out_of_poverty >= 0
+              ? 'Children lifted'
+              : 'Children pushed into poverty'
+          }
+          value={Math.abs(
+            Math.round(poverty_impact.children_lifted_out_of_poverty),
+          ).toLocaleString()}
+          subtext={
+            poverty_impact.children_lifted_out_of_poverty >= 0
+              ? 'Out of poverty, net'
+              : 'Net increase'
+          }
           positive={poverty_impact.children_lifted_out_of_poverty > 0}
         />
         <HeadlineCard
@@ -197,17 +207,25 @@ export function StatewidePoverty({ results }: TabProps) {
     <div className="space-y-6">
       {/* Hero: children lifted */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.primary}08`, borderColor: COLORS.primary }}>
-          <p className="text-sm text-gray-700 mb-2">Children lifted out of poverty</p>
-          <p className="text-4xl font-bold" style={{ color: COLORS.primary }}>
-            {Math.round(poverty_impact.children_lifted_out_of_poverty).toLocaleString()}
+        <div className="rounded-lg p-6 border" style={{ backgroundColor: poverty_impact.children_lifted_out_of_poverty >= 0 ? `${COLORS.primary}08` : '#4B556308', borderColor: poverty_impact.children_lifted_out_of_poverty >= 0 ? COLORS.primary : '#4B5563' }}>
+          <p className="text-sm text-gray-700 mb-2">
+            {poverty_impact.children_lifted_out_of_poverty >= 0
+              ? 'Children lifted out of poverty (net)'
+              : 'Children pushed into poverty (net)'}
+          </p>
+          <p className="text-4xl font-bold" style={{ color: poverty_impact.children_lifted_out_of_poverty >= 0 ? COLORS.primary : '#4B5563' }}>
+            {Math.abs(Math.round(poverty_impact.children_lifted_out_of_poverty)).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Ages 0–17</p>
         </div>
-        <div className="rounded-lg p-6 border" style={{ backgroundColor: `${COLORS.primaryDark}08`, borderColor: COLORS.primaryDark }}>
-          <p className="text-sm text-gray-700 mb-2">Young children lifted</p>
-          <p className="text-4xl font-bold" style={{ color: COLORS.primaryDark }}>
-            {Math.round(poverty_impact.young_children_lifted_out_of_poverty).toLocaleString()}
+        <div className="rounded-lg p-6 border" style={{ backgroundColor: poverty_impact.young_children_lifted_out_of_poverty >= 0 ? `${COLORS.primaryDark}08` : '#4B556308', borderColor: poverty_impact.young_children_lifted_out_of_poverty >= 0 ? COLORS.primaryDark : '#4B5563' }}>
+          <p className="text-sm text-gray-700 mb-2">
+            {poverty_impact.young_children_lifted_out_of_poverty >= 0
+              ? 'Young children lifted (net)'
+              : 'Young children pushed into poverty (net)'}
+          </p>
+          <p className="text-4xl font-bold" style={{ color: poverty_impact.young_children_lifted_out_of_poverty >= 0 ? COLORS.primaryDark : '#4B5563' }}>
+            {Math.abs(Math.round(poverty_impact.young_children_lifted_out_of_poverty)).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Ages 0–3</p>
         </div>

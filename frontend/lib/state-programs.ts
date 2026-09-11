@@ -805,7 +805,9 @@ function buildEitcOptions(
                 name: 'match_rate',
                 label: 'Match rate',
                 min_value: 0,
-                max_value: 100,
+                // Above-100% matches exist in law (South Carolina's EITC
+                // is 125% of federal), so leave headroom.
+                max_value: 150,
                 // A state without an EITC has a current-law rate of 0 — the
                 // credit only exists once the user sets a percentage, so the
                 // no-change banner and the builder agree at the default.
@@ -1622,7 +1624,9 @@ const AGE = (
   label,
   path,
   default_value: def,
-  min_value: 0,
+  // Age 0 would zero out the credit entirely (no child is "under age
+  // 0") — a footgun, not an adjustment.
+  min_value: 1,
   max_value: 19,
   step: 1,
   unit: 'yr',
