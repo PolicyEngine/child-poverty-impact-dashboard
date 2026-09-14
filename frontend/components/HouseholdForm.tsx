@@ -181,7 +181,7 @@ export default function HouseholdForm({
           filing_status: 'head_of_household',
           adults: [{ age: 35 }],
           children: [{ age: 5 }, { age: 8 }],
-          income: { employment_income: 35000 },
+          income: { employment_income: 40000 },
         }));
         setSelectedOtherIncome([]);
         break;
