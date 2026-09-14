@@ -340,6 +340,28 @@ describe('buildReformDict', () => {
     expect(buildReformDict(['or_eitc'], { or_eitc: { match_young_child: 17 } }, 2026)).toEqual({});
   });
 
+  it('raises the GA CTC amount to match a larger refundable portion', () => {
+    const AMOUNT = 'gov.states.ga.tax.income.credits.ctc.amount';
+    const REFUNDABLE = 'gov.contrib.states.ga.ctc.refundable.amount';
+    // Refundable cap above the untouched $250 credit: the credit follows.
+    const raised = buildReformDict(
+      ['ga_ctc'],
+      { ga_ctc: { make_refundable: 1, refundable_amount: 500 } },
+      2026,
+    );
+    expect(raised['gov.contrib.states.ga.ctc.refundable.in_effect']).toBe(true);
+    expect(raised[REFUNDABLE]).toBe(500);
+    expect(raised[AMOUNT]).toBe(500);
+    // Refundable cap at or below the credit: the credit stays put.
+    const partial = buildReformDict(
+      ['ga_ctc'],
+      { ga_ctc: { make_refundable: 1, amount: 600, refundable_amount: 400 } },
+      2026,
+    );
+    expect(partial[REFUNDABLE]).toBe(400);
+    expect(partial[AMOUNT]).toBe(600);
+  });
+
   it('makes a nonrefundable EITC refundable only when the checkbox is set', () => {
     const IN_EFFECT =
       'gov.contrib.states.mo.child_poverty_impact_dashboard.eitc.in_effect';
