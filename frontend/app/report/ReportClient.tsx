@@ -201,10 +201,14 @@ export default function ReportBuilderPage() {
           ...reformOptions.federal_options,
         ]
       : [];
+    // Canonical selection order: the same scenario clicked together in a
+    // different order must serialize identically, so the share backend
+    // dedupes it to one id instead of minting a new one per click order.
+    const sortedReforms = [...config.selectedReforms].sort();
     // $ goes in front of the amount ($600, not 600$); other units suffix (50%).
     const fmtValue = (val: number, unit: string) =>
       unit === '$' ? `$${val.toLocaleString()}` : `${val}${unit}`;
-    const reformLabels = config.selectedReforms.map((id) => {
+    const reformLabels = sortedReforms.map((id) => {
       const opt = allOptions.find((o) => o.id === id);
       const name = opt?.name ?? id;
       const pv = config.parameterValues?.[id];
@@ -283,8 +287,41 @@ export default function ReportBuilderPage() {
       return isNoOp ? null : name;
     }).filter((l): l is string => l !== null);
 
+    // Canonical parameterValues: only selected reforms, values equal to an
+    // existing program's current-law default dropped (builders fall back to
+    // the default, so absent and default-valued are the same reform), and
+    // created programs fully materialized since their defaults apply even
+    // untouched. Keeps the same scenario byte-identical however the user
+    // clicked it together, so share links dedupe to one id.
+    const parameterValues: Record<string, Record<string, number>> = {};
+    for (const id of sortedReforms) {
+      const opt = allOptions.find((o) => o.id === id);
+      const pv = config.parameterValues?.[id] ?? {};
+      const out: Record<string, number> = {};
+      for (const p of opt?.adjustable_params ?? []) {
+        const cur = pv[p.name];
+        if (opt?.creates_program) {
+          out[p.name] = cur ?? p.default_value;
+        } else if (cur !== undefined && cur !== p.default_value) {
+          out[p.name] = cur;
+        }
+      }
+      // Values without a matching adjustable param pass through untouched.
+      for (const [k, v] of Object.entries(pv)) {
+        if (
+          v !== undefined &&
+          !(opt?.adjustable_params ?? []).some((a) => a.name === k)
+        ) {
+          out[k] = v;
+        }
+      }
+      if (Object.keys(out).length) parameterValues[id] = out;
+    }
+
     const payload = {
       ...config,
+      selectedReforms: sortedReforms,
+      parameterValues,
       populationType,
       household,
       reformLabels,

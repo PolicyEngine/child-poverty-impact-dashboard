@@ -1852,7 +1852,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
   MA: {
     name: 'Massachusetts Child and Family Tax Credit',
     description:
-      'Refundable credit per qualifying dependent (child under 13, adult 65 or older, or disabled); no cap on the number of dependents.',
+      'Refundable credit per eligible individual (child under 13, dependent 65 or older, disabled dependent, or disabled spouse); no cap on the number of eligible individuals. Married-filing-separately filers cannot claim it.',
     params: [
       {
         name: 'amount',

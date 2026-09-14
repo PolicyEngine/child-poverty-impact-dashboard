@@ -191,6 +191,38 @@ def _supabase_put(key: str, kind: str, payload: dict, result: dict) -> None:
         pass
 
 
+def _share_hash_canonical(config: dict):
+    """Config normalized for dedupe hashing (stored config is untouched).
+
+    The same report must always hash the same, but configs built from the
+    editor vary in ways that don't change the scenario: selection arrays
+    keep click order, `reformLabels` is derived display text, and nulls
+    appear or vanish depending on which controls were rendered. Normalize
+    all of that away; parameterValues is also pruned to selected reforms so
+    values left behind by a deselected option don't fork the hash.
+    """
+
+    def strip_nulls(v):
+        if isinstance(v, dict):
+            out = {k: strip_nulls(x) for k, x in v.items() if x is not None}
+            # An entry that only held nulls is the same as no entry.
+            return {k: x for k, x in out.items() if x != {}}
+        if isinstance(v, list):
+            return [strip_nulls(x) for x in v]
+        return v
+
+    c = {k: v for k, v in config.items() if k != "reformLabels"}
+    selected = c.get("selectedReforms")
+    if isinstance(selected, list):
+        c["selectedReforms"] = sorted(str(s) for s in selected)
+    pv = c.get("parameterValues")
+    if isinstance(pv, dict) and isinstance(selected, list):
+        c["parameterValues"] = {
+            k: v for k, v in pv.items() if k in set(c["selectedReforms"])
+        }
+    return strip_nulls(c)
+
+
 def _share_create(config: dict):
     """Store a share config under a short numeric id; returns it.
 
@@ -198,8 +230,9 @@ def _share_create(config: dict):
     beat unguessability here; the stored configs are synthetic policy
     scenarios, not personal data. The hash slug is still written and
     still resolves, so links minted while slugs were the default keep
-    working. Deduped by config hash, so the same report always mints
-    the same id. Best-effort: returns None when Supabase is
+    working. Deduped by canonicalized config hash (see
+    _share_hash_canonical), so the same report always mints the same id.
+    Best-effort: returns None when Supabase is
     off/unreachable and the frontend falls back to the long
     encoded-config link.
     """
@@ -213,7 +246,11 @@ def _share_create(config: dict):
 
         import requests
 
-        canonical = json.dumps(config, sort_keys=True, separators=(",", ":"))
+        canonical = json.dumps(
+            _share_hash_canonical(config),
+            sort_keys=True,
+            separators=(",", ":"),
+        )
         config_hash = hashlib.sha256(canonical.encode()).hexdigest()[:32]
         slug = config_hash[:10]
         resp = requests.post(
