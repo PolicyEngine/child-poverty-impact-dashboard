@@ -6,7 +6,7 @@ import LayoutShell from './LayoutShell';
 const GA_ID = 'G-2YHG89FY0N';
 const TOOL_NAME = 'child-poverty-impact-dashboard';
 
-const SITE_URL = 'https://child-poverty.policyengine.org';
+const SITE_URL = 'https://policyengine.org/us/child-poverty-impact-dashboard';
 const SITE_TITLE = 'Child Poverty Impact Dashboard | PolicyEngine';
 const SITE_DESCRIPTION =
   'Model and compare policy reforms to reduce child poverty across all 50 US states. Simulate CTC expansions, EITC reforms, SNAP changes, and more with PolicyEngine microsimulation.';

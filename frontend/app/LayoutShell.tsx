@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Providers } from './providers';
+import { withBasePath } from '@/lib/base-path';
 import AppV2Header from '@/components/AppV2Header';
 
 export default function LayoutShell({
@@ -27,7 +28,7 @@ export default function LayoutShell({
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <img
-                  src="/assets/logos/policyengine/teal.svg"
+                  src={withBasePath('/assets/logos/policyengine/teal.svg')}
                   alt="PolicyEngine"
                   width={96}
                   height={24}

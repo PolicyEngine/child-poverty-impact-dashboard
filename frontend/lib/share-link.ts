@@ -1,4 +1,5 @@
 import LZString from 'lz-string';
+import { BASE_PATH } from './base-path';
 
 /** Deep-link codec for report configurations.
  *
@@ -26,7 +27,7 @@ export const SHORT_PARAM = 'r';
 
 /** Absolute short share URL for a minted slug (or legacy numeric id). */
 export function shortShareUrl(id: string | number): string {
-  return `${window.location.origin}/report/results?${SHORT_PARAM}=${id}`;
+  return `${window.location.origin}${BASE_PATH}/report/results?${SHORT_PARAM}=${id}`;
 }
 
 export function encodeReportConfig(config: unknown): string {
@@ -62,5 +63,5 @@ export function decodeReportConfig<T = unknown>(encoded: string): T | null {
 /** Absolute share URL for a config, built from the current origin. */
 export function shareUrl(config: unknown): string {
   const encoded = encodeReportConfig(config);
-  return `${window.location.origin}/report/results?${SHARE_PARAM}=${encoded}`;
+  return `${window.location.origin}${BASE_PATH}/report/results?${SHARE_PARAM}=${encoded}`;
 }
