@@ -2655,6 +2655,14 @@ function buildGaCtcReform(
     if (refundable !== 250) {
       out['gov.contrib.states.ga.ctc.refundable.amount'] = refundable;
     }
+    // The credit itself caps the refund, so a refundable portion above the
+    // credit amount implies raising the credit to match. The editor keeps
+    // the two sliders in sync; this guards configs minted before it did
+    // (shared links, hand-built payloads).
+    const amount = pv?.amount ?? 250;
+    if (refundable > amount) {
+      out['gov.states.ga.tax.income.credits.ctc.amount'] = refundable;
+    }
   }
   return out;
 }

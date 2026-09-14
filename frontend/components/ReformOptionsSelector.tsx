@@ -328,6 +328,24 @@ export default function ReformOptionsSelector({
                 if (!selectedOptions.includes(option.id)) {
                   onSelectionChange([...selectedOptions, option.id]);
                 }
+                // The credit itself caps its refund, so a refundable portion
+                // above the credit amount is incoherent — raising it past the
+                // amount drags the amount up to match (GA's amount/
+                // refundable_amount pair; options without a plain 'amount'
+                // param are unaffected).
+                if (paramName === 'refundable_amount') {
+                  const amountParam = option.adjustable_params?.find(
+                    (p) => p.name === 'amount',
+                  );
+                  if (amountParam) {
+                    const currentAmount =
+                      parameterValues[option.id]?.amount ??
+                      amountParam.default_value;
+                    if (value > currentAmount) {
+                      onParameterChange?.(option.id, 'amount', value);
+                    }
+                  }
+                }
                 onParameterChange?.(option.id, paramName, value);
               }}
             />
