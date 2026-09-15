@@ -21,6 +21,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { geoAlbersUsa, geoPath } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import type { DistrictImpact } from '@/lib/modalApi';
+import { withBasePath } from '@/lib/base-path';
 import representatives from '@/data/cd-representatives.json';
 
 const REPS = representatives as Record<string, { name: string; party: string }>;
@@ -98,7 +99,7 @@ export default function DistrictImpacts({ state, districts, year }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/data/geojson/congressional_districts.geojson')
+    fetch(withBasePath('/data/geojson/congressional_districts.geojson'))
       .then((r) => r.json())
       .then((geo) => {
         const fips = STATE_FIPS[state];

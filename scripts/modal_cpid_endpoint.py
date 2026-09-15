@@ -446,8 +446,11 @@ _ALLOW_ORIGINS = [
     "http://localhost:3009",
     "https://child-poverty-impact-dashboard.vercel.app",
     "https://child-poverty-impact-dashboard-sigma.vercel.app",
-    # Launch domain (metadata canonical URL in frontend/app/layout.tsx).
-    "https://child-poverty.policyengine.org",
+    # Launch host: the dashboard mounts at
+    # policyengine.org/us/child-poverty-impact-dashboard via the app-zone
+    # rewrite in policyengine-app-v2, so the browser origin is the apex.
+    "https://policyengine.org",
+    "https://www.policyengine.org",
 ]
 _ALLOW_ORIGIN_REGEX = (
     # Vercel preview deployments, plus any localhost port for local dev

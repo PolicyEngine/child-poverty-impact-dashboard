@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://child-poverty.policyengine.org';
+  const baseUrl = 'https://policyengine.org/us/child-poverty-impact-dashboard';
 
   return [
     {

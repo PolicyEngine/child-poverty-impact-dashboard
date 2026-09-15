@@ -9,6 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/report/results'],
       },
     ],
-    sitemap: 'https://child-poverty.policyengine.org/sitemap.xml',
+    sitemap:
+      'https://policyengine.org/us/child-poverty-impact-dashboard/sitemap.xml',
   };
 }
