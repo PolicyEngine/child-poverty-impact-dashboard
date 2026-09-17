@@ -93,6 +93,9 @@ export interface AdjustableParameter {
   depends_on?: string;
   /** Only show when the named sibling param is falsy (0). */
   depends_on_off?: string;
+  /** Param belongs to a proposed reform with no current-law counterpart —
+   *  summaries show the entered value alone, not a "default → value" change. */
+  reform_only?: boolean;
 }
 
 export interface ReformOption {

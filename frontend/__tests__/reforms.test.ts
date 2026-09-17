@@ -989,16 +989,18 @@ describe('buildReformDict', () => {
     expect(buildReformDict(['ut_ctc'], { ut_ctc: { make_refundable: 1 } }, 2026)).toEqual({
       [`${U}.in_effect`]: true,
     });
-    // Toggle on, fully refundable, larger credit.
+    // Toggle on, fully refundable, larger credit: the single credit-amount
+    // input drives both the baseline path and the restructure's amount.
     const full = buildReformDict(
       ['ut_ctc'],
-      { ut_ctc: { make_refundable: 1, refundable_amount: 1000, reform_amount: 1200 } },
+      { ut_ctc: { make_refundable: 1, refundable_amount: 1000, amount: 1200 } },
       2026,
     );
     expect(full[`${U}.in_effect`]).toBe(true);
     expect(full[`${U}.refundable.amount`]).toBe(1000);
     expect(full[`${U}.amount`]).toBe(1200);
-    // Baseline levers still work alongside the reform block.
+    expect(full['gov.states.ut.tax.income.credits.ctc.amount']).toBe(1200);
+    // An amount edit alone mirrors into the reform block.
     const combo = buildReformDict(
       ['ut_ctc'],
       { ut_ctc: { make_refundable: 1, amount: 1500 } },
@@ -1006,6 +1008,24 @@ describe('buildReformDict', () => {
     );
     expect(combo['gov.states.ut.tax.income.credits.ctc.amount']).toBe(1500);
     expect(combo[`${U}.in_effect`]).toBe(true);
+    expect(combo[`${U}.amount`]).toBe(1500);
+    // Refundable portion above the credit amount raises the reform amount
+    // to match (the refund can never exceed the credit).
+    const raised = buildReformDict(
+      ['ut_ctc'],
+      { ut_ctc: { make_refundable: 1, refundable_amount: 1500 } },
+      2026,
+    );
+    expect(raised[`${U}.refundable.amount`]).toBe(1500);
+    expect(raised[`${U}.amount`]).toBe(1500);
+    // Legacy share links minted when the restructure had its own
+    // reform_amount input still apply it.
+    const legacy = buildReformDict(
+      ['ut_ctc'],
+      { ut_ctc: { make_refundable: 1, reform_amount: 1200 } },
+      2026,
+    );
+    expect(legacy[`${U}.amount`]).toBe(1200);
   });
 
   it('applies the OK refundability conversion only when the toggle is on', () => {

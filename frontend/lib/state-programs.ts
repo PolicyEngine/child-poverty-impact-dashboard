@@ -1583,6 +1583,11 @@ interface CtcParam {
   divide_by?: number; // UI percent -> /1 rate when set to 100
   control?: 'toggle'; // render as a checkbox (stored 0/1)
   depends_on?: string; // only render when the named sibling param is truthy
+  /** Param belongs to a proposed reform with no current-law counterpart —
+   *  report chips show the entered value alone, not a "default → value"
+   *  change (e.g. UT's refundable portion: $800 is the proposal's number,
+   *  not something current law moves FROM). */
+  reform_only?: boolean;
 }
 
 interface CtcRegistryEntry {
@@ -2052,19 +2057,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 1,
         unit: '',
         description:
-          "Apply a proposed restructure of Utah Code 59-10-1047 (a proposal, not enacted law): $1,000 per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
-      },
-      {
-        name: 'reform_amount',
-        label: 'Reform credit amount',
-        path: '',
-        default_value: 1000,
-        min_value: 0,
-        max_value: 5000,
-        step: 50,
-        unit: '$',
-        depends_on: 'make_refundable',
-        description: 'Per-child amount under the proposed restructure. Reform default: $1,000.',
+          "Apply a proposed restructure of Utah Code 59-10-1047 (a proposal, not enacted law): the credit amount above per child with higher phase-out starts (single $49k / joint $98k / separate $30.5k) and a refundable portion per child (below). While on, the reform's own thresholds replace the phase-out inputs above; the phase-out rate still applies.",
       },
       {
         name: 'refundable_amount',
@@ -2076,8 +2069,9 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         step: 50,
         unit: '$',
         depends_on: 'make_refundable',
+        reform_only: true,
         description:
-          'Maximum refunded per child beyond tax owed. $800 under the 2026 reform; set it equal to the credit amount for a fully refundable credit, or 0 for nonrefundable.',
+          'Maximum refunded per child beyond tax owed. $800 under the 2026 reform; set it equal to the credit amount for a fully refundable credit, or 0 for nonrefundable. Raising it above the credit amount raises the credit to match.',
       },
     ],
   },
@@ -2432,6 +2426,7 @@ function anchoredAdjustableParams(
     description: p.description,
     ...(p.control ? { control: p.control } : {}),
     ...(p.depends_on ? { depends_on: p.depends_on } : {}),
+    ...(p.reform_only ? { reform_only: true } : {}),
   }));
 }
 
@@ -2574,12 +2569,10 @@ function buildNyCtcReform(
  *  states.ut.ctc), which is what makes the credit (partially) refundable. The
  *  reform block only emits when its toggle is on; the reform amounts emit only
  *  when changed from the enacted values, so the toggle alone is the clean
- *  "apply the 2026 restructure" reform. */
-const UT_REFORM_PARAM_NAMES = new Set([
-  'make_refundable',
-  'reform_amount',
-  'refundable_amount',
-]);
+ *  "apply the 2026 restructure" reform. The single credit-amount input drives
+ *  both the baseline credit and the restructure's per-child amount — there is
+ *  no separate reform amount input. */
+const UT_REFORM_PARAM_NAMES = new Set(['make_refundable', 'refundable_amount']);
 
 function buildUtCtcReform(
   pv?: Record<string, number>,
@@ -2595,9 +2588,18 @@ function buildUtCtcReform(
   );
   if (pv?.make_refundable) {
     out['gov.contrib.states.ut.ctc.in_effect'] = true;
-    const amount = pv?.reform_amount ?? 1000;
-    if (amount !== 1000) out['gov.contrib.states.ut.ctc.amount'] = amount;
+    // The credit-amount input sets the restructure's amount too
+    // (reform_amount is honored as a fallback for share links minted when it
+    // was a separate input). The credit caps its refund, so a refundable
+    // portion above the amount raises the amount to match — the editor keeps
+    // the two sliders in sync; this guards configs minted before it did
+    // (shared links, hand-built payloads).
+    const amount = pv?.amount ?? pv?.reform_amount ?? 1000;
     const refundable = pv?.refundable_amount ?? 800;
+    const effective = Math.max(amount, refundable);
+    if (effective !== 1000) {
+      out['gov.contrib.states.ut.ctc.amount'] = effective;
+    }
     if (refundable !== 800) {
       out['gov.contrib.states.ut.ctc.refundable.amount'] = refundable;
     }
