@@ -2063,7 +2063,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         name: 'refundable_amount',
         label: 'Refundable portion per child',
         path: '',
-        default_value: 800,
+        default_value: 500,
         min_value: 0,
         max_value: 5000,
         step: 50,
@@ -2071,7 +2071,7 @@ const CTC_REFORMS: Record<string, CtcRegistryEntry> = {
         depends_on: 'make_refundable',
         reform_only: true,
         description:
-          'Maximum refunded per child beyond tax owed. $800 under the 2026 reform; set it equal to the credit amount for a fully refundable credit, or 0 for nonrefundable. Raising it above the credit amount raises the credit to match.',
+          'Maximum refunded per child beyond tax owed ($800 under the 2026 proposal). Set it equal to the credit amount for a fully refundable credit, or 0 for nonrefundable. Raising it above the credit amount raises the credit to match.',
       },
     ],
   },
@@ -2595,7 +2595,10 @@ function buildUtCtcReform(
     // the two sliders in sync; this guards configs minted before it did
     // (shared links, hand-built payloads).
     const amount = pv?.amount ?? pv?.reform_amount ?? 1000;
-    const refundable = pv?.refundable_amount ?? 800;
+    // The dashboard's default refundable portion ($500) differs from the
+    // contrib reform's enacted-proposal value ($800), so anything other
+    // than $800 must emit explicitly — including the untouched default.
+    const refundable = pv?.refundable_amount ?? 500;
     const effective = Math.max(amount, refundable);
     if (effective !== 1000) {
       out['gov.contrib.states.ut.ctc.amount'] = effective;

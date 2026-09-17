@@ -228,7 +228,13 @@ export default function ReportBuilderPage() {
           : undefined);
       const params = (opt?.adjustable_params ?? [])
         .map((p) => {
-          const cur = effectiveValue(p.name);
+          // Reform-only params (e.g. UT's refundable portion) apply their
+          // default whenever their gating toggle is on, so the chip shows
+          // the amount even when the slider was never touched — the
+          // depends_on check below still hides them while the toggle is off.
+          const cur =
+            effectiveValue(p.name) ??
+            (p.reform_only ? p.default_value : undefined);
           if (cur === undefined) return null;
           // A param gated on a toggle only shows when that toggle is
           // effectively on (or off, for depends_on_off) — e.g. phase-out

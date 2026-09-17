@@ -985,9 +985,12 @@ describe('buildReformDict', () => {
     expect(
       buildReformDict(['ut_ctc'], { ut_ctc: { refundable_amount: 1000 } }, 2026),
     ).toEqual({});
-    // Toggle on at defaults: just the in_effect flag (amounts are the enacted values).
+    // Toggle on at defaults: the flag plus the dashboard's $500 refundable
+    // default, which differs from the contrib proposal's $800 and so must
+    // emit explicitly.
     expect(buildReformDict(['ut_ctc'], { ut_ctc: { make_refundable: 1 } }, 2026)).toEqual({
       [`${U}.in_effect`]: true,
+      [`${U}.refundable.amount`]: 500,
     });
     // Toggle on, fully refundable, larger credit: the single credit-amount
     // input drives both the baseline path and the restructure's amount.
@@ -1000,7 +1003,8 @@ describe('buildReformDict', () => {
     expect(full[`${U}.refundable.amount`]).toBe(1000);
     expect(full[`${U}.amount`]).toBe(1200);
     expect(full['gov.states.ut.tax.income.credits.ctc.amount']).toBe(1200);
-    // An amount edit alone mirrors into the reform block.
+    // An amount edit alone mirrors into the reform block (refundable stays
+    // at the $500 dashboard default).
     const combo = buildReformDict(
       ['ut_ctc'],
       { ut_ctc: { make_refundable: 1, amount: 1500 } },
@@ -1009,6 +1013,7 @@ describe('buildReformDict', () => {
     expect(combo['gov.states.ut.tax.income.credits.ctc.amount']).toBe(1500);
     expect(combo[`${U}.in_effect`]).toBe(true);
     expect(combo[`${U}.amount`]).toBe(1500);
+    expect(combo[`${U}.refundable.amount`]).toBe(500);
     // Refundable portion above the credit amount raises the reform amount
     // to match (the refund can never exceed the credit).
     const raised = buildReformDict(
