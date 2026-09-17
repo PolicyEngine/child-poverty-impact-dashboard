@@ -228,7 +228,13 @@ export default function ReportBuilderPage() {
           : undefined);
       const params = (opt?.adjustable_params ?? [])
         .map((p) => {
-          const cur = effectiveValue(p.name);
+          // Reform-only params (e.g. UT's refundable portion) apply their
+          // default whenever their gating toggle is on, so the chip shows
+          // the amount even when the slider was never touched — the
+          // depends_on check below still hides them while the toggle is off.
+          const cur =
+            effectiveValue(p.name) ??
+            (p.reform_only ? p.default_value : undefined);
           if (cur === undefined) return null;
           // A param gated on a toggle only shows when that toggle is
           // effectively on (or off, for depends_on_off) — e.g. phase-out
@@ -256,11 +262,12 @@ export default function ReportBuilderPage() {
           }
           // Show the change from current law when the user moved it
           // (e.g. "Match rate 40% → 50%"), otherwise just the value.
-          // Created programs (child allowance) have no current law to
-          // change FROM — their defaults are just editor suggestions — so
-          // always show the entered value alone.
+          // Created programs (child allowance) and reform-only params
+          // (e.g. UT's refundable portion) have no current law to change
+          // FROM — their defaults are just editor suggestions — so always
+          // show the entered value alone.
           const value =
-            !opt?.creates_program && cur !== p.default_value
+            !opt?.creates_program && !p.reform_only && cur !== p.default_value
               ? `${fmtValue(p.default_value, p.unit)} → ${fmtValue(cur, p.unit)}`
               : fmtValue(cur, p.unit);
           // The oldest child-allowance band runs from 6 up to (not
