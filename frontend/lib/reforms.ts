@@ -9,9 +9,11 @@
  * neither actually set the 2021 expanded-CTC amounts the option promised).
  *
  * Values are emitted as scalars; Modal's wrapper defaults the effective
- * date to ``{year}-01-01``. Bracketed parameter paths (e.g.
- * ``...by_age[0].amount``) are passed through verbatim — policyengine-core's
- * ``Reform.from_dict`` resolves the ``[i]`` syntax.
+ * date to ``{year}-01-01``. A ``{date: value}`` map overrides that — used
+ * only where PE-US reads a flag at a fixed early date (see snap_reform).
+ * Bracketed parameter paths (e.g. ``...by_age[0].amount``) are passed
+ * through verbatim — policyengine-core's ``Reform.from_dict`` resolves the
+ * ``[i]`` syntax.
  */
 
 import {
@@ -255,7 +257,16 @@ function applyReformOption(
       const gross = pv?.gross_income_limit ?? 130;
       if (gross !== 130) reform['gov.usda.snap.income.limit.gross'] = gross / 100;
       if (pv?.abolish_net_income_test) {
-        reform['gov.contrib.snap.abolish_net_income_test.in_effect'] = true;
+        // Date-stamped at 2024, NOT the analysis year: PE-US derives this
+        // structural reform by reading the flag at its DEFAULT_START_DATE
+        // (2024-01-01) only — unlike the state-contrib creators, it does
+        // not scan forward — so a flag first true in the analysis year
+        // never activates and the toggle silently no-ops (found via a
+        // TX 2027 report). The reform side is the only place this dict
+        // applies, so the early date cannot leak into the baseline.
+        reform['gov.contrib.snap.abolish_net_income_test.in_effect'] = {
+          '2024-01-01': true,
+        };
       }
       const minBenefit = pv?.min_benefit ?? 8;
       if (minBenefit !== 8) reform['gov.usda.snap.min_allotment.rate'] = minBenefit / 100;

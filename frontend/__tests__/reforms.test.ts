@@ -144,7 +144,12 @@ describe('buildReformDict', () => {
       2026,
     );
     expect(reform['gov.usda.snap.income.limit.gross']).toBeCloseTo(2.0);
-    expect(reform['gov.contrib.snap.abolish_net_income_test.in_effect']).toBe(true);
+    // Date-stamped at PE-US's structural-detection instant (2024-01-01),
+    // not the analysis year — the abolish creator reads the flag at that
+    // single date, so a year-stamped flag never activates the reform.
+    expect(reform['gov.contrib.snap.abolish_net_income_test.in_effect']).toEqual(
+      { '2024-01-01': true },
+    );
     expect(reform['gov.usda.snap.min_allotment.rate']).toBeCloseTo(0.2);
     expect(reform['gov.usda.snap.income.deductions.earned_income']).toBeCloseTo(0.3);
     // Unchanged levers (and an unset toggle) are not emitted.

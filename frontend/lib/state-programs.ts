@@ -1385,25 +1385,26 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  max allotment (AK/HI higher), the regional standard deduction, and the
  *  DC/MD/NJ minimum-allotment overrides — and these levers overlay on top of it.
  *
- *  Caveats: (1) The baseline gross-income LIMIT is the federal 130% FPG in
- *  every state (gov.usda.snap.income.limit.gross is a single federal factor
- *  on the pinned 1.808.0 — no per-state BBCE limit schedule exists), so the
- *  gross-limit lever models a uniform federal change. State BBCE enters the
- *  model only through TANF-based categorical eligibility: units receiving
- *  TANF (incl. BBCE-TANF noncash) bypass the gross/net/asset tests entirely
- *  via meets_snap_categorical_eligibility, so for those units the lever is
- *  moot rather than binding.
+ *  Caveats: (1) The gross-limit lever raises the FEDERAL floor
+ *  (gov.usda.snap.income.limit.gross, 130% FPG). PE-US ≥1.82x also models
+ *  per-state BBCE (gov.hhs.tanf.non_cash.income_limit.gross: e.g. TX 165%,
+ *  most BBCE states 185-200%), and BBCE-eligible units bypass the federal
+ *  gross AND net tests entirely via meets_snap_categorical_eligibility. So
+ *  both eligibility levers bind mainly in non-BBCE states (UT, AK, …) and
+ *  above a state's BBCE limit — a TX report at a 150% gross limit is
+ *  legitimately ~$0 because TX BBCE already reaches 165% (r=38).
  *  (2) "Remove the net income test" sets gov.contrib.snap.abolish_net_income_test
- *  .in_effect, a structural reform PE-US auto-derives from the parameter (same
- *  mechanism as the AFA / SC refundable-EITC reforms). (3) A literal "% benefit
- *  increase" would need a new PE-US max-allotment multiplier (follow-up). */
+ *  .in_effect, a structural reform PE-US derives from the parameter — read at
+ *  the fixed 2024-01-01 detection instant, hence the date-stamped emission in
+ *  reforms.ts. (3) A literal "% benefit increase" would need a new PE-US
+ *  max-allotment multiplier (follow-up). */
 function buildSnapOptions(): ReformOption[] {
   return [
     {
       id: 'snap_reform',
       name: 'SNAP expansion',
       description:
-        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction.",
+        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. Note: most states' broad-based categorical eligibility (BBCE) already waives the federal gross and net tests up to a higher state limit (e.g. Texas 165%, many states 200%), so the two eligibility levers mainly move results in non-BBCE states or above a state's BBCE limit.",
       category: 'snap',
       is_configurable: true,
       adjustable_params: [
