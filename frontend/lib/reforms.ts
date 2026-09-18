@@ -23,6 +23,7 @@ import {
   eitcStructured,
   buildStructuredEitcReform,
   buildDependentExemptionReform,
+  SNAP_EFFECTIVE_GROSS_LIMIT,
 } from './state-programs';
 
 export type ReformDictValue =
@@ -68,6 +69,7 @@ function applyReformOption(
   id: string,
   parameterValues: ParameterValues | undefined,
   year: number,
+  stateCode?: string,
 ): void {
   // State EITC — IDs look like ``ca_eitc`` / ``dc_eitc``. MN and WA run a
   // structured Working Family (Tax) Credit rather than a federal-percentage
@@ -254,8 +256,37 @@ function applyReformOption(
       // parameters. Emit only values the user changed from current law so an
       // untouched selection is a no-op. Percent sliders → /1 fractions.
       const pv = parameterValues?.['snap_reform'];
-      const gross = pv?.gross_income_limit ?? 130;
-      if (gross !== 130) reform['gov.usda.snap.income.limit.gross'] = gross / 100;
+      // The slider defaults to the state's effective gross limit (the
+      // federal 130% or the state's higher BBCE limit), so "changed" means
+      // raised above that seat, not above 130.
+      const st = stateCode?.toUpperCase() ?? '';
+      const seat = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
+      const gross = pv?.gross_income_limit ?? seat;
+      if (gross > seat) {
+        // Raise the federal floor (binds directly in non-BBCE states and
+        // guarantees no gross test fails below the chosen limit anywhere)…
+        reform['gov.usda.snap.income.limit.gross'] = gross / 100;
+        if (seat > 130) {
+          // …and extend the state's BBCE regime to the same limit, so the
+          // newly covered band gets the state's actual treatment (BBCE
+          // waives the federal net and asset tests; the federal pathway
+          // alone would re-impose the net test on the expansion band).
+          reform[
+            `gov.hhs.tanf.non_cash.income_limit.gross.${st}`
+          ] = gross / 100;
+          if (st === 'NY') {
+            // NY is tiered; floor each tier at the chosen limit (the
+            // 200% dependent-care tier only moves when the slider
+            // passes it).
+            reform['gov.hhs.tanf.non_cash.income_limit.ny.earned_income'] =
+              gross / 100;
+            if (gross > 200) {
+              reform['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'] =
+                gross / 100;
+            }
+          }
+        }
+      }
       if (pv?.abolish_net_income_test) {
         // Date-stamped at 2024, NOT the analysis year: PE-US derives this
         // structural reform by reading the flag at its DEFAULT_START_DATE
@@ -288,10 +319,11 @@ export function buildReformDict(
   reformOptionIds: string[],
   parameterValues: ParameterValues | undefined,
   year: number,
+  stateCode?: string,
 ): ReformDict {
   const reform: ReformDict = {};
   for (const id of reformOptionIds) {
-    applyReformOption(reform, id, parameterValues, year);
+    applyReformOption(reform, id, parameterValues, year, stateCode);
   }
   return reform;
 }

@@ -158,6 +158,68 @@ describe('buildReformDict', () => {
     ).toEqual({});
   });
 
+  it('anchors the SNAP gross limit to the state seat and extends BBCE', () => {
+    // BBCE state (TX, 165%): at or below the seat is a no-op…
+    expect(
+      buildReformDict(
+        ['snap_reform'],
+        { snap_reform: { gross_income_limit: 165 } },
+        2026,
+        'TX',
+      ),
+    ).toEqual({});
+    expect(
+      buildReformDict(
+        ['snap_reform'],
+        { snap_reform: { gross_income_limit: 150 } },
+        2026,
+        'TX',
+      ),
+    ).toEqual({});
+    // …and a raise moves both the federal floor and the state BBCE limit.
+    const tx = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { gross_income_limit: 180 } },
+      2026,
+      'TX',
+    );
+    expect(tx['gov.usda.snap.income.limit.gross']).toBeCloseTo(1.8);
+    expect(tx['gov.hhs.tanf.non_cash.income_limit.gross.TX']).toBeCloseTo(1.8);
+    // Non-BBCE state (UT): federal floor only.
+    const ut = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { gross_income_limit: 150 } },
+      2026,
+      'UT',
+    );
+    expect(ut['gov.usda.snap.income.limit.gross']).toBeCloseTo(1.5);
+    expect(ut['gov.hhs.tanf.non_cash.income_limit.gross.UT']).toBeUndefined();
+    // NY tiers: floor the base and earned-income tiers; the 200%
+    // dependent-care tier only moves past 200.
+    const ny = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { gross_income_limit: 180 } },
+      2026,
+      'NY',
+    );
+    expect(ny['gov.hhs.tanf.non_cash.income_limit.gross.NY']).toBeCloseTo(1.8);
+    expect(
+      ny['gov.hhs.tanf.non_cash.income_limit.ny.earned_income'],
+    ).toBeCloseTo(1.8);
+    expect(
+      ny['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'],
+    ).toBeUndefined();
+    const ny250 = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { gross_income_limit: 250 } },
+      2026,
+      'NY',
+    );
+    expect(
+      ny250['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'],
+    ).toBeCloseTo(2.5);
+  });
+
   it('emits a changed state-CTC amount and nothing else', () => {
     const reform = buildReformDict(
       ['dc_ctc'],

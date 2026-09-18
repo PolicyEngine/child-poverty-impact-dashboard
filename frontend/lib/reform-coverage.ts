@@ -189,7 +189,7 @@ export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
         kind: 'single',
         ids: [option.id],
         year,
-        reform: buildReformDict([option.id], defaultParamValues(option), year),
+        reform: buildReformDict([option.id], defaultParamValues(option), year, state),
       });
       if ((option.adjustable_params?.length ?? 0) > 0) {
         entries.push({
@@ -201,12 +201,13 @@ export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
             [option.id],
             editedParamValues(option),
             year,
+            state,
           ),
         });
       }
       const bump = generosityParamValues(option);
       if (bump) {
-        const reform = buildReformDict([option.id], bump, year);
+        const reform = buildReformDict([option.id], bump, year, state);
         if (Object.keys(reform).length > 0) {
           entries.push({
             state,
@@ -227,7 +228,7 @@ export function buildManifest(year: number = COVERAGE_YEAR): ManifestEntry[] {
         kind: 'combo',
         ids,
         year,
-        reform: buildReformDict(ids, mergedDefaultParamValues(combo), year),
+        reform: buildReformDict(ids, mergedDefaultParamValues(combo), year, state),
       });
     }
   }

@@ -1404,26 +1404,55 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  the fixed 2024-01-01 detection instant, hence the date-stamped emission in
  *  reforms.ts. (3) A literal "% benefit increase" would need a new PE-US
  *  max-allotment multiplier (follow-up). */
-function buildSnapOptions(): ReformOption[] {
+/** Effective SNAP gross income limit by state (% of FPG, latest dated
+ *  values in the pinned PE-US: gov.hhs.tanf.non_cash.income_limit.gross).
+ *  BBCE states waive the federal 130% test up to this limit; states not
+ *  listed are non-BBCE (or BBCE keeping the 130% cut-off) and sit at the
+ *  federal 130%. NY is tiered (130% no earnings / 150% with earnings /
+ *  200% with dependent care or an elderly-disabled member) — shown as its
+ *  150% earners tier. */
+export const SNAP_EFFECTIVE_GROSS_LIMIT: Record<string, number> = {
+  IA: 160,
+  IL: 165,
+  NE: 165,
+  TX: 165,
+  NJ: 185,
+  RI: 185,
+  VT: 185,
+  NY: 150,
+  AK: 200, AZ: 200, CA: 200, CO: 200, CT: 200, DC: 200, DE: 200,
+  FL: 200, HI: 200, KY: 200, LA: 200, MA: 200, MD: 200, ME: 200,
+  MI: 200, MN: 200, MT: 200, NC: 200, ND: 200, NH: 200, NM: 200,
+  NV: 200, OR: 200, PA: 200, VA: 200, WA: 200, WI: 200, WV: 200,
+};
+
+function buildSnapOptions(stateCode?: string): ReformOption[] {
+  const st = stateCode?.toUpperCase() ?? '';
+  const effectiveLimit = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
+  const viaBbce = effectiveLimit > 130;
+  const grossDescription = viaBbce
+    ? `Households with gross monthly income up to this percent of the federal poverty guideline qualify. ${st} currently reaches ${effectiveLimit}% through broad-based categorical eligibility (BBCE)${st === 'NY' ? ' for households with earnings (130% without earnings, 200% with dependent care or an elderly-disabled member)' : ''}, so raising the limit expands eligibility only above that.`
+    : `Households with gross monthly income up to this percent of the federal poverty guideline qualify. Current in ${st || 'this state'}: 130% (the federal limit).`;
   return [
     {
       id: 'snap_reform',
       name: 'SNAP expansion',
       description:
-        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. Note: many states' broad-based categorical eligibility (BBCE) already waives the federal gross and net tests up to a higher state limit (e.g. Texas 165%, many states 200%), so the two eligibility levers move results most in the 16 states whose effective limit is still 130% — the 8 without BBCE and the 8 whose BBCE keeps the 130% gross cut-off — or when the gross limit is set above a state's BBCE limit.",
+        "Expand SNAP via federal rules, applied on top of the state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. The gross-limit slider starts at the state's current effective limit — the federal 130% or the state's higher BBCE limit — so an untouched slider changes nothing.",
       category: 'snap',
       is_configurable: true,
       adjustable_params: [
         {
           name: 'gross_income_limit',
           label: 'Gross income limit (% of poverty line)',
-          min_value: 130,
+          // Floor at the state's seat: lowering below it would be a silent
+          // no-op (BBCE still grants eligibility below the state limit).
+          min_value: effectiveLimit,
           max_value: 300,
-          default_value: 130,
+          default_value: effectiveLimit,
           step: 5,
           unit: '%',
-          description:
-            'Households with gross monthly income up to this percent of the federal poverty guideline qualify. Current: 130%.',
+          description: grossDescription,
         },
         {
           name: 'abolish_net_income_test',
@@ -2725,7 +2754,7 @@ export function getReformOptionsForState(
       eitc_options: [],
       dependent_exemption_options: [],
       grocery_credit_options: buildGroceryCreditOptions(stateCode),
-      snap_options: buildSnapOptions(),
+      snap_options: buildSnapOptions(stateCode),
       child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(stateCode),
     };
@@ -2744,7 +2773,7 @@ export function getReformOptionsForState(
     eitc_options: buildEitcOptions(programs, year),
     dependent_exemption_options: buildDependentExemptionOptions(programs, year),
     grocery_credit_options: buildGroceryCreditOptions(programs.state_code),
-    snap_options: buildSnapOptions(),
+    snap_options: buildSnapOptions(programs.state_code),
     child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(programs.state_code),
   };
