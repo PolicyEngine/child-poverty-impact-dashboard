@@ -1385,39 +1385,133 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  max allotment (AK/HI higher), the regional standard deduction, and the
  *  DC/MD/NJ minimum-allotment overrides — and these levers overlay on top of it.
  *
- *  Caveats: (1) The baseline gross-income LIMIT is the federal 130% FPG in
- *  every state (gov.usda.snap.income.limit.gross is a single federal factor
- *  on the pinned 1.808.0 — no per-state BBCE limit schedule exists), so the
- *  gross-limit lever models a uniform federal change. State BBCE enters the
- *  model only through TANF-based categorical eligibility: units receiving
- *  TANF (incl. BBCE-TANF noncash) bypass the gross/net/asset tests entirely
- *  via meets_snap_categorical_eligibility, so for those units the lever is
- *  moot rather than binding.
+ *  Caveats: (1) The gross-limit lever raises the FEDERAL floor
+ *  (gov.usda.snap.income.limit.gross, 130% FPG). PE-US ≥1.82x also models
+ *  per-state BBCE (gov.hhs.tanf.non_cash.income_limit.gross), and
+ *  BBCE-eligible units bypass the federal gross AND net tests via
+ *  meets_snap_categorical_eligibility. Binding map (latest dated values):
+ *  8 non-BBCE states (AR KS MO MS SD TN UT WY) where both levers fully
+ *  bind; 8 BBCE states whose gross limit is still 130% (AL GA ID IN OH OK
+ *  SC, plus NY's no-earnings tier — NY is tiered 130/150/200) where the
+ *  levers bind through the federal pathway; and the rest at 160-200%
+ *  (TX 165) where a lever binds only above the state's BBCE limit — a TX
+ *  report at a 150% gross limit is legitimately ~$0 (r=38). The toggle
+ *  removes only the FEDERAL net test; six BBCE states (CA HI IN LA ND RI)
+ *  run a separate BBCE-path net screen (meets_tanf_non_cash_net_income_
+ *  test) the toggle does not touch.
  *  (2) "Remove the net income test" sets gov.contrib.snap.abolish_net_income_test
- *  .in_effect, a structural reform PE-US auto-derives from the parameter (same
- *  mechanism as the AFA / SC refundable-EITC reforms). (3) A literal "% benefit
- *  increase" would need a new PE-US max-allotment multiplier (follow-up). */
-function buildSnapOptions(): ReformOption[] {
+ *  .in_effect, a structural reform PE-US derives from the parameter — read at
+ *  the fixed 2024-01-01 detection instant, hence the date-stamped emission in
+ *  reforms.ts. (3) A literal "% benefit increase" would need a new PE-US
+ *  max-allotment multiplier (follow-up). */
+/** Effective SNAP gross income limit by state (% of FPG, from the pinned
+ *  PE-US gov.hhs.tanf.non_cash.income_limit.gross). BBCE states waive the
+ *  federal 130% test up to this limit; states not listed are non-BBCE (or
+ *  BBCE keeping the 130% cut-off) and sit at the federal 130%. NY is
+ *  tiered (130% no earnings / 150% with earnings / 200% with dependent
+ *  care or an elderly-disabled member) and gets one slider per tier
+ *  (NY_SNAP_TIER_PARAMS); its 150 entry here only anchors legacy
+ *  single-slider share links.
+ *
+ *  Verified against every 2026-2028 instant (the dashboard's analysis
+ *  years): one within-window change, AZ 185%→200% on 2026-03-01. Each
+ *  seat is the MAX over the year's months — a lower seat would let a
+ *  "raise" emit a value below current law for part of the year (an AZ
+ *  2026 seat of 185 raised to 190 would cut Mar-Dec from 200) — so AZ is
+ *  200 in all three years and the table needs no year dimension. AK's
+ *  BBCE adoption (200%) is dated 2025-07-01, before the window. */
+export const SNAP_EFFECTIVE_GROSS_LIMIT: Record<string, number> = {
+  IA: 160,
+  IL: 165,
+  NE: 165,
+  TX: 165,
+  NJ: 185,
+  RI: 185,
+  VT: 185,
+  NY: 150,
+  AK: 200, AZ: 200, CA: 200, CO: 200, CT: 200, DC: 200, DE: 200,
+  FL: 200, HI: 200, KY: 200, LA: 200, MA: 200, MD: 200, ME: 200,
+  MI: 200, MN: 200, MT: 200, NC: 200, ND: 200, NH: 200, NM: 200,
+  NV: 200, OR: 200, PA: 200, VA: 200, WA: 200, WI: 200, WV: 200,
+};
+
+/** NY's tiered gross limits get one slider per tier. Four legal tiers,
+ *  three sliders: dependent care and elderly/disabled are both 200% and
+ *  share a single PE-US parameter (income_limit.ny.dependent_care — the
+ *  eligibility formula routes both household types through it), so they
+ *  cannot move independently. */
+const NY_SNAP_TIER_PARAMS: AdjustableParameter[] = [
+  {
+    name: 'ny_gross_limit_base',
+    label: 'Gross limit: no earnings or dependent care (% of poverty line)',
+    min_value: 130,
+    max_value: 300,
+    default_value: 130,
+    step: 5,
+    unit: '%',
+    description:
+      'Gross income limit for households without earned income, dependent care expenses, or an elderly-disabled member. Current: 130% (the federal default). Raising it extends NY BBCE to these households.',
+  },
+  {
+    name: 'ny_gross_limit_earned',
+    label: 'Gross limit: with earned income',
+    min_value: 150,
+    max_value: 300,
+    default_value: 150,
+    step: 5,
+    unit: '%',
+    description:
+      'Gross income limit for households with earned income. Current: 150% under NY BBCE (16-ADM-06). Kept at or above the base tier.',
+  },
+  {
+    name: 'ny_gross_limit_dependent_care',
+    label: 'Gross limit: dependent care or elderly-disabled',
+    min_value: 200,
+    max_value: 300,
+    default_value: 200,
+    step: 5,
+    unit: '%',
+    description:
+      'Gross income limit for households with out-of-pocket dependent care expenses or an elderly-disabled member. Current: 200% under NY BBCE. Both household types share one limit (also a single parameter in PolicyEngine-US), so they move together. Kept at or above the earned-income tier.',
+  },
+];
+
+function buildSnapOptions(stateCode?: string): ReformOption[] {
+  const st = stateCode?.toUpperCase() ?? '';
+  const effectiveLimit = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
+  const viaBbce = effectiveLimit > 130;
+  const grossDescription = viaBbce
+    ? `Households with gross monthly income up to this percent of the federal poverty guideline qualify. ${st} currently reaches ${effectiveLimit}% through broad-based categorical eligibility (BBCE), so raising the limit expands eligibility only above that.`
+    : `Households with gross monthly income up to this percent of the federal poverty guideline qualify. Current in ${st || 'this state'}: 130% (the federal limit).`;
+  const grossParams: AdjustableParameter[] =
+    st === 'NY'
+      ? NY_SNAP_TIER_PARAMS
+      : [
+          {
+            name: 'gross_income_limit',
+            label: 'Gross income limit (% of poverty line)',
+            // Floor at the state's seat: lowering below it would be a silent
+            // no-op (BBCE still grants eligibility below the state limit).
+            min_value: effectiveLimit,
+            max_value: 300,
+            default_value: effectiveLimit,
+            step: 5,
+            unit: '%',
+            description: grossDescription,
+          },
+        ];
   return [
     {
       id: 'snap_reform',
       name: 'SNAP expansion',
       description:
-        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction.",
+        st === 'NY'
+          ? 'Expand SNAP on top of the state baseline: raise the gross income limits (NY sets them by household type — 130% base, 150% with earnings, 200% with dependent care or an elderly-disabled member), drop the net income test, and lift the minimum benefit and earned-income deduction. Each slider starts at the tier’s current value, so untouched sliders change nothing.'
+          : "Expand SNAP via federal rules, applied on top of the state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. The gross-limit slider starts at the state's current effective limit — the federal 130% or the state's higher BBCE limit — so an untouched slider changes nothing.",
       category: 'snap',
       is_configurable: true,
       adjustable_params: [
-        {
-          name: 'gross_income_limit',
-          label: 'Gross income limit (% of poverty line)',
-          min_value: 130,
-          max_value: 300,
-          default_value: 130,
-          step: 5,
-          unit: '%',
-          description:
-            'Households with gross monthly income up to this percent of the federal poverty guideline qualify. Current: 130%.',
-        },
+        ...grossParams,
         {
           name: 'abolish_net_income_test',
           label: 'Remove the net income test',
@@ -2718,7 +2812,7 @@ export function getReformOptionsForState(
       eitc_options: [],
       dependent_exemption_options: [],
       grocery_credit_options: buildGroceryCreditOptions(stateCode),
-      snap_options: buildSnapOptions(),
+      snap_options: buildSnapOptions(stateCode),
       child_allowance_options: buildChildAllowanceOptions(),
       federal_options: buildFederalOptions(stateCode),
     };
@@ -2737,7 +2831,7 @@ export function getReformOptionsForState(
     eitc_options: buildEitcOptions(programs, year),
     dependent_exemption_options: buildDependentExemptionOptions(programs, year),
     grocery_credit_options: buildGroceryCreditOptions(programs.state_code),
-    snap_options: buildSnapOptions(),
+    snap_options: buildSnapOptions(programs.state_code),
     child_allowance_options: buildChildAllowanceOptions(),
     federal_options: buildFederalOptions(programs.state_code),
   };

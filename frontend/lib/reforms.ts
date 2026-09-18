@@ -9,9 +9,11 @@
  * neither actually set the 2021 expanded-CTC amounts the option promised).
  *
  * Values are emitted as scalars; Modal's wrapper defaults the effective
- * date to ``{year}-01-01``. Bracketed parameter paths (e.g.
- * ``...by_age[0].amount``) are passed through verbatim — policyengine-core's
- * ``Reform.from_dict`` resolves the ``[i]`` syntax.
+ * date to ``{year}-01-01``. A ``{date: value}`` map overrides that — used
+ * only where PE-US reads a flag at a fixed early date (see snap_reform).
+ * Bracketed parameter paths (e.g. ``...by_age[0].amount``) are passed
+ * through verbatim — policyengine-core's ``Reform.from_dict`` resolves the
+ * ``[i]`` syntax.
  */
 
 import {
@@ -21,6 +23,7 @@ import {
   eitcStructured,
   buildStructuredEitcReform,
   buildDependentExemptionReform,
+  SNAP_EFFECTIVE_GROSS_LIMIT,
 } from './state-programs';
 
 export type ReformDictValue =
@@ -66,6 +69,7 @@ function applyReformOption(
   id: string,
   parameterValues: ParameterValues | undefined,
   year: number,
+  stateCode?: string,
 ): void {
   // State EITC — IDs look like ``ca_eitc`` / ``dc_eitc``. MN and WA run a
   // structured Working Family (Tax) Credit rather than a federal-percentage
@@ -252,10 +256,71 @@ function applyReformOption(
       // parameters. Emit only values the user changed from current law so an
       // untouched selection is a no-op. Percent sliders → /1 fractions.
       const pv = parameterValues?.['snap_reform'];
-      const gross = pv?.gross_income_limit ?? 130;
-      if (gross !== 130) reform['gov.usda.snap.income.limit.gross'] = gross / 100;
+      // The slider defaults to the state's effective gross limit (the
+      // federal 130% or the state's higher BBCE limit), so "changed" means
+      // raised above that seat, not above 130.
+      const st = stateCode?.toUpperCase() ?? '';
+      if (st === 'NY') {
+        // NY exposes one slider per tier (four legal tiers, three
+        // parameters — dependent care and elderly/disabled share
+        // ny.dependent_care). Tiers are floored to stay monotone
+        // (base ≤ earned ≤ dependent care) so a raised lower tier never
+        // leapfrogs a higher one. Legacy single-slider shares
+        // (gross_income_limit above the old 150% seat) floor every tier
+        // at the chosen value and keep their federal-limit emission.
+        const legacy =
+          pv?.gross_income_limit !== undefined && pv.gross_income_limit > 150
+            ? pv.gross_income_limit
+            : undefined;
+        const base = Math.max(pv?.ny_gross_limit_base ?? 130, legacy ?? 130);
+        const earned = Math.max(pv?.ny_gross_limit_earned ?? 150, base);
+        const depCare = Math.max(
+          pv?.ny_gross_limit_dependent_care ?? 200,
+          earned,
+        );
+        if (base > 130) {
+          reform['gov.hhs.tanf.non_cash.income_limit.gross.NY'] = base / 100;
+        }
+        if (earned > 150) {
+          reform['gov.hhs.tanf.non_cash.income_limit.ny.earned_income'] =
+            earned / 100;
+        }
+        if (depCare > 200) {
+          reform['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'] =
+            depCare / 100;
+        }
+        if (legacy !== undefined) {
+          reform['gov.usda.snap.income.limit.gross'] = legacy / 100;
+        }
+      } else {
+        const seat = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
+        const gross = pv?.gross_income_limit ?? seat;
+        if (gross > seat) {
+          // Raise the federal floor (binds directly in non-BBCE states and
+          // guarantees no gross test fails below the chosen limit anywhere)…
+          reform['gov.usda.snap.income.limit.gross'] = gross / 100;
+          if (seat > 130) {
+            // …and extend the state's BBCE regime to the same limit, so the
+            // newly covered band gets the state's actual treatment (BBCE
+            // waives the federal net and asset tests; the federal pathway
+            // alone would re-impose the net test on the expansion band).
+            reform[
+              `gov.hhs.tanf.non_cash.income_limit.gross.${st}`
+            ] = gross / 100;
+          }
+        }
+      }
       if (pv?.abolish_net_income_test) {
-        reform['gov.contrib.snap.abolish_net_income_test.in_effect'] = true;
+        // Date-stamped at 2024, NOT the analysis year: PE-US derives this
+        // structural reform by reading the flag at its DEFAULT_START_DATE
+        // (2024-01-01) only — unlike the state-contrib creators, it does
+        // not scan forward — so a flag first true in the analysis year
+        // never activates and the toggle silently no-ops (found via a
+        // TX 2027 report). The reform side is the only place this dict
+        // applies, so the early date cannot leak into the baseline.
+        reform['gov.contrib.snap.abolish_net_income_test.in_effect'] = {
+          '2024-01-01': true,
+        };
       }
       const minBenefit = pv?.min_benefit ?? 8;
       if (minBenefit !== 8) reform['gov.usda.snap.min_allotment.rate'] = minBenefit / 100;
@@ -277,10 +342,11 @@ export function buildReformDict(
   reformOptionIds: string[],
   parameterValues: ParameterValues | undefined,
   year: number,
+  stateCode?: string,
 ): ReformDict {
   const reform: ReformDict = {};
   for (const id of reformOptionIds) {
-    applyReformOption(reform, id, parameterValues, year);
+    applyReformOption(reform, id, parameterValues, year, stateCode);
   }
   return reform;
 }

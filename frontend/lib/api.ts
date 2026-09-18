@@ -256,7 +256,12 @@ export async function runAnalysisFromOptions(
       const { buildReformDict, buildDependentExemptionSubReform } = await import(
         './reforms'
       );
-      const reform = buildReformDict(reformOptionIds, parameterValues, year);
+      const reform = buildReformDict(
+        reformOptionIds,
+        parameterValues,
+        year,
+        state,
+      );
       // Isolated dependent-exemption sub-reform so the backend can attribute
       // its cost (the "Dependent exemption" breakdown row) on its own.
       const depReform = buildDependentExemptionSubReform(

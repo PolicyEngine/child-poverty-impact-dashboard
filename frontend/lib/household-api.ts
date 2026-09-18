@@ -166,6 +166,7 @@ export async function calculateImpact(
         reformOptionIds,
         parameterValues,
         household.year,
+        household.state,
       );
       const depReform = buildDependentExemptionSubReform(
         reformOptionIds,
@@ -224,7 +225,12 @@ export async function runIncomeSweep(
   const ids = reformOptionIds ?? [];
   if (modalConfigured()) {
     try {
-      const reform = buildReformDict(ids, parameterValues, household.year);
+      const reform = buildReformDict(
+        ids,
+        parameterValues,
+        household.year,
+        household.state,
+      );
       const depReform = buildDependentExemptionSubReform(
         ids,
         parameterValues,
