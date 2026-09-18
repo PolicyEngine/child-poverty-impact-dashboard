@@ -1387,12 +1387,18 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *
  *  Caveats: (1) The gross-limit lever raises the FEDERAL floor
  *  (gov.usda.snap.income.limit.gross, 130% FPG). PE-US ≥1.82x also models
- *  per-state BBCE (gov.hhs.tanf.non_cash.income_limit.gross: e.g. TX 165%,
- *  most BBCE states 185-200%), and BBCE-eligible units bypass the federal
- *  gross AND net tests entirely via meets_snap_categorical_eligibility. So
- *  both eligibility levers bind mainly in non-BBCE states (UT, AK, …) and
- *  above a state's BBCE limit — a TX report at a 150% gross limit is
- *  legitimately ~$0 because TX BBCE already reaches 165% (r=38).
+ *  per-state BBCE (gov.hhs.tanf.non_cash.income_limit.gross), and
+ *  BBCE-eligible units bypass the federal gross AND net tests via
+ *  meets_snap_categorical_eligibility. Binding map (latest dated values):
+ *  8 non-BBCE states (AR KS MO MS SD TN UT WY) where both levers fully
+ *  bind; 8 BBCE states whose gross limit is still 130% (AL GA ID IN OH OK
+ *  SC, plus NY's no-earnings tier — NY is tiered 130/150/200) where the
+ *  levers bind through the federal pathway; and the rest at 160-200%
+ *  (TX 165) where a lever binds only above the state's BBCE limit — a TX
+ *  report at a 150% gross limit is legitimately ~$0 (r=38). The toggle
+ *  removes only the FEDERAL net test; six BBCE states (CA HI IN LA ND RI)
+ *  run a separate BBCE-path net screen (meets_tanf_non_cash_net_income_
+ *  test) the toggle does not touch.
  *  (2) "Remove the net income test" sets gov.contrib.snap.abolish_net_income_test
  *  .in_effect, a structural reform PE-US derives from the parameter — read at
  *  the fixed 2024-01-01 detection instant, hence the date-stamped emission in
@@ -1404,7 +1410,7 @@ function buildSnapOptions(): ReformOption[] {
       id: 'snap_reform',
       name: 'SNAP expansion',
       description:
-        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. Note: most states' broad-based categorical eligibility (BBCE) already waives the federal gross and net tests up to a higher state limit (e.g. Texas 165%, many states 200%), so the two eligibility levers mainly move results in non-BBCE states or above a state's BBCE limit.",
+        "Expand SNAP via federal rules, applied in every state on top of each state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. Note: many states' broad-based categorical eligibility (BBCE) already waives the federal gross and net tests up to a higher state limit (e.g. Texas 165%, many states 200%), so the two eligibility levers move results most in the 16 states whose effective limit is still 130% — the 8 without BBCE and the 8 whose BBCE keeps the 130% gross cut-off — or when the gross limit is set above a state's BBCE limit.",
       category: 'snap',
       is_configurable: true,
       adjustable_params: [
