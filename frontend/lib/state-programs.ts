@@ -1409,7 +1409,9 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  federal 130% test up to this limit; states not listed are non-BBCE (or
  *  BBCE keeping the 130% cut-off) and sit at the federal 130%. NY is
  *  tiered (130% no earnings / 150% with earnings / 200% with dependent
- *  care or an elderly-disabled member) — shown as its 150% earners tier.
+ *  care or an elderly-disabled member) and gets one slider per tier
+ *  (NY_SNAP_TIER_PARAMS); its 150 entry here only anchors legacy
+ *  single-slider share links.
  *
  *  Verified against every 2026-2028 instant (the dashboard's analysis
  *  years): one within-window change, AZ 185%→200% on 2026-03-01. Each
@@ -1433,34 +1435,83 @@ export const SNAP_EFFECTIVE_GROSS_LIMIT: Record<string, number> = {
   NV: 200, OR: 200, PA: 200, VA: 200, WA: 200, WI: 200, WV: 200,
 };
 
+/** NY's tiered gross limits get one slider per tier. Four legal tiers,
+ *  three sliders: dependent care and elderly/disabled are both 200% and
+ *  share a single PE-US parameter (income_limit.ny.dependent_care — the
+ *  eligibility formula routes both household types through it), so they
+ *  cannot move independently. */
+const NY_SNAP_TIER_PARAMS: AdjustableParameter[] = [
+  {
+    name: 'ny_gross_limit_base',
+    label: 'Gross limit: no earnings or dependent care (% of poverty line)',
+    min_value: 130,
+    max_value: 300,
+    default_value: 130,
+    step: 5,
+    unit: '%',
+    description:
+      'Gross income limit for households without earned income, dependent care expenses, or an elderly-disabled member. Current: 130% (the federal default). Raising it extends NY BBCE to these households.',
+  },
+  {
+    name: 'ny_gross_limit_earned',
+    label: 'Gross limit: with earned income',
+    min_value: 150,
+    max_value: 300,
+    default_value: 150,
+    step: 5,
+    unit: '%',
+    description:
+      'Gross income limit for households with earned income. Current: 150% under NY BBCE (16-ADM-06). Kept at or above the base tier.',
+  },
+  {
+    name: 'ny_gross_limit_dependent_care',
+    label: 'Gross limit: dependent care or elderly-disabled',
+    min_value: 200,
+    max_value: 300,
+    default_value: 200,
+    step: 5,
+    unit: '%',
+    description:
+      'Gross income limit for households with out-of-pocket dependent care expenses or an elderly-disabled member. Current: 200% under NY BBCE. Both household types share one limit (also a single parameter in PolicyEngine-US), so they move together. Kept at or above the earned-income tier.',
+  },
+];
+
 function buildSnapOptions(stateCode?: string): ReformOption[] {
   const st = stateCode?.toUpperCase() ?? '';
   const effectiveLimit = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
   const viaBbce = effectiveLimit > 130;
   const grossDescription = viaBbce
-    ? `Households with gross monthly income up to this percent of the federal poverty guideline qualify. ${st} currently reaches ${effectiveLimit}% through broad-based categorical eligibility (BBCE)${st === 'NY' ? ' for households with earnings (130% without earnings, 200% with dependent care or an elderly-disabled member)' : ''}, so raising the limit expands eligibility only above that.`
+    ? `Households with gross monthly income up to this percent of the federal poverty guideline qualify. ${st} currently reaches ${effectiveLimit}% through broad-based categorical eligibility (BBCE), so raising the limit expands eligibility only above that.`
     : `Households with gross monthly income up to this percent of the federal poverty guideline qualify. Current in ${st || 'this state'}: 130% (the federal limit).`;
+  const grossParams: AdjustableParameter[] =
+    st === 'NY'
+      ? NY_SNAP_TIER_PARAMS
+      : [
+          {
+            name: 'gross_income_limit',
+            label: 'Gross income limit (% of poverty line)',
+            // Floor at the state's seat: lowering below it would be a silent
+            // no-op (BBCE still grants eligibility below the state limit).
+            min_value: effectiveLimit,
+            max_value: 300,
+            default_value: effectiveLimit,
+            step: 5,
+            unit: '%',
+            description: grossDescription,
+          },
+        ];
   return [
     {
       id: 'snap_reform',
       name: 'SNAP expansion',
       description:
-        "Expand SNAP via federal rules, applied on top of the state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. The gross-limit slider starts at the state's current effective limit — the federal 130% or the state's higher BBCE limit — so an untouched slider changes nothing.",
+        st === 'NY'
+          ? 'Expand SNAP on top of the state baseline: raise the gross income limits (NY sets them by household type — 130% base, 150% with earnings, 200% with dependent care or an elderly-disabled member), drop the net income test, and lift the minimum benefit and earned-income deduction. Each slider starts at the tier’s current value, so untouched sliders change nothing.'
+          : "Expand SNAP via federal rules, applied on top of the state's baseline benefits: raise the gross income limit, drop the net income test, and lift the minimum benefit and earned-income deduction. The gross-limit slider starts at the state's current effective limit — the federal 130% or the state's higher BBCE limit — so an untouched slider changes nothing.",
       category: 'snap',
       is_configurable: true,
       adjustable_params: [
-        {
-          name: 'gross_income_limit',
-          label: 'Gross income limit (% of poverty line)',
-          // Floor at the state's seat: lowering below it would be a silent
-          // no-op (BBCE still grants eligibility below the state limit).
-          min_value: effectiveLimit,
-          max_value: 300,
-          default_value: effectiveLimit,
-          step: 5,
-          unit: '%',
-          description: grossDescription,
-        },
+        ...grossParams,
         {
           name: 'abolish_net_income_test',
           label: 'Remove the net income test',

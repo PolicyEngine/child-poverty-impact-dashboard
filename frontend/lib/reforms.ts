@@ -260,30 +260,53 @@ function applyReformOption(
       // federal 130% or the state's higher BBCE limit), so "changed" means
       // raised above that seat, not above 130.
       const st = stateCode?.toUpperCase() ?? '';
-      const seat = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
-      const gross = pv?.gross_income_limit ?? seat;
-      if (gross > seat) {
-        // Raise the federal floor (binds directly in non-BBCE states and
-        // guarantees no gross test fails below the chosen limit anywhere)…
-        reform['gov.usda.snap.income.limit.gross'] = gross / 100;
-        if (seat > 130) {
-          // …and extend the state's BBCE regime to the same limit, so the
-          // newly covered band gets the state's actual treatment (BBCE
-          // waives the federal net and asset tests; the federal pathway
-          // alone would re-impose the net test on the expansion band).
-          reform[
-            `gov.hhs.tanf.non_cash.income_limit.gross.${st}`
-          ] = gross / 100;
-          if (st === 'NY') {
-            // NY is tiered; floor each tier at the chosen limit (the
-            // 200% dependent-care tier only moves when the slider
-            // passes it).
-            reform['gov.hhs.tanf.non_cash.income_limit.ny.earned_income'] =
-              gross / 100;
-            if (gross > 200) {
-              reform['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'] =
-                gross / 100;
-            }
+      if (st === 'NY') {
+        // NY exposes one slider per tier (four legal tiers, three
+        // parameters — dependent care and elderly/disabled share
+        // ny.dependent_care). Tiers are floored to stay monotone
+        // (base ≤ earned ≤ dependent care) so a raised lower tier never
+        // leapfrogs a higher one. Legacy single-slider shares
+        // (gross_income_limit above the old 150% seat) floor every tier
+        // at the chosen value and keep their federal-limit emission.
+        const legacy =
+          pv?.gross_income_limit !== undefined && pv.gross_income_limit > 150
+            ? pv.gross_income_limit
+            : undefined;
+        const base = Math.max(pv?.ny_gross_limit_base ?? 130, legacy ?? 130);
+        const earned = Math.max(pv?.ny_gross_limit_earned ?? 150, base);
+        const depCare = Math.max(
+          pv?.ny_gross_limit_dependent_care ?? 200,
+          earned,
+        );
+        if (base > 130) {
+          reform['gov.hhs.tanf.non_cash.income_limit.gross.NY'] = base / 100;
+        }
+        if (earned > 150) {
+          reform['gov.hhs.tanf.non_cash.income_limit.ny.earned_income'] =
+            earned / 100;
+        }
+        if (depCare > 200) {
+          reform['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'] =
+            depCare / 100;
+        }
+        if (legacy !== undefined) {
+          reform['gov.usda.snap.income.limit.gross'] = legacy / 100;
+        }
+      } else {
+        const seat = SNAP_EFFECTIVE_GROSS_LIMIT[st] ?? 130;
+        const gross = pv?.gross_income_limit ?? seat;
+        if (gross > seat) {
+          // Raise the federal floor (binds directly in non-BBCE states and
+          // guarantees no gross test fails below the chosen limit anywhere)…
+          reform['gov.usda.snap.income.limit.gross'] = gross / 100;
+          if (seat > 130) {
+            // …and extend the state's BBCE regime to the same limit, so the
+            // newly covered band gets the state's actual treatment (BBCE
+            // waives the federal net and asset tests; the federal pathway
+            // alone would re-impose the net test on the expansion band).
+            reform[
+              `gov.hhs.tanf.non_cash.income_limit.gross.${st}`
+            ] = gross / 100;
           }
         }
       }

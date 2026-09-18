@@ -194,8 +194,8 @@ describe('buildReformDict', () => {
     );
     expect(ut['gov.usda.snap.income.limit.gross']).toBeCloseTo(1.5);
     expect(ut['gov.hhs.tanf.non_cash.income_limit.gross.UT']).toBeUndefined();
-    // NY tiers: floor the base and earned-income tiers; the 200%
-    // dependent-care tier only moves past 200.
+    // NY legacy single-slider shares: floor the base and earned-income
+    // tiers; the 200% dependent-care tier only moves past 200.
     const ny = buildReformDict(
       ['snap_reform'],
       { snap_reform: { gross_income_limit: 180 } },
@@ -218,6 +218,68 @@ describe('buildReformDict', () => {
     expect(
       ny250['gov.hhs.tanf.non_cash.income_limit.ny.dependent_care'],
     ).toBeCloseTo(2.5);
+  });
+
+  it('wires the NY per-tier SNAP gross-limit sliders', () => {
+    const NY_BASE = 'gov.hhs.tanf.non_cash.income_limit.gross.NY';
+    const NY_EARNED = 'gov.hhs.tanf.non_cash.income_limit.ny.earned_income';
+    const NY_DEPCARE = 'gov.hhs.tanf.non_cash.income_limit.ny.dependent_care';
+    // Untouched tiers are a no-op.
+    expect(buildReformDict(['snap_reform'], undefined, 2026, 'NY')).toEqual({});
+    expect(
+      buildReformDict(
+        ['snap_reform'],
+        {
+          snap_reform: {
+            ny_gross_limit_base: 130,
+            ny_gross_limit_earned: 150,
+            ny_gross_limit_dependent_care: 200,
+          },
+        },
+        2026,
+        'NY',
+      ),
+    ).toEqual({});
+    // Raising one tier emits only that tier…
+    const earned = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { ny_gross_limit_earned: 180 } },
+      2026,
+      'NY',
+    );
+    expect(earned[NY_EARNED]).toBeCloseTo(1.8);
+    expect(earned[NY_BASE]).toBeUndefined();
+    expect(earned[NY_DEPCARE]).toBeUndefined();
+    const depCare = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { ny_gross_limit_dependent_care: 250 } },
+      2026,
+      'NY',
+    );
+    expect(depCare[NY_DEPCARE]).toBeCloseTo(2.5);
+    expect(depCare[NY_BASE]).toBeUndefined();
+    // …except tiers stay monotone: a base raised past a higher tier
+    // drags that tier up with it.
+    const base170 = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { ny_gross_limit_base: 170 } },
+      2026,
+      'NY',
+    );
+    expect(base170[NY_BASE]).toBeCloseTo(1.7);
+    expect(base170[NY_EARNED]).toBeCloseTo(1.7);
+    expect(base170[NY_DEPCARE]).toBeUndefined();
+    const base220 = buildReformDict(
+      ['snap_reform'],
+      { snap_reform: { ny_gross_limit_base: 220 } },
+      2026,
+      'NY',
+    );
+    expect(base220[NY_BASE]).toBeCloseTo(2.2);
+    expect(base220[NY_EARNED]).toBeCloseTo(2.2);
+    expect(base220[NY_DEPCARE]).toBeCloseTo(2.2);
+    // Per-tier raises are BBCE levers only — no federal-limit emission.
+    expect(base220['gov.usda.snap.income.limit.gross']).toBeUndefined();
   });
 
   it('emits a changed state-CTC amount and nothing else', () => {
