@@ -1404,13 +1404,20 @@ function buildChildAllowanceOptions(): ReformOption[] {
  *  the fixed 2024-01-01 detection instant, hence the date-stamped emission in
  *  reforms.ts. (3) A literal "% benefit increase" would need a new PE-US
  *  max-allotment multiplier (follow-up). */
-/** Effective SNAP gross income limit by state (% of FPG, latest dated
- *  values in the pinned PE-US: gov.hhs.tanf.non_cash.income_limit.gross).
- *  BBCE states waive the federal 130% test up to this limit; states not
- *  listed are non-BBCE (or BBCE keeping the 130% cut-off) and sit at the
- *  federal 130%. NY is tiered (130% no earnings / 150% with earnings /
- *  200% with dependent care or an elderly-disabled member) — shown as its
- *  150% earners tier. */
+/** Effective SNAP gross income limit by state (% of FPG, from the pinned
+ *  PE-US gov.hhs.tanf.non_cash.income_limit.gross). BBCE states waive the
+ *  federal 130% test up to this limit; states not listed are non-BBCE (or
+ *  BBCE keeping the 130% cut-off) and sit at the federal 130%. NY is
+ *  tiered (130% no earnings / 150% with earnings / 200% with dependent
+ *  care or an elderly-disabled member) — shown as its 150% earners tier.
+ *
+ *  Verified against every 2026-2028 instant (the dashboard's analysis
+ *  years): one within-window change, AZ 185%→200% on 2026-03-01. Each
+ *  seat is the MAX over the year's months — a lower seat would let a
+ *  "raise" emit a value below current law for part of the year (an AZ
+ *  2026 seat of 185 raised to 190 would cut Mar-Dec from 200) — so AZ is
+ *  200 in all three years and the table needs no year dimension. AK's
+ *  BBCE adoption (200%) is dated 2025-07-01, before the window. */
 export const SNAP_EFFECTIVE_GROSS_LIMIT: Record<string, number> = {
   IA: 160,
   IL: 165,
