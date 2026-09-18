@@ -182,6 +182,13 @@
   "current_amount": 256,
   "amount_editable": true,
   "kind": "credit",
+  "age_limit": {
+   "in_effect": "gov.contrib.states.or.dependent_exemption_credit.age_limit.in_effect",
+   "threshold": "gov.contrib.states.or.dependent_exemption_credit.age_limit.threshold",
+   "default": 18,
+   "reform_in_effect": "gov.contrib.states.or.dependent_exemption_credit.in_effect",
+   "reform_amount": "gov.contrib.states.or.dependent_exemption_credit.amount"
+  },
   "anchor_path": "gov.states.or.tax.income.credits.exemption.amount"
  },
  "VA": {
