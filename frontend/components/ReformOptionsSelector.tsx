@@ -360,9 +360,12 @@ export default function ReformOptionsSelector({
             {activeTab === 'ctc' && (
               <div className="mt-3">
                 <p className="text-sm">
-                  This state has no Child Tax Credit. You can create one with
-                  the child allowance: add an income phase-out to make it a
-                  CTC-style credit.
+                  This state has no traditional Child Tax Credit, but you can
+                  model one two ways: create a new credit with the Child
+                  Allowance (add an income phase-out to make it CTC-style), or
+                  convert an existing provision — repeal the state&apos;s
+                  dependent exemption or credit and pair it with a new credit
+                  to redirect the same dollars to children.
                 </p>
                 <button
                   type="button"

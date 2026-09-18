@@ -713,6 +713,24 @@ describe('buildReformDict', () => {
     });
   });
 
+  it('routes the OR age-split through the dependent exemption credit contrib', () => {
+    // The under-18 repeal (zero for young dependents, baseline preserved for
+    // older ones — the OR contrib folds excluded dependents back into the
+    // regular exemption credit).
+    expect(
+      buildReformDict(
+        ['or_dependent_exemption'],
+        { or_dependent_exemption: { eliminate: 1, age_limit_enabled: 1, age_limit_age: 18 } },
+        2026,
+      ),
+    ).toEqual({
+      'gov.contrib.states.or.dependent_exemption_credit.in_effect': true,
+      'gov.contrib.states.or.dependent_exemption_credit.age_limit.in_effect': true,
+      'gov.contrib.states.or.dependent_exemption_credit.age_limit.threshold': 18,
+      'gov.contrib.states.or.dependent_exemption_credit.amount': 0,
+    });
+  });
+
   it('edits a stepped dependent exemption bracket threshold and amount', () => {
     // AL's per-dependent exemption is AGI-stepped; each tier amount AND the
     // AGI cutoffs are now editable. Changing the middle-tier cutoff and the
