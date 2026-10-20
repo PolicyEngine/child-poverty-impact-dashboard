@@ -4,7 +4,8 @@ pydantic>=2.5.0
 pydantic-settings>=2.0.0
 python-multipart>=0.0.6
 httpx>=0.26.0
-policyengine-us==1.825.2
+# 1.825.2 is no longer on PyPI; installed from its release commit.
+policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip
 numpy>=1.24.0
 pandas>=2.0.0
 microdf-python>=0.3.0
