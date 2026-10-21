@@ -22,7 +22,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "policyengine-us==1.825.2",
+    # 1.825.2 is no longer on PyPI; installed from its release commit.
+    "policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip",
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "microdf-python>=0.3.0",

@@ -87,7 +87,10 @@ falls back to the local FastAPI in `backend/` (handy for offline work).
 
 The Modal image pins `policyengine-us==1.825.2` for reproducibility —
 bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
-we want to refresh.
+we want to refresh. 1.825.2 has since been removed from PyPI: the deployed
+image is cached and keeps working, and CI, `pyproject.toml` and
+`backend/requirements.txt` install it from its release commit
+(`9f77bffb6b`). A fresh image build would need the same source line.
 
 ## Installation
 
