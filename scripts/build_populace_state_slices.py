@@ -37,6 +37,14 @@ image = modal.Image.debian_slim(python_version="3.11").pip_install(
     "pandas>=2.0.0",
     "huggingface_hub",
 )
+# eMudhra CA key compromise (2026-10-20, emudhra.we-have-a-problem.com):
+# hf_hub_download goes through hf-xet (which reads the Debian CA store from
+# 1.4.3 on; 1.2.x bundles a CA list that trusts the affected roots) or
+# requests (certifi, fixed in 2026.10.19). Upgrade all three in layers after
+# the existing one, so the next run rebuilds the image with them.
+image = image.apt_install("ca-certificates").pip_install(
+    "certifi>=2026.10.19", "hf-xet>=1.4.3"
+)
 
 POPULACE_REPO = "policyengine/populace-us"
 POPULACE_FILE = "populace_us_2024_acs_local.h5"
