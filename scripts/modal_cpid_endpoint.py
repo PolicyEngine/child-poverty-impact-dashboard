@@ -56,6 +56,14 @@ image = (
     # Cache-bust marker — bump when we want Modal to rebuild the image
     # even though pip deps haven't changed.
     .env({"CPID_BUILD_REV": "2026-09-11b-qss+pe-us-1.825.2"})
+    # eMudhra CA key compromise (2026-10-20, emudhra.we-have-a-problem.com):
+    # certifi before 2026.10.19 (used by requests for the Supabase calls) and
+    # Debian ca-certificates before 20250419~deb12u2 trust the affected
+    # roots. Upgrade both in layers after the existing ones, so the pins
+    # above and CPID_BUILD_REV (part of every results-cache key) stay as
+    # they are.
+    .apt_install("ca-certificates")
+    .pip_install("certifi>=2026.10.19")
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
