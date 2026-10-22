@@ -87,3 +87,6 @@ Thumbs.db
 # Cache
 .cache/
 *.cache
+
+# Ephemeral Modal call IDs from analysis/state_audit/sweep_jobs.py
+analysis/state_audit/.sweep_calls/

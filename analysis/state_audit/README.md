@@ -69,3 +69,33 @@ python analysis/state_audit/build_csvs.py
   so a poverty gap vs the Census target is one plausible source of the
   divergence — alongside vintage (2026 vs 2023) and measure differences. The
   divergence is something to investigate, not a confirmed PolicyEngine error.
+
+## Dataset-adoption sweep (`state_audit_sweep_modal.py`)
+
+The adoption gate for a new local-area release. It audits two slice sets under
+any policyengine-us pins with identical code, so a candidate is compared with
+production on the same yardstick. Results from the 2026-10-20 run are in
+`ANALYSIS_BUILDO_1017.md`.
+
+```bash
+# 1. Slice the release on Modal (scripts/build_populace_state_slices.py: set
+#    POPULACE_REVISION / SLICE_TAG, deploy, then spawn build_slices server-side).
+# 2. One audit app per policyengine-us pin:
+AUDIT_PE_US=2.30.1 modal deploy analysis/state_audit/state_audit_sweep_modal.py
+# 3. Spawn 51 states x years per (pin, slice set), then collect:
+python analysis/state_audit/sweep_jobs.py spawn 2.30.1 766b7c7 o1017_2301
+python analysis/state_audit/sweep_jobs.py collect o1017_2301
+# 4. Score and decompose:
+python analysis/state_audit/summarize_sweep.py --labels buildp_v2,o1017_2301 --year 2024
+python analysis/state_audit/decompose_sweep.py
+```
+
+- **Benchmarks**: `targets/census_child_spm_cps3yr_2023_2025.csv` (Census
+  P60-290 Table 18, CPS 3-year average with margins of error) is the headline
+  child-SPM target. The ACS 2023 table is kept for continuity; ACS-based SPM
+  runs systematically higher than CPS.
+- **Group quarters**: "measured" rates drop ACS group-quarters SPM units, the
+  rule policyengine.py applies, since plain policyengine-us does not yet scope
+  SPM measurement (policyengine-us#9462).
+- **Run with deploy + spawn**: a long `modal run` depends on its local client;
+  if that process dies, Modal cancels the remote job.

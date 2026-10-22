@@ -31,8 +31,12 @@ import modal
 app = modal.App("cpid-populace-slice-builder")
 
 # Same pins as the endpoint image (scripts/modal_cpid_endpoint.py).
+# The ACS-local releases from Build O on are built on the PE-US 2.x SPM
+# contract (stored SPM independence roles + observed county inputs). Slice
+# under the release's certified model version so the slices round-trip the
+# certified bytes; audits then run each candidate pin over the same slices.
 image = modal.Image.debian_slim(python_version="3.11").pip_install(
-    "policyengine-us==1.822.2",
+    "policyengine-us==2.2.1",
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "huggingface_hub",
@@ -41,8 +45,12 @@ image = modal.Image.debian_slim(python_version="3.11").pip_install(
 POPULACE_REPO = "policyengine/populace-us"
 POPULACE_FILE = "populace_us_2024_acs_local.h5"
 # HF release tag; slices land under the short hash from the release id.
-POPULACE_REVISION = "populace-us-2024-buildp-acs-local-592ae5d6-20260819T020303Z"
-SLICE_TAG = "592ae5d6"
+POPULACE_REVISION = "populace-us-2024-buildo-acs-local-766b7c7-20261017T030317Z"
+SLICE_TAG = "766b7c7"
+# Other slices on the Volume (kept, untouched):
+#   buildp-acs-local-592ae5d6-20260819T020303Z -> /592ae5d6 (production)
+#   buildo-acs-local-767312d60-20260923T074941Z -> /767312d6 (superseded:
+#     5,274 SPM units with no classified adult; fixed by microcosm#1264)
 
 volume = modal.Volume.from_name("cpid-populace-slices", create_if_missing=True)
 
@@ -76,7 +84,14 @@ def build_slices() -> dict:
         ds.load()
     # Spine bookkeeping columns (source ids etc.) load as mixed-dtype
     # objects that HDF "table" format refuses to re-save; normalize every
-    # object column to str (pure-bool ones to bool) before slicing.
+    # object column to str (pure-bool ones to bool) before slicing. Bytes
+    # are DECODED, not str()-ed: a blanket astype(str) turns b"56001" into
+    # "b'56001'", which would silently corrupt the 2.x SPM contract's
+    # county-FIPS string inputs.
+    def _to_str(v):
+        return v.decode("utf-8") if isinstance(v, bytes) else str(v)
+
+    converted = {}
     for entity in ("household", "person", *GROUP_ENTITIES):
         df = getattr(ds, entity)
         for col in df.columns:
@@ -85,7 +100,9 @@ def build_slices() -> dict:
                 if uniques <= {True, False}:
                     df[col] = df[col].astype(bool)
                 else:
-                    df[col] = df[col].astype(str)
+                    df[col] = df[col].map(_to_str)
+                converted.setdefault(entity, []).append(col)
+    print(f"object columns normalized: {converted}", flush=True)
     hh_all = ds.household
     person_all = ds.person
 
