@@ -255,7 +255,11 @@ def audit_state(state: str, year: int, scratch_volume) -> dict:
 
 
 @app.function(
-    image=image, memory=32768, cpu=2.0, timeout=1800, single_use_containers=True
+    image=image,
+    memory=(32768, 65536),
+    cpu=2.0,
+    timeout=1800,
+    single_use_containers=True,
 )
 def compute_reform(state: str, year: int, entry: dict, scratch_volume) -> dict:
     """The endpoint's compute_economy, on compute_economy's resources."""

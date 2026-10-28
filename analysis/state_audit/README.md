@@ -13,8 +13,8 @@ certifies the dataset US state regions use. This audit builds the per-state
 files from that dataset exactly as `scripts/build_populace_state_slices.py`
 does, on an ephemeral Modal Volume (nothing in production is read or
 written), and runs every simulation through the endpoint's own
-`_state_microsimulation`. Results for the 2026-10-28 run are in
-`ANALYSIS_PY6111.md`.
+`_state_microsimulation`. The 2026-10-28 run (label `py6111`) is summarized
+in the pull request that moved the backend onto policyengine.py (issue #126).
 
 ```bash
 cd frontend && npm run manifest && cd ..   # only needed for --reforms

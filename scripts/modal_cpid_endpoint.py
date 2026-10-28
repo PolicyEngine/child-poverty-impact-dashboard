@@ -1057,10 +1057,12 @@ def compute_household_sweep(payload: dict) -> dict:
 @app.function(
     image=image,
     timeout=1800,
-    # policyengine-us 2.x holds more per simulation than 1.x did: with the
-    # baseline and reform alive together, California peaked at 28.4 GB,
-    # Texas at 20.6 GB and New York at 18.7 GB in the 2026-10-28 audit.
-    memory=32768,
+    # policyengine-us 2.x holds more per simulation than 1.x did. In the
+    # 2026-10-28 audit (analysis/state_audit/state_audit_py_modal.py) this
+    # function's California runs reached the 32 GB request, Texas peaked at
+    # 22.5 GB, Florida 18.5 GB, New York 16.2 GB and every other state under
+    # 13 GB. Request 32 GB and allow up to 64 GB.
+    memory=(32768, 65536),
     cpu=2.0,
     volumes={"/slices": slices_volume},
     secrets=_optional_supabase_secrets(),
