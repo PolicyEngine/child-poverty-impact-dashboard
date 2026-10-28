@@ -37,65 +37,59 @@ import modal
 
 app = modal.App("cpid-backend")
 
-# Pinned for reproducibility — bump deliberately when we want a refresh
-# rather than letting Modal grab whatever's latest at build time.
+# policyengine.py ("policyengine" on PyPI) selects the model and the data:
+# its release bundle pins policyengine-us, policyengine-core and
+# spm-calculator, and certifies the datasets each region type uses. Bump
+# this pin deliberately, then rebuild the state files
+# (scripts/build_populace_state_slices.py) and bump CPID_BUILD_REV.
+POLICYENGINE_REQUIREMENT = "policyengine[us]==6.11.1"
+
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .pip_install(
-        "policyengine-us==1.825.2",
-        # spm-calculator 1.0.0 (released 2026-09-11) removes the geoadj
-        # module policyengine-us imports; pin the last working version so
-        # image rebuilds stay reproducible.
-        "spm-calculator==0.3.1",
-        "numpy>=1.24.0",
-        "pandas>=2.0.0",
-        "huggingface_hub",
-        "fastapi",
-        "pydantic>=2",
-    )
-    # Cache-bust marker — bump when we want Modal to rebuild the image
-    # even though pip deps haven't changed.
-    .env({"CPID_BUILD_REV": "2026-09-11b-qss+pe-us-1.825.2"})
+    .pip_install(POLICYENGINE_REQUIREMENT, "fastapi", "pydantic>=2", "requests")
+    # Part of every results-cache key and of every Supabase row: bump it on
+    # any change to the pins, the data or the compute code so a deploy starts
+    # a fresh keyspace.
+    .env({"CPID_BUILD_REV": "2026-10-28-py-6.11.1-acs-local-3ce781c4"})
     # eMudhra CA key compromise (2026-10-20, emudhra.we-have-a-problem.com):
     # certifi before 2026.10.19 (used by requests for the Supabase calls) and
     # Debian ca-certificates before 20250419~deb12u2 trust the affected
-    # roots. Upgrade both in layers after the existing ones, so the pins
-    # above and CPID_BUILD_REV (part of every results-cache key) stay as
-    # they are.
+    # roots. These layers come last so nothing installed above can pull an
+    # older certifi back in.
     .apt_install("ca-certificates")
     .pip_install("certifi>=2026.10.19")
 )
 
-# Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
-# artifact, née Populace) — 1.59M households on a hybrid spine (ASEC PUF
-# 57k households / 69% of weight + ACS 2024 1-yr 1.53M / 31%), calibrated
-# to 4,459 targets including the full IRS SOI surface (federal CTC/ACTC/
-# EITC essentially exact by state), USDA FY2024 SNAP, Medicaid enrollment,
-# and state/CD populations. Adopted 2026-08-20 after the corrected sweep:
-# state child-SPM median +4.7% vs Census (28/51 within ±25%), better than
-# the prior sparse pin (−18%, 21/51). Pre-sliced into 51 per-state files
-# on the cpid-populace-slices Volume (scripts/build_populace_state_slices.py
-# after a release bump). Slices are exact partitions — no unit straddles a
-# state boundary. Runtime: big states now run minutes (CA ~5-10 min), small
-# states ~1-2 min; the result cache + Supabase pre-warm cover the gap.
-POPULACE_REPO = "policyengine/populace-us"
-POPULACE_FILE = "populace_us_2024_acs_local.h5"
-POPULACE_RELEASE = "populace-us-2024-buildp-acs-local-592ae5d6-20260819T020303Z"
-# Short tag used for the slice directory on the Volume.
-POPULACE_REVISION = "592ae5d6"
-
+# Dataset: the one policyengine.py's bundle certifies for US state and
+# congressional-district regions (``region_datasets`` in its manifest) — the
+# Microcosm ACS-local file in policyengine/populace-us, 1.59M households.
+# policyengine.py selects a state region by filtering that file's rows on the
+# household ``state_fips``; scripts/build_populace_state_slices.py applies that
+# same filter once per release and writes one file per state to the
+# cpid-populace-slices Volume, so a request loads and simulates only the
+# selected state's households. The Volume directory is named after the
+# certified file's SHA-256, and its manifest.json must match the installed
+# bundle (see _state_dataset_path).
 slices_volume = modal.Volume.from_name(
     "cpid-populace-slices", create_if_missing=True
 )
 
+# SPM measurement for the household calculator. policyengine-us 2.x measures
+# SPM poverty by the household's county (the bundle default, which the
+# statewide runs use: every dataset household carries its county). The
+# household calculator only asks for a state, so it selects policyengine.py's
+# national SPM measurement explicitly; without a county the default raises
+# SPMInputError for every household.
+HOUSEHOLD_SPM_SELECTION = {"geography_kind": "national"}
+
 
 # Results cache: identical (payload, build) pairs return the stored result
-# instead of re-simulating. The build rev pins policyengine-us, the Populace
-# revision, and the compute code, so entries are immutable — a new deploy
-# with a bumped CPID_BUILD_REV starts a fresh keyspace and old entries just
-# age out unused. This is what makes shared deep links populate instantly
-# once anyone has run the same report on the current build (and the seam a
-# durable store like Supabase can later replace).
+# instead of re-simulating. The build rev pins policyengine.py (and through
+# it the model and the data) and the compute code, so entries are immutable —
+# a new deploy with a bumped CPID_BUILD_REV starts a fresh keyspace and old
+# entries just age out unused. This is what makes shared deep links populate
+# instantly once anyone has run the same report on the current build (and the
+# seam a durable store like Supabase can later replace).
 results_cache = modal.Dict.from_name("cpid-results-cache", create_if_missing=True)
 
 
@@ -365,18 +359,128 @@ def _progress_put(stage: str) -> None:
         pass
 
 
-def _state_slice_path(state: str) -> str:
+_STATE_DATASET: dict = {}
+
+
+def _state_dataset() -> dict:
+    """The dataset policyengine.py's bundle selects for US state regions.
+
+    Its bundle name, URI and certified SHA-256, read from the installed
+    policyengine.py release manifest (the same lookup
+    scripts/build_populace_state_slices.py makes). Every state region must
+    select the same file. Reads only the manifest, so the light web
+    container can call it too. Cached per container.
+    """
+    if not _STATE_DATASET:
+        from policyengine.countries.us.data import US_STATES
+        from policyengine.provenance.manifest import (
+            get_release_manifest,
+            resolve_dataset_reference,
+            resolve_region_dataset_path,
+        )
+
+        uris = {
+            resolve_region_dataset_path("us", "state", state_code=code)
+            for code in US_STATES
+        }
+        if len(uris) != 1:
+            raise RuntimeError(
+                f"State regions select several datasets: {sorted(uris)}"
+            )
+        uri = uris.pop()
+        manifest = get_release_manifest("us")
+        for name, reference in manifest.datasets.items():
+            if resolve_dataset_reference("us", name) == uri:
+                _STATE_DATASET.update(
+                    {"name": name, "uri": uri, "sha256": reference.sha256}
+                )
+                break
+        else:
+            raise RuntimeError(f"No bundle dataset resolves to {uri}")
+    return _STATE_DATASET
+
+
+def _state_dataset_path(state: str) -> str:
+    """The state's file on the Volume, after checking that the Volume was
+    built from the dataset the installed policyengine.py certifies."""
+    import json
     import os
 
-    path = f"/slices/{POPULACE_REVISION[:8]}/{state}.h5"
-    if not os.path.exists(path):
+    dataset = _state_dataset()
+    directory = f"/slices/sha256-{dataset['sha256'][:12]}"
+    path = f"{directory}/{state}.h5"
+    rebuild = (
+        "run `modal run scripts/build_populace_state_slices.py` after a "
+        "policyengine.py bump"
+    )
+    try:
+        with open(f"{directory}/manifest.json", encoding="utf-8") as handle:
+            built_from = json.load(handle)["source"]
+    except (OSError, KeyError, ValueError) as error:
         raise RuntimeError(
-            f"No Populace slice for {state} at revision "
-            f"{POPULACE_REVISION[:8]} — run "
-            "`modal run scripts/build_populace_state_slices.py` after a "
-            "revision bump."
+            f"No state files for {dataset['uri']} on the Volume ({error}); "
+            f"{rebuild}."
+        ) from error
+    if built_from.get("sha256") != dataset["sha256"]:
+        raise RuntimeError(
+            f"The state files were built from {built_from.get('uri')}, not "
+            f"{dataset['uri']}; {rebuild}."
         )
+    if not os.path.exists(path):
+        raise RuntimeError(f"No state file for {state} at {path}; {rebuild}.")
     return path
+
+
+def _state_microsimulation(state: str, reform=None):
+    """policyengine.py's managed Microsimulation over one state's rows.
+
+    ``pe.us.managed_microsimulation`` builds the policyengine-us
+    Microsimulation with the bundle's SPM selection and its mapping of
+    renamed stored inputs. The state file is a row selection of the
+    certified dataset rather than the certified file itself, so the SPM
+    declarations policyengine.py derives for that dataset (which ACS
+    group-quarters units are outside SPM measurement) are set here the way
+    managed_microsimulation sets them for the certified file. Poverty
+    indicators are then NaN for those units, and rates count measured people
+    only.
+    """
+    import tempfile
+    from pathlib import Path
+
+    import policyengine as pe
+    from policyengine.tax_benefit_models.us.legacy_spm import (
+        derive_from_stored_tables,
+        legacy_spm_source,
+        prepare_microsimulation,
+        set_declarations,
+    )
+
+    path = _state_dataset_path(state)
+    kwargs = {"reform": reform} if reform is not None else {}
+    sim = pe.us.managed_microsimulation(
+        dataset=path, allow_unmanaged=True, **kwargs
+    )
+    source = legacy_spm_source(_state_dataset()["sha256"])
+    if source is not None:
+        declarations, years = derive_from_stored_tables(
+            source, sim.dataset, data_dir=Path(tempfile.gettempdir())
+        )
+        prepare_microsimulation(sim)
+        set_declarations(sim, declarations, years)
+    return sim
+
+
+def _state_district_regions(state: str) -> list:
+    """policyengine.py's congressional-district regions inside a state."""
+    import policyengine as pe
+
+    return [
+        region
+        for region in pe.us.model.region_registry.get_children(
+            f"state/{state.lower()}"
+        )
+        if region.region_type == "congressional_district"
+    ]
 
 
 def _build_core_reform_dict(reform: dict | None, year: int) -> dict | None:
@@ -761,13 +865,23 @@ def _household_point(
     image=image, timeout=600, memory=2048, secrets=_optional_supabase_secrets()
 )
 def compute_household_sweep(payload: dict) -> dict:
-    """Run a household income sweep on Modal."""
+    """Run a household income sweep on Modal.
+
+    A household has no dataset, so this runs policyengine-us directly at the
+    version policyengine.py pins, with policyengine.py's SPM selection.
+    """
     import time
     import numpy as np
+    from policyengine.tax_benefit_models.us.spm import resolve_spm_selection
     from policyengine_core.reforms import Reform
     from policyengine_us import Simulation
 
     t0 = time.perf_counter()
+    spm_selection = resolve_spm_selection(HOUSEHOLD_SPM_SELECTION)
+
+    def _simulation(situation: dict, reform=None):
+        kwargs = {"reform": reform} if reform is not None else {}
+        return Simulation(situation=situation, spm=spm_selection, **kwargs)
 
     def _log(stage: str) -> None:
         print(f"[{time.perf_counter() - t0:6.2f}s] {stage}", flush=True)
@@ -798,14 +912,14 @@ def compute_household_sweep(payload: dict) -> dict:
     if len(incomes) == 1:
         # Single household point — no sweep.
         situation = _build_household_situation(payload, incomes[0])
-        sim_b = Simulation(situation=situation)
+        sim_b = _simulation(situation)
         sim_r = (
-            Simulation(situation=situation, reform=reform)
+            _simulation(situation, reform)
             if reform is not None
             else sim_b
         )
         sim_dep = (
-            Simulation(situation=situation, reform=dep_reform)
+            _simulation(situation, dep_reform)
             if dep_reform is not None
             else None
         )
@@ -825,9 +939,9 @@ def compute_household_sweep(payload: dict) -> dict:
         situation = _build_household_situation(
             payload, 0.0, sweep=(incomes[0], incomes[-1], len(incomes))
         )
-        sim_b = Simulation(situation=situation)
+        sim_b = _simulation(situation)
         sim_r = (
-            Simulation(situation=situation, reform=reform)
+            _simulation(situation, reform)
             if reform is not None
             else sim_b
         )
@@ -901,7 +1015,7 @@ def compute_household_sweep(payload: dict) -> dict:
             ]
 
         sim_dep = (
-            Simulation(situation=situation, reform=dep_reform)
+            _simulation(situation, dep_reform)
             if dep_reform is not None
             else None
         )
@@ -952,8 +1066,8 @@ def compute_economy(payload: dict) -> dict:
     """Compute statewide microsim impact (poverty, fiscal, distributional)."""
     import time
     import numpy as np
+    import policyengine as pe
     from policyengine_core.reforms import Reform
-    from policyengine_us import Microsimulation
 
     t0 = time.perf_counter()
 
@@ -966,50 +1080,49 @@ def compute_economy(payload: dict) -> dict:
     if not state_code:
         raise ValueError("`state` is required.")
 
-    # Pre-built per-state slice of the pinned Populace revision (verified to
-    # reproduce the national state-masked values exactly). The masks below are
-    # trivially all-true on a slice; they stay as a guard so a mis-built slice
-    # (wrong state's households) fails loudly instead of silently.
-    from policyengine_us.data import USSingleYearDataset
-
     state = state_code.upper()
-    dataset_path = _state_slice_path(state)
-
-    def _dataset():
-        return USSingleYearDataset(file_path=dataset_path)
+    region = pe.us.model.region_registry.get(f"state/{state.lower()}")
+    if region is None:
+        raise ValueError(f"Unknown state {state_code!r}.")
+    state_filter = region.scoping_strategy
 
     reform_payload = payload.get("reform")
     reform_dict = _build_core_reform_dict(reform_payload, year)
     reform = Reform.from_dict(reform_dict) if reform_dict else None
     _log(
         f"reform loaded (params={len(reform_dict) if reform_dict else 0}) "
-        f"on slice {state}@{POPULACE_REVISION[:8]}"
+        f"for {region.code} on {_state_dataset()['uri']}"
     )
 
-    sim_baseline = Microsimulation(dataset=_dataset())
+    sim_baseline = _state_microsimulation(state)
     sim_reform = (
-        Microsimulation(dataset=_dataset(), reform=reform)
+        _state_microsimulation(state, reform)
         if reform is not None
         else sim_baseline
     )
     _log("microsims built")
 
-    # Row order is identical across sims built from the same dataset, so
-    # baseline masks slice reform arrays too.
+    # The state file holds the rows policyengine.py's state region keeps, so
+    # its row filter (state_fips == the state's FIPS code) is all-true here;
+    # it stays as a guard so a mis-built file fails loudly instead of
+    # silently. Row order is identical across sims built from the same file,
+    # so baseline masks select reform arrays too.
     hh_mask = (
-        np.array(sim_baseline.calculate("state_code", period=year)).astype(str)
-        == state
+        np.asarray(sim_baseline.calculate(state_filter.variable_name, period=year))
+        == state_filter.variable_value
     )
     person_mask = (
-        np.array(
-            sim_baseline.calculate("state_code", period=year, map_to="person")
-        ).astype(str)
-        == state
+        np.asarray(
+            sim_baseline.calculate(
+                state_filter.variable_name, period=year, map_to="person"
+            )
+        )
+        == state_filter.variable_value
     )
     if not hh_mask.all():
         raise ValueError(
-            f"Slice for {state!r} contains other states' households — "
-            "rebuild the slices."
+            f"The state file for {state!r} contains other states' "
+            "households; rebuild the state files."
         )
 
     household_weight = np.array(
@@ -1120,8 +1233,8 @@ def compute_economy(payload: dict) -> dict:
         _build_core_reform_dict(dep_payload, year) if dep_payload else None
     )
     # The isolation sub-simulation is deferred to the end of the request so
-    # the third national sim is built only after the baseline/reform sims are
-    # released (three concurrent national sims would strain even 32GB).
+    # the third simulation is built only after the baseline/reform sims are
+    # released (three concurrent large-state sims would strain the container).
     baseline_state_tax_total = _hh_sum(sim_baseline, "state_income_tax")
     # Scalars for the stacked-scoring sims, captured while the baseline sim
     # is still alive.
@@ -1129,36 +1242,37 @@ def compute_economy(payload: dict) -> dict:
     baseline_benefits_total = _hh_sum(sim_baseline, "household_benefits")
 
     # ---- Poverty: overall, children, young children (0-3), deep child poverty.
+    # SPM indicators are 1.0, 0.0, or NaN for people outside SPM measurement
+    # (ACS group quarters; see _state_microsimulation). Rates and flows count
+    # measured people only, as policyengine.py does. Measurement scope comes
+    # from the data, so it is the same in the baseline and the reform.
     age_arr = np.array(sim_baseline.calculate("age", period=year))[person_mask]
     person_weight = np.array(
         sim_baseline.calculate("person_weight", period=year)
     )[person_mask]
-    pov_bl_arr = np.array(
-        sim_baseline.calculate("in_poverty", period=year, map_to="person")
-    )[person_mask].astype(bool)
-    pov_rf_arr = np.array(
-        sim_reform.calculate("in_poverty", period=year, map_to="person")
-    )[person_mask].astype(bool)
-    try:
-        deep_bl_arr = np.array(
-            sim_baseline.calculate(
-                "in_deep_poverty", period=year, map_to="person"
-            )
-        )[person_mask].astype(bool)
-        deep_rf_arr = np.array(
-            sim_reform.calculate(
-                "in_deep_poverty", period=year, map_to="person"
-            )
-        )[person_mask].astype(bool)
-    except Exception:
-        deep_bl_arr = np.zeros_like(pov_bl_arr)
-        deep_rf_arr = np.zeros_like(pov_rf_arr)
+
+    def _person_indicator(sim, name: str):
+        return np.asarray(
+            sim.calculate(name, period=year, map_to="person"), dtype=float
+        )[person_mask]
+
+    pov_bl_values = _person_indicator(sim_baseline, "in_poverty")
+    measured = ~np.isnan(pov_bl_values)
+    pov_bl_arr = np.nan_to_num(pov_bl_values) > 0
+    pov_rf_arr = np.nan_to_num(_person_indicator(sim_reform, "in_poverty")) > 0
+    deep_bl_arr = (
+        np.nan_to_num(_person_indicator(sim_baseline, "in_deep_poverty")) > 0
+    )
+    deep_rf_arr = (
+        np.nan_to_num(_person_indicator(sim_reform, "in_deep_poverty")) > 0
+    )
 
     all_mask = np.ones_like(age_arr, dtype=bool)
     child_mask = age_arr < 18
     young_child_mask = age_arr < 4  # ages 0-3 (prenatal-3 in the grant)
 
     def _rate(arr, mask):
+        mask = mask & measured
         w = person_weight[mask]
         total = float(w.sum())
         if total == 0:
@@ -1168,7 +1282,7 @@ def compute_economy(payload: dict) -> dict:
     def _lifted(mask):
         # Lifted = was in poverty baseline AND not in poverty reform.
         return float(
-            ((pov_bl_arr & ~pov_rf_arr) * person_weight * mask).sum()
+            ((pov_bl_arr & ~pov_rf_arr) * person_weight * (mask & measured)).sum()
         )
 
     def _entered(mask):
@@ -1177,7 +1291,7 @@ def compute_economy(payload: dict) -> dict:
         # reporting only the gross lifted count framed a poverty-increasing
         # reform as "N children lifted out of poverty".
         return float(
-            ((~pov_bl_arr & pov_rf_arr) * person_weight * mask).sum()
+            ((~pov_bl_arr & pov_rf_arr) * person_weight * (mask & measured)).sum()
         )
 
     _log("poverty done")
@@ -1376,50 +1490,39 @@ def compute_economy(payload: dict) -> dict:
 
     _log("distributional done")
 
-    # ---- Congressional-district impacts. Build P's ACS-local frame carries
-    # each household's district (dataset column congressional_district_geoid,
-    # 119th-Congress boundaries — the frame is calibrated to all 436 CD
-    # populations). Aggregate the person/household arrays already computed
-    # above per district. For 2027/2028 this stays on 119th-Congress
-    # districts until a 120th-Congress frame ships (swap district_congress
-    # and the frontend geojson together at that point).
+    # ---- Congressional-district impacts. Each of policyengine.py's
+    # congressional-district regions inside the state selects households by
+    # a row filter on congressional_district_geoid (state FIPS x 100 +
+    # district number, 00 for an at-large seat; the ACS-local file carries
+    # 119th-Congress districts and is calibrated to their populations). The
+    # same filters, evaluated on the state's simulation, group the arrays
+    # computed above. For 2027/2028 this stays on 119th-Congress districts
+    # until a 120th-Congress dataset ships (swap district_congress and the
+    # frontend geojson together at that point).
     district_rows: list = []
     try:
-        hh_table = _dataset().household
-        geoid_raw = hh_table["congressional_district_geoid"].astype(str)
-        # Normalize to 4-digit STATEFP+CD (e.g. '0639'; at-large '5600').
-        hh_geoid_by_id = {
-            int(h): g.zfill(4)
-            for h, g in zip(hh_table["household_id"], geoid_raw)
-        }
-        hh_ids = np.array(
-            sim_baseline.calculate("household_id", period=year)
-        ).astype(int)[hh_mask]
-        person_hh_ids = np.array(
-            sim_baseline.calculate(
-                "household_id", period=year, map_to="person"
-            )
-        ).astype(int)[person_mask]
-        hh_geoid = np.array([hh_geoid_by_id.get(h, "") for h in hh_ids])
-        person_geoid = np.array(
-            [hh_geoid_by_id.get(h, "") for h in person_hh_ids]
-        )
         hh_net_gain = (
-            np.array(
-                sim_reform.calculate(
-                    "household_net_income", period=year
-                )
-            )
+            np.array(sim_reform.calculate("household_net_income", period=year))
             - np.array(
-                sim_baseline.calculate(
-                    "household_net_income", period=year
-                )
+                sim_baseline.calculate("household_net_income", period=year)
             )
         )[hh_mask]
-
-        for g in sorted(set(hh_geoid) - {""}):
-            hm = hh_geoid == g
-            pm = person_geoid == g
+        household_district: dict = {}
+        person_district: dict = {}
+        assigned_households = np.zeros(int(hh_mask.sum()), dtype=bool)
+        for district in _state_district_regions(state):
+            district_filter = district.scoping_strategy
+            name = district_filter.variable_name
+            if name not in household_district:
+                household_district[name] = np.asarray(
+                    sim_baseline.calculate(name, period=year)
+                )[hh_mask]
+                person_district[name] = np.asarray(
+                    sim_baseline.calculate(name, period=year, map_to="person")
+                )[person_mask]
+            hm = household_district[name] == district_filter.variable_value
+            pm = person_district[name] == district_filter.variable_value
+            assigned_households |= hm
             hw = household_weight[hm]
             pw = person_weight[pm]
             hw_total = float(hw.sum())
@@ -1428,11 +1531,13 @@ def compute_economy(payload: dict) -> dict:
                 continue
             cm = pm & child_mask
             cw_total = float(person_weight[cm].sum())
+            geoid = int(district_filter.variable_value)
             district_rows.append(
                 {
-                    "geoid": g,
+                    # 4-digit state FIPS + district, e.g. '0639'; at-large '5600'.
+                    "geoid": f"{geoid:04d}",
                     # '00' district number = the state's at-large seat.
-                    "district_number": int(g[2:]),
+                    "district_number": geoid % 100,
                     "n_households": int(hm.sum()),
                     "households": hw_total,
                     "residents": pw_total,
@@ -1454,6 +1559,12 @@ def compute_economy(payload: dict) -> dict:
                     "child_population": cw_total,
                 }
             )
+        if not assigned_households.all():
+            print(
+                f"{int((~assigned_households).sum())} households match no "
+                f"congressional-district region of {state}",
+                flush=True,
+            )
         district_rows.sort(key=lambda r: r["district_number"])
     except Exception as exc:  # never fail the request over the CD extra
         print(f"district aggregation failed: {exc}", flush=True)
@@ -1466,15 +1577,13 @@ def compute_economy(payload: dict) -> dict:
     # baseline-vs-(dependent-only) sub-simulation. Reported as a benefit-value
     # delta (baseline tax - reform tax) to match the sign of the credit rows.
     # Runs last, after the baseline/reform sims are released — three
-    # concurrent national Populace sims would strain the container.
+    # concurrent state simulations would strain the container.
     if dep_dict:
         import gc
 
         del sim_reform, sim_baseline
         gc.collect()
-        sim_dep = Microsimulation(
-            dataset=_dataset(), reform=Reform.from_dict(dep_dict)
-        )
+        sim_dep = _state_microsimulation(state, Reform.from_dict(dep_dict))
         dependent_exemption_change = baseline_state_tax_total - _hh_sum(
             sim_dep, "state_income_tax"
         )
@@ -1510,9 +1619,7 @@ def compute_economy(payload: dict) -> dict:
                 """(federal, state) budget-signed deltas vs baseline for a
                 partial stack of the reform's parameters."""
                 sub = _build_core_reform_dict(payload_subset, year)
-                sim = Microsimulation(
-                    dataset=_dataset(), reform=Reform.from_dict(sub)
-                )
+                sim = _state_microsimulation(state, Reform.from_dict(sub))
                 fed = (
                     _hh_sum(sim, "income_tax") - baseline_federal_tax_total
                 ) - (
@@ -1626,7 +1733,13 @@ def compute_economy(payload: dict) -> dict:
 
 
 @app.function(
-    image=image, timeout=300, memory=512, secrets=_optional_supabase_secrets()
+    image=image,
+    timeout=300,
+    memory=512,
+    secrets=_optional_supabase_secrets(),
+    # The web container only reads policyengine.py's manifest (healthz); this
+    # keeps `import policyengine` from loading policyengine-us into 512 MB.
+    env={"POLICYENGINE_SKIP_COUNTRY_IMPORTS": "1"},
 )
 @modal.asgi_app()
 def web():
@@ -1726,25 +1839,25 @@ def web():
 
     @api.get("/healthz")
     def healthz():
-        # Surface the deployed policyengine-us version so the reform-score sweep
+        # Surface the deployed versions and dataset so the reform-score sweep
         # can label snapshots by what the dashboard ACTUALLY runs and warn when
         # the deploy is behind the repo's pin.
         import os
+        from importlib.metadata import version
 
         try:
-            from importlib.metadata import version
-
-            pe_us = version("policyengine-us")
-        except Exception:  # pragma: no cover
-            pe_us = None
+            dataset = _state_dataset()
+        except Exception as exc:  # pragma: no cover
+            dataset = {"error": str(exc)}
         return {
             "ok": True,
-            "policyengine_us": pe_us,
-            "dataset": (
-                f"{POPULACE_REPO}/{POPULACE_FILE}@{POPULACE_REVISION[:8]}"
-                " (per-state slices)"
-            ),
-            "dataset_release": POPULACE_RELEASE,
+            "policyengine": version("policyengine"),
+            "policyengine_us": version("policyengine-us"),
+            "policyengine_core": version("policyengine-core"),
+            "dataset": dataset.get("uri"),
+            "dataset_name": dataset.get("name"),
+            "dataset_sha256": dataset.get("sha256"),
+            "dataset_selection": "policyengine.py state regions, split per state",
             "build_rev": os.environ.get("CPID_BUILD_REV"),
             "supabase": "enabled" if _supabase_cfg() else "disabled",
         }
