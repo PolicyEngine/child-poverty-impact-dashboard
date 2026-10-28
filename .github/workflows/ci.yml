@@ -67,12 +67,12 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: backend/requirements.txt
-      # Keep policyengine-us in sync with pyproject.toml,
-      # backend/requirements.txt, and scripts/modal_cpid_endpoint.py.
-      # 1.825.2 was removed from PyPI; install it from its release commit
-      # (9f77bffb6b, the "Update PolicyEngine US" commit that set 1.825.2).
-      - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip" "spm-calculator==0.3.1" pytest
+      # Keep policyengine.py in sync with pyproject.toml,
+      # backend/requirements.txt, and scripts/modal_cpid_endpoint.py. It pins
+      # the policyengine-us, policyengine-core and spm-calculator versions the
+      # Modal image runs.
+      - name: Install policyengine.py (pinned to match Modal)
+        run: pip install "policyengine[us]==6.11.1" pytest
       # Fast gate: resolve every option's parameter paths against pinned PE-US
       # (all entries) + a representative end-to-end compute per dispatch branch
       # + one behavioral (net-income-moves) check per option category
@@ -119,8 +119,8 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: backend/requirements.txt
-      - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip" "spm-calculator==0.3.1" pytest
+      - name: Install policyengine.py (pinned to match Modal)
+        run: pip install "policyengine[us]==6.11.1" pytest
       # Each shard fully computes its slice of every non-empty reform, plus
       # its slice of the behavioral matrix (every configurable option's
       # generosity bump must actually raise a household's net income).
