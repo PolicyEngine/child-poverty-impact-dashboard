@@ -1,12 +1,47 @@
 # State Dataset Audit
 
-Validates the per-state PolicyEngine datasets
-(`hf://policyengine/policyengine-us-data/states/{ST}.h5`) that power the
-dashboard. For all 50 states + DC at **2026** it reports population counts,
-SPM child-poverty rates, and the budgetary cost of each state's EITC and CTC,
-each compared to an external target with a percent difference.
+Validates the per-state datasets that power the dashboard against external
+targets: population counts, SPM child-poverty rates, and the budgetary cost
+of each state's EITC and CTC, each with a percent difference. The current
+audit is `state_audit_py_modal.py` (below); the sections after it describe
+the earlier audits whose outputs remain in `output/`.
 
-## Run
+## Current audit: policyengine.py (`state_audit_py_modal.py`)
+
+The backend runs on policyengine.py: its bundle pins policyengine-us and
+certifies the dataset US state regions use. This audit builds the per-state
+files from that dataset exactly as `scripts/build_populace_state_slices.py`
+does, on an ephemeral Modal Volume (nothing in production is read or
+written), and runs every simulation through the endpoint's own
+`_state_microsimulation`. The 2026-10-28 run (label `py6111`) is summarized
+in the pull request that moved the backend onto policyengine.py (issue #126).
+
+```bash
+cd frontend && npm run manifest && cd ..   # only needed for --reforms
+PYTHONUTF8=1 modal run analysis/state_audit/state_audit_py_modal.py \
+    --label py6111 --years 2024,2026 --reforms
+python analysis/state_audit/compare_child_spm.py --old buildp_v2 --new py6111 --year 2024
+python analysis/state_audit/summarize_sweep.py --labels buildp_v2,py6111 --year 2024
+python analysis/state_audit/build_csvs.py --raw state_audit_py6111_2026_raw.json --suffix _py6111
+```
+
+- `output/state_audit_{label}_{year}_raw.json` uses the dataset-adoption
+  sweep's fields, so `summarize_sweep.py` and `build_csvs.py` read it. SPM
+  rates count measured people only: policyengine.py declares ACS
+  group-quarters SPM units outside measurement for this dataset.
+- `--reforms` runs the endpoint's `compute_economy` for each `single-edited`
+  and `combo` entry of the frontend coverage manifest at 2026, with cache and
+  Supabase writes disabled, and writes `output/reform_compute_{label}_2026.json`.
+- The local client must stay alive for the whole run; the ephemeral Volume
+  is deleted when it exits.
+
+## Earlier audits
+
+The audits below ran plain policyengine-us on the
+`hf://policyengine/policyengine-us-data/states/{ST}.h5` files and on the
+Microcosm slices before the backend moved to policyengine.py.
+
+### Run
 
 ```bash
 # 1. Compute PE values for all 51 states (parallel on Modal, ~10-20 min)
@@ -20,7 +55,7 @@ python analysis/state_audit/build_csvs.py
 #    -> output/state_credit_costs.csv
 ```
 
-## Outputs
+### Outputs
 
 - **`output/state_populations_poverty.csv`** — per state: PE population
   (total, under-1, under-5, under-6, under-18) and SPM poverty rates (child,
@@ -29,7 +64,7 @@ python analysis/state_audit/build_csvs.py
 - **`output/state_credit_costs.csv`** — per state with an EITC and/or CTC:
   PE program cost (the static repeal budgetary impact) with target + `pct_diff`.
 
-## How values are computed (`state_audit_modal.py`)
+### How values are computed (`state_audit_modal.py`)
 
 - **Population**: weighted (`person_weight`) counts by age mask.
 - **Poverty**: `in_poverty` / `in_deep_poverty` are the **SPM** measure
@@ -42,7 +77,7 @@ python analysis/state_audit/build_csvs.py
   `state_ctcs` lists by prefix. PolicyEngine scores reforms statically (no
   behavioral response), so the program total IS the repeal budgetary impact.
 
-## Targets
+### Targets
 
 | Metric | Target source | Status |
 |---|---|---|
@@ -53,7 +88,7 @@ python analysis/state_audit/build_csvs.py
 | Child SPM poverty | `targets/census_child_spm.csv` (Census ACS SPM State-by-Age, Under-18, **2023**) | exact measure match (SPM vs SPM) |
 | State EITC / CTC cost | `targets/state_credit_costs.csv` (hand-compiled) | **INCOMPLETE** — see caveat |
 
-## Caveats
+### Caveats
 
 - **Cost targets are the weak link.** There is no clean per-state dataset of
   *actual* state EITC/CTC program expenditure — they live in each state's tax
@@ -70,7 +105,7 @@ python analysis/state_audit/build_csvs.py
   divergence — alongside vintage (2026 vs 2023) and measure differences. The
   divergence is something to investigate, not a confirmed PolicyEngine error.
 
-## Dataset-adoption sweep (`state_audit_sweep_modal.py`)
+### Dataset-adoption sweep (`state_audit_sweep_modal.py`)
 
 The adoption gate for a new local-area release. It audits two slice sets under
 any policyengine-us pins with identical code, so a candidate is compared with
@@ -78,8 +113,8 @@ production on the same yardstick. Results from the 2026-10-20 run are in
 `ANALYSIS_BUILDO_1017.md`.
 
 ```bash
-# 1. Slice the release on Modal (scripts/build_populace_state_slices.py: set
-#    POPULACE_REVISION / SLICE_TAG, deploy, then spawn build_slices server-side).
+# 1. Slice sets on the cpid-populace-slices Volume (the 10/20 run used the
+#    592ae5d6 and 766b7c7 directories written by the earlier slicer).
 # 2. One audit app per policyengine-us pin:
 AUDIT_PE_US=2.30.1 modal deploy analysis/state_audit/state_audit_sweep_modal.py
 # 3. Spawn 51 states x years per (pin, slice set), then collect:

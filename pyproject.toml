@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Child Poverty Impact Dashboard - calculation engine"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "PolicyEngine", email = "hello@policyengine.org"}
 ]
@@ -17,13 +17,13 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    # 1.825.2 is no longer on PyPI; installed from its release commit.
-    "policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip",
+    # policyengine.py pins policyengine-us, policyengine-core and
+    # spm-calculator; keep in sync with scripts/modal_cpid_endpoint.py.
+    "policyengine[us]==6.11.1",
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "microdf-python>=0.3.0",
@@ -45,7 +45,7 @@ include = ["cpid_calc*"]
 
 [tool.black]
 line-length = 88
-target-version = ["py310", "py311", "py312"]
+target-version = ["py311", "py312"]
 
 [tool.isort]
 profile = "black"
@@ -53,7 +53,7 @@ line_length = 88
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
