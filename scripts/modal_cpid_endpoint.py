@@ -1057,7 +1057,10 @@ def compute_household_sweep(payload: dict) -> dict:
 @app.function(
     image=image,
     timeout=1800,
-    memory=16384,
+    # policyengine-us 2.x holds more per simulation than 1.x did: with the
+    # baseline and reform alive together, California peaked at 28.4 GB,
+    # Texas at 20.6 GB and New York at 18.7 GB in the 2026-10-28 audit.
+    memory=32768,
     cpu=2.0,
     volumes={"/slices": slices_volume},
     secrets=_optional_supabase_secrets(),
