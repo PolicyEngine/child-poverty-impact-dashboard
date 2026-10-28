@@ -1,0 +1,269 @@
+{
+  "source": {
+    "name": "populace_us_2024_acs_local",
+    "uri": "hf://policyengine/populace-us/populace_us_2024_acs_local.h5@populace-us-2024-buildo-acs-local-766b7c7-20261017T030317Z",
+    "sha256": "3ce781c440a7f933b1d952ff4e9d9f65f4698c64b94d2fad165af0c662838d6c",
+    "data_year": 2024
+  },
+  "policyengine": "6.11.1",
+  "policyengine_us": "2.2.1",
+  "states": {
+    "AL": {
+      "households": 26511,
+      "people": 56748,
+      "megabytes": 189.3
+    },
+    "AK": {
+      "households": 3899,
+      "people": 9370,
+      "megabytes": 59.2
+    },
+    "AZ": {
+      "households": 35022,
+      "people": 79224,
+      "megabytes": 250.0
+    },
+    "AR": {
+      "households": 15887,
+      "people": 35086,
+      "megabytes": 129.6
+    },
+    "CA": {
+      "households": 162907,
+      "people": 401287,
+      "megabytes": 1122.5
+    },
+    "CO": {
+      "households": 30033,
+      "people": 66055,
+      "megabytes": 214.2
+    },
+    "CT": {
+      "households": 18356,
+      "people": 40478,
+      "megabytes": 144.5
+    },
+    "DE": {
+      "households": 5587,
+      "people": 12908,
+      "megabytes": 69.0
+    },
+    "DC": {
+      "households": 4221,
+      "people": 7874,
+      "megabytes": 55.7
+    },
+    "FL": {
+      "households": 99746,
+      "people": 217666,
+      "megabytes": 630.3
+    },
+    "GA": {
+      "households": 50222,
+      "people": 115511,
+      "megabytes": 348.3
+    },
+    "HI": {
+      "households": 6787,
+      "people": 18005,
+      "megabytes": 82.5
+    },
+    "ID": {
+      "households": 9670,
+      "people": 23270,
+      "megabytes": 96.8
+    },
+    "IL": {
+      "households": 59543,
+      "people": 133658,
+      "megabytes": 398.5
+    },
+    "IN": {
+      "households": 33205,
+      "people": 74477,
+      "megabytes": 236.9
+    },
+    "IA": {
+      "households": 17103,
+      "people": 36585,
+      "megabytes": 133.9
+    },
+    "KS": {
+      "households": 15107,
+      "people": 33345,
+      "megabytes": 124.7
+    },
+    "KY": {
+      "households": 22675,
+      "people": 50199,
+      "megabytes": 170.8
+    },
+    "LA": {
+      "households": 22440,
+      "people": 48843,
+      "megabytes": 167.5
+    },
+    "ME": {
+      "households": 8205,
+      "people": 16895,
+      "megabytes": 80.3
+    },
+    "MD": {
+      "households": 28394,
+      "people": 66021,
+      "megabytes": 213.5
+    },
+    "MA": {
+      "households": 36491,
+      "people": 78948,
+      "megabytes": 250.3
+    },
+    "MI": {
+      "households": 48666,
+      "people": 106828,
+      "megabytes": 325.7
+    },
+    "MN": {
+      "households": 28293,
+      "people": 63309,
+      "megabytes": 206.2
+    },
+    "MS": {
+      "households": 14888,
+      "people": 32515,
+      "megabytes": 122.8
+    },
+    "MO": {
+      "households": 31207,
+      "people": 68492,
+      "megabytes": 220.8
+    },
+    "MT": {
+      "households": 6039,
+      "people": 13380,
+      "megabytes": 70.3
+    },
+    "NE": {
+      "households": 10177,
+      "people": 23250,
+      "megabytes": 96.9
+    },
+    "NV": {
+      "households": 14334,
+      "people": 34405,
+      "megabytes": 127.3
+    },
+    "NH": {
+      "households": 7603,
+      "people": 16742,
+      "megabytes": 79.6
+    },
+    "NJ": {
+      "households": 40989,
+      "people": 99281,
+      "megabytes": 303.1
+    },
+    "NM": {
+      "households": 10436,
+      "people": 23353,
+      "megabytes": 97.7
+    },
+    "NY": {
+      "households": 98348,
+      "people": 216135,
+      "megabytes": 625.7
+    },
+    "NC": {
+      "households": 55284,
+      "people": 117941,
+      "megabytes": 356.9
+    },
+    "ND": {
+      "households": 4718,
+      "people": 10248,
+      "megabytes": 61.8
+    },
+    "OH": {
+      "households": 57871,
+      "people": 126353,
+      "megabytes": 379.2
+    },
+    "OK": {
+      "households": 18618,
+      "people": 41817,
+      "megabytes": 147.8
+    },
+    "OR": {
+      "households": 21722,
+      "people": 47727,
+      "megabytes": 164.3
+    },
+    "PA": {
+      "households": 64981,
+      "people": 140057,
+      "megabytes": 417.2
+    },
+    "RI": {
+      "households": 5812,
+      "people": 12490,
+      "megabytes": 68.1
+    },
+    "SC": {
+      "households": 27573,
+      "people": 59791,
+      "megabytes": 197.4
+    },
+    "SD": {
+      "households": 5270,
+      "people": 11897,
+      "megabytes": 66.2
+    },
+    "TN": {
+      "households": 34709,
+      "people": 78064,
+      "megabytes": 246.6
+    },
+    "TX": {
+      "households": 125775,
+      "people": 297905,
+      "megabytes": 842.5
+    },
+    "UT": {
+      "households": 14524,
+      "people": 39652,
+      "megabytes": 140.0
+    },
+    "VT": {
+      "households": 3888,
+      "people": 8178,
+      "megabytes": 56.2
+    },
+    "VA": {
+      "households": 41704,
+      "people": 93495,
+      "megabytes": 288.8
+    },
+    "WA": {
+      "households": 37934,
+      "people": 86629,
+      "megabytes": 269.7
+    },
+    "WV": {
+      "households": 9612,
+      "people": 20874,
+      "megabytes": 90.9
+    },
+    "WI": {
+      "households": 30565,
+      "people": 66235,
+      "megabytes": 214.7
+    },
+    "WY": {
+      "households": 3357,
+      "people": 7767,
+      "megabytes": 54.9
+    }
+  },
+  "build_seconds": 233,
+  "build_peak_memory_gb": 16.9
+}
