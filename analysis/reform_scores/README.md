@@ -58,7 +58,7 @@ Needs `NEXT_PUBLIC_MODAL_CPID_URL` (defaults to the deployed endpoint).
 ## Cost sweep on a version bump (`sweep_reforms.py`)
 
 The scorecard above validates a representative slice against priors. For a
-**policyengine-us version bump** — which will happen a few more times — use the
+**policyengine.py version bump** (which moves the policyengine-us version) use the
 **cost sweep**, which re-scores **every** configurable option's budgetary cost on
 the dashboard backend and diffs against the previous version's snapshot, so a
 bump that silently changes a reform's cost is caught.
@@ -66,8 +66,9 @@ bump that silently changes a reform's cost is caught.
 Flow on a version bump:
 
 ```bash
-# 1. bump the policyengine-us pin (pyproject.toml / backend/requirements.txt /
-#    scripts/modal_cpid_endpoint.py / ci.yml) and redeploy the Modal endpoint:
+# 1. bump the policyengine.py pin (every file README.md lists), rebuild the
+#    state files and redeploy the Modal endpoint:
+modal run scripts/build_populace_state_slices.py
 PYTHONUTF8=1 modal deploy scripts/modal_cpid_endpoint.py
 # 2. sweep all reforms at the new version (auto-reads the pin if --label omitted):
 cd frontend && npm run manifest && cd ..

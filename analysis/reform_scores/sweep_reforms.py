@@ -1,5 +1,5 @@
 """Cost-regression sweep — re-score EVERY reform option's budgetary cost on each
-policyengine-us version bump and flag costs that moved.
+policyengine.py version bump and flag costs that moved.
 
 Where `score_reforms.py` validates a representative slice against priors, this
 sweeps **all** configurable options (the coverage manifest the dashboard ships)
@@ -9,7 +9,7 @@ version's snapshot so a version bump that silently changes a reform's cost is
 caught.
 
 Intended flow on a version bump:
-    1. Bump the policyengine-us pin and redeploy the Modal endpoint.
+    1. Bump the policyengine.py pin and redeploy the Modal endpoint.
     2. `python analysis/reform_scores/sweep_reforms.py --label <new-version>`
        (auto-reads the pinned version if --label omitted).
     3. Review SWEEP.md — anything under "Cost changes vs <prev>" is a reform whose
@@ -54,18 +54,20 @@ ABS_FLAG = 5_000_000  # or $5M absolute
 
 
 def pinned_version() -> str:
+    """The policyengine.py version the repo pins (it pins policyengine-us)."""
     txt = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    m = re.search(r"policyengine-us==([0-9][0-9.]*)", txt)
-    return m.group(1) if m else "unknown"
+    m = re.search(r"policyengine\[us\]==([0-9][0-9.]*)", txt)
+    return f"policyengine-{m.group(1)}" if m else "unknown"
 
 
 def deployed_version(modal_url: str) -> str | None:
-    """The policyengine-us version the live Modal endpoint actually runs — what
+    """The policyengine.py version the live Modal endpoint actually runs — what
     the dashboard computes with. None if the deploy predates the /healthz field."""
     try:
         import requests
 
-        return requests.get(f"{modal_url}/healthz", timeout=20).json().get("policyengine_us")
+        version = requests.get(f"{modal_url}/healthz", timeout=20).json().get("policyengine")
+        return f"policyengine-{version}" if version else None
     except Exception:  # noqa: BLE001
         return None
 
@@ -132,7 +134,7 @@ def latest_other_snapshot(label: str) -> str | None:
 def write_report(label: str, rows: list[dict], baseline_label: str | None, baseline: dict, banner: str | None = None):
     rows = sorted(rows, key=lambda r: -(abs(r.get("annual_cost") or 0)))
     out = [
-        f"# Reform cost sweep — policyengine-us {label}",
+        f"# Reform cost sweep — {label}",
         "",
     ]
     if banner:
@@ -184,7 +186,7 @@ def write_report(label: str, rows: list[dict], baseline_label: str | None, basel
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--label", default=None, help="version label (default: pinned policyengine-us)")
+    ap.add_argument("--label", default=None, help="version label (default: deployed, else pinned, policyengine.py)")
     ap.add_argument("--baseline", default=None, help="snapshot label to diff against (default: latest other)")
     ap.add_argument("--only", help="comma-separated reform ids (state:option)")
     ap.add_argument("--limit", type=int, help="score only the first N options (smoke test)")
@@ -200,7 +202,7 @@ def main():
     label = args.label or deployed or pin
     banner = None
     if deployed and deployed != pin:
-        banner = (f"⚠️ Deployed Modal runs policyengine-us **{deployed}**, but the repo pins "
+        banner = (f"⚠️ Deployed Modal runs **{deployed}**, but the repo pins "
                   f"**{pin}** — redeploy the endpoint to score the pinned version.")
         print(f"WARNING: deployed Modal {deployed} != pinned {pin}; labeling snapshot '{label}'.", flush=True)
     elif not deployed:
