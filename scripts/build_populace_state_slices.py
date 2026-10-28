@@ -92,10 +92,10 @@ def write_state_slices(output_root: str, download_folder: str) -> dict:
     Kept free of Modal objects so the audit in analysis/state_audit can run
     it against a scratch volume.
     """
-    import importlib.metadata as metadata
     import json
     import os
     import time
+    from importlib import metadata
     from pathlib import Path
 
     import pandas as pd

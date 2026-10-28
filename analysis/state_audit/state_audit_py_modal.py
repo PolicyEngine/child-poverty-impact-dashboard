@@ -32,7 +32,6 @@ lives only as long as the client.
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -118,8 +117,8 @@ def build_state_files(scratch_volume) -> dict:
     image=image, memory=32768, cpu=2.0, timeout=3600, single_use_containers=True
 )
 def audit_state(state: str, year: int, scratch_volume) -> dict:
-    import importlib.metadata as metadata
     import time
+    from importlib import metadata
 
     import numpy as np
     from policyengine_core.reforms import Reform
