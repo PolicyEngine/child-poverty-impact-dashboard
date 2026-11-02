@@ -39,15 +39,36 @@ app = modal.App("cpid-populace-slice-builder")
 # (scripts/modal_cpid_endpoint.py). policyengine.py pins policyengine-us,
 # policyengine-core and spm-calculator itself, so they are not listed here.
 POLICYENGINE_REQUIREMENT = "policyengine[us]==6.11.1"
+# Modal's cached debian_slim base for Python 3.11 carries pip 25.2, whose
+# bundled certifi trusts the eMudhra root "emSign ECC Root CA - G3"
+# (emudhra.we-have-a-problem.com); --cert and PIP_CERT only add to that trust.
+# The image replaces it with pip 26.2.2 (bundled certifi 2026.10.19, without
+# that root) before any other package install. The wheel's sha256, as PyPI
+# publishes it, makes that one download authentic whatever answers it.
+PIP_BOOTSTRAP_VERSION = "26.2.2"
+PIP_BOOTSTRAP_WHEEL_SHA256 = (
+    "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+)
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .pip_install(POLICYENGINE_REQUIREMENT)
     # eMudhra CA key compromise (2026-10-20, emudhra.we-have-a-problem.com):
+    # Debian ca-certificates before 20250419~deb12u2 trusts the affected
+    # roots, and pip 24.2 and later verify HTTPS against that store as well as
+    # their own certifi, so it is upgraded before pip downloads anything.
+    .apt_install("ca-certificates")
+    .run_commands(
+        "printf '%s\\n' "
+        f"'pip=={PIP_BOOTSTRAP_VERSION} --hash=sha256:{PIP_BOOTSTRAP_WHEEL_SHA256}'"
+        " > /tmp/pip-bootstrap.txt"
+        " && python -m pip install --require-hashes --no-deps"
+        " -r /tmp/pip-bootstrap.txt"
+        " && rm /tmp/pip-bootstrap.txt"
+    )
+    .pip_install(POLICYENGINE_REQUIREMENT)
     # Hugging Face downloads go through hf-xet (which reads the Debian CA
     # store from 1.4.3 on; 1.2.x bundles a CA list that trusts the affected
     # roots) or requests (certifi, fixed in 2026.10.19).
-    .apt_install("ca-certificates")
     .pip_install("certifi>=2026.10.19", "hf-xet>=1.4.3")
 )
 

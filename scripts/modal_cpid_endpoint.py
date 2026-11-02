@@ -43,20 +43,40 @@ app = modal.App("cpid-backend")
 # this pin deliberately, then rebuild the state files
 # (scripts/build_populace_state_slices.py) and bump CPID_BUILD_REV.
 POLICYENGINE_REQUIREMENT = "policyengine[us]==6.11.1"
+# Modal's cached debian_slim base for Python 3.11 carries pip 25.2, whose
+# bundled certifi trusts the eMudhra root "emSign ECC Root CA - G3"
+# (emudhra.we-have-a-problem.com); --cert and PIP_CERT only add to that trust.
+# The image replaces it with pip 26.2.2 (bundled certifi 2026.10.19, without
+# that root) before any other package install. The wheel's sha256, as PyPI
+# publishes it, makes that one download authentic whatever answers it.
+PIP_BOOTSTRAP_VERSION = "26.2.2"
+PIP_BOOTSTRAP_WHEEL_SHA256 = (
+    "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+)
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
+    # eMudhra CA key compromise (2026-10-20, emudhra.we-have-a-problem.com):
+    # Debian ca-certificates before 20250419~deb12u2 trusts the affected
+    # roots, and pip 24.2 and later verify HTTPS against that store as well as
+    # their own certifi, so it is upgraded before pip downloads anything.
+    .apt_install("ca-certificates")
+    .run_commands(
+        "printf '%s\\n' "
+        f"'pip=={PIP_BOOTSTRAP_VERSION} --hash=sha256:{PIP_BOOTSTRAP_WHEEL_SHA256}'"
+        " > /tmp/pip-bootstrap.txt"
+        " && python -m pip install --require-hashes --no-deps"
+        " -r /tmp/pip-bootstrap.txt"
+        " && rm /tmp/pip-bootstrap.txt"
+    )
     .pip_install(POLICYENGINE_REQUIREMENT, "fastapi", "pydantic>=2", "requests")
     # Part of every results-cache key and of every Supabase row: bump it on
     # any change to the pins, the data or the compute code so a deploy starts
     # a fresh keyspace.
     .env({"CPID_BUILD_REV": "2026-10-28-py-6.11.1-acs-local-3ce781c4"})
-    # eMudhra CA key compromise (2026-10-20, emudhra.we-have-a-problem.com):
-    # certifi before 2026.10.19 (used by requests for the Supabase calls) and
-    # Debian ca-certificates before 20250419~deb12u2 trust the affected
-    # roots. These layers come last so nothing installed above can pull an
-    # older certifi back in.
-    .apt_install("ca-certificates")
+    # certifi before 2026.10.19 (used by requests for the Supabase calls)
+    # trusts the affected roots. This layer comes last so nothing installed
+    # above can pull an older certifi back in.
     .pip_install("certifi>=2026.10.19")
 )
 

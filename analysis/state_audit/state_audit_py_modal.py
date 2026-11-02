@@ -46,8 +46,22 @@ app = modal.App("cpid-state-audit-policyengine-py")
 # The endpoint's image, plus the endpoint and slice-builder modules.
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .pip_install("policyengine[us]==6.11.1", "fastapi", "pydantic>=2", "requests")
+    # Debian ca-certificates before 20250419~deb12u2 and the base's pip 25.2
+    # (through its bundled certifi) trust the compromised eMudhra root "emSign
+    # ECC Root CA - G3" (emudhra.we-have-a-problem.com); --cert and PIP_CERT
+    # only add to pip's trust, and pip 24.2 and later also read the system
+    # store. Upgrade the store, then replace pip with 26.2.2, pinned by its
+    # wheel's sha256, before any other package install.
     .apt_install("ca-certificates")
+    .run_commands(
+        "printf '%s\\n' 'pip==26.2.2 --hash=sha256:"
+        "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70'"
+        " > /tmp/pip-bootstrap.txt"
+        " && python -m pip install --require-hashes --no-deps"
+        " -r /tmp/pip-bootstrap.txt"
+        " && rm /tmp/pip-bootstrap.txt"
+    )
+    .pip_install("policyengine[us]==6.11.1", "fastapi", "pydantic>=2", "requests")
     .pip_install("certifi>=2026.10.19", "hf-xet>=1.4.3")
     .add_local_file(
         str(REPO / "scripts" / "modal_cpid_endpoint.py"),
