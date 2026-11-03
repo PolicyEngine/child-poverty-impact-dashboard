@@ -99,7 +99,12 @@ slices_volume = modal.Volume.from_name(
 # statewide runs use: every dataset household carries its county). The
 # household calculator only asks for a state, so it selects policyengine.py's
 # national SPM measurement explicitly; without a county the default raises
-# SPMInputError for every household.
+# SPMInputError for every household, which the household functions' error
+# handling would report as "not in poverty". National thresholds are what the
+# calculator used before: policyengine-us 1.825.2 applied a geographic
+# adjustment only for a household with a congressional district, which the
+# calculator never sends. Asking for a county is a separate follow-up.
+# tests/calculations/test_household_poverty.py reads this value.
 HOUSEHOLD_SPM_SELECTION = {"geography_kind": "national"}
 
 
