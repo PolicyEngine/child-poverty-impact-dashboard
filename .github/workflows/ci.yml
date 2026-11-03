@@ -78,11 +78,13 @@ jobs:
       # + one behavioral (net-income-moves) check per option category
       # + the 3-year default-anchor audit (every displayed default == current
       # law at 2026/2027/2028; fails when current-law-defaults.json is stale —
-      # regenerate it after a pin bump via scripts/generate_current_law_defaults.py).
+      # regenerate it after a pin bump via scripts/generate_current_law_defaults.py)
+      # + the household calculator's SPM measurement (national thresholds, and
+      # a poverty flag that moves with income).
       # The exhaustive per-entry compute and full behavioral matrix run in
       # reform-compute-full below.
       - name: Validate reform paths + representative computes + behavior + anchors
-        run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py tests/calculations/test_default_anchors.py -q
+        run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py tests/calculations/test_default_anchors.py tests/calculations/test_household_poverty.py -q
 
   reform-compute-full:
     name: Reform compute (full, shard ${{ matrix.shard }})
