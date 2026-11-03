@@ -20,9 +20,11 @@ and deploy one app per pin; ``sweep_jobs.py`` then spawns and collects the
 per-state calls server-side (see ANALYSIS_BUILDO_1017.md for the 10/20 run)::
 
     AUDIT_PE_US=2.30.1 modal deploy analysis/state_audit/state_audit_sweep_modal.py
-    AUDIT_PE_US=1.825.2 AUDIT_SPM_CALC=0.3.1 \
-        AUDIT_PE_US_SPEC="policyengine-us @ git+https://github.com/PolicyEngine/policyengine-us@9f77bffb6b" \
-        modal deploy analysis/state_audit/state_audit_sweep_modal.py
+
+Only versions on PyPI can be audited. The 10/20 production column ran
+policyengine-us 1.825.2, which PyPI no longer serves; its raw outputs stay in
+``output/`` as a record. Since the backend moved to policyengine.py, audits of
+what the dashboard runs use ``state_audit_py_modal.py``.
 
 ``modal run ... --slice-tag 766b7c7 --label x --year 2024`` also works for a
 quick interactive run, but its local client must stay alive for the whole map.
@@ -37,23 +39,34 @@ import os
 import modal
 
 PE_US_PIN = os.environ.get("AUDIT_PE_US", "2.30.1")
-# 1.825.2 needs spm-calculator 0.3.1 (1.0.0 dropped the geoadj module it
-# imports); 2.x pins its own compatible spm-calculator.
+# 1.x releases need spm-calculator 0.3.1 (1.0.0 dropped the geoadj module
+# they import); 2.x pins its own compatible spm-calculator.
 SPM_CALC = os.environ.get("AUDIT_SPM_CALC", "")
 
 app = modal.App(f"cpid-dataset-sweep-{PE_US_PIN.replace('.', '-')}")
 
-# AUDIT_PE_US_SPEC overrides the requirement for versions no longer on PyPI
-# (1.825.2 was pruned; its release commit is 9f77bffb6b):
-#   AUDIT_PE_US_SPEC="policyengine-us @ git+https://github.com/PolicyEngine/policyengine-us@9f77bffb6b"
-PE_US_SPEC = os.environ.get("AUDIT_PE_US_SPEC", f"policyengine-us=={PE_US_PIN}")
-_pkgs = [PE_US_SPEC, "numpy>=1.24.0", "pandas>=2.0.0", "tables", "huggingface_hub"]
+_pkgs = [f"policyengine-us=={PE_US_PIN}", "numpy>=1.24.0", "pandas>=2.0.0", "tables", "huggingface_hub"]
 if SPM_CALC:
     _pkgs.append(f"spm-calculator=={SPM_CALC}")
-_base = modal.Image.debian_slim(python_version="3.11")
-if "git+" in PE_US_SPEC:
-    _base = _base.apt_install("git")
-image = _base.pip_install(*_pkgs)
+image = (
+    modal.Image.debian_slim(python_version="3.11")
+    # Debian ca-certificates before 20250419~deb12u2 and the base's pip 25.2
+    # (through its bundled certifi) trust the compromised eMudhra root "emSign
+    # ECC Root CA - G3" (emudhra.we-have-a-problem.com); --cert and PIP_CERT
+    # only add to pip's trust, and pip 24.2 and later also read the system
+    # store. Upgrade the store, then replace pip with 26.2.2, pinned by its
+    # wheel's sha256, before any other package install.
+    .apt_install("ca-certificates")
+    .run_commands(
+        "printf '%s\\n' 'pip==26.2.2 --hash=sha256:"
+        "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70'"
+        " > /tmp/pip-bootstrap.txt"
+        " && python -m pip install --require-hashes --no-deps"
+        " -r /tmp/pip-bootstrap.txt"
+        " && rm /tmp/pip-bootstrap.txt"
+    )
+    .pip_install(*_pkgs)
+)
 
 slices_volume = modal.Volume.from_name("cpid-populace-slices")
 

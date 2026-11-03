@@ -62,8 +62,9 @@ child-poverty-impact-dashboard/
 │   ├── data/                # Static state programs + EITC reform JSON
 │   └── lib/                 # API clients + state-programs registry
 ├── scripts/
-│   └── modal_cpid_endpoint.py  # Modal-hosted compute backend
-├── backend/                 # Legacy FastAPI (still used for local dev)
+│   ├── modal_cpid_endpoint.py         # Modal-hosted compute backend
+│   └── build_populace_state_slices.py # Per-state dataset files for it
+├── backend/                 # Legacy FastAPI (the frontend no longer calls it)
 ├── cpid_calc/               # Shared Python calculation package
 └── tests/
 ```
@@ -76,21 +77,34 @@ wizard can render reform options without any backend hop.
 
 ## Deploying the Modal backend
 
+The backend runs on [policyengine.py](https://github.com/PolicyEngine/policyengine.py)
+(`policyengine[us]` on PyPI). Its release bundle pins the policyengine-us,
+policyengine-core and spm-calculator versions, and certifies the dataset that
+US state and congressional-district regions use (the Microcosm ACS-local file
+in `policyengine/populace-us`). The pin appears in
+`scripts/modal_cpid_endpoint.py`, `scripts/build_populace_state_slices.py`,
+`analysis/state_audit/state_audit_py_modal.py`, `pyproject.toml`,
+`backend/requirements.txt` and `.github/workflows/ci.yml`; keep them equal.
+
 ```bash
+# 1. Once per policyengine.py bump that changes the state dataset: split it
+#    into one file per state on the cpid-populace-slices Volume (about 7
+#    minutes; the endpoint refuses to compute until the files match the
+#    installed bundle).
+modal run scripts/build_populace_state_slices.py
+# 2. Deploy.
 modal deploy scripts/modal_cpid_endpoint.py
 ```
 
 Modal prints a persistent URL. Set it as `NEXT_PUBLIC_MODAL_CPID_URL`
 on the Vercel project (Production + Preview) and in
-`frontend/.env.local` for dev. When the env var is empty, the frontend
-falls back to the local FastAPI in `backend/` (handy for offline work).
+`frontend/.env.local` for dev. The frontend has no other backend: without the
+variable, statewide and household analyses report an error.
 
-The Modal image pins `policyengine-us==1.825.2` for reproducibility —
-bump the version in `scripts/modal_cpid_endpoint.py` and redeploy when
-we want to refresh. 1.825.2 has since been removed from PyPI: the deployed
-image is cached and keeps working, and CI, `pyproject.toml` and
-`backend/requirements.txt` install it from its release commit
-(`9f77bffb6b`). A fresh image build would need the same source line.
+`/healthz` reports the deployed policyengine.py, policyengine-us and
+policyengine-core versions, the dataset URI and SHA-256, and `CPID_BUILD_REV`.
+Bump `CPID_BUILD_REV` in `scripts/modal_cpid_endpoint.py` with every pin,
+data or compute change: it is part of every results-cache key and Supabase row.
 
 ## Installation
 
@@ -104,7 +118,8 @@ make dev        # Start both backend and frontend
 
 #### Backend
 ```bash
-uv venv
+# policyengine.py needs Python 3.11 or later.
+uv venv --python 3.11
 source .venv/bin/activate
 uv pip install -e ".[dev]"
 uv pip install -r backend/requirements.txt

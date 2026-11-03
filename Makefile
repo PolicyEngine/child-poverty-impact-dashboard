@@ -2,14 +2,14 @@
 
 # Install all dependencies
 install:
-	uv venv
+	uv venv --python 3.11
 	. .venv/bin/activate && uv pip install -e ".[dev]"
 	. .venv/bin/activate && uv pip install -r backend/requirements.txt
 	cd frontend && bun install
 
 # Install backend only
 install-backend:
-	uv venv
+	uv venv --python 3.11
 	. .venv/bin/activate && uv pip install -e ".[dev]"
 	. .venv/bin/activate && uv pip install -r backend/requirements.txt
 

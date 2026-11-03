@@ -1,0 +1,5937 @@
+[
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.529870986938477,
+    "children_lifted": 1214.9920654296875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -85731490.05252075,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 85731492.03200996,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -85731490.05252075
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 377.7,
+    "peak_memory_gb": 31.98
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.539886474609375,
+    "children_lifted": 263.9732360839844,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -7029115.487609863,
+    "state_eitc_change": 7029117.192448139,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -7029115.487609863
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 445.7,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.577129364013672,
+    "children_lifted": 0.0,
+    "children_entering": 3271.771484375,
+    "total_budgetary_impact": 2523255364.333313,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 2523255364.333313
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 435.8,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.47869300842285,
+    "children_lifted": 6073.265625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -758317056.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 52,
+    "runtime_s": 423.9,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 17.652751922607422,
+    "children_lifted": 274354.125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -9644113920.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 52,
+    "runtime_s": 409.9,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_ctc",
+      "ca_eitc",
+      "ca_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 13.692758560180664,
+    "children_lifted": 650295.9375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -19238031753.413147,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -9743749513.413147,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 704.0,
+    "peak_memory_gb": 30.79
+  },
+  {
+    "state": "CO",
+    "year": 2026,
+    "ids": [
+      "co_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.555209159851074,
+    "child_reform_rate": 11.525074005126953,
+    "children_lifted": 420.7163391113281,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -26505667.134908676,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 26505667.298209906,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -26505667.134908676
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 175.0,
+    "peak_memory_gb": 7.03
+  },
+  {
+    "state": "CO",
+    "year": 2026,
+    "ids": [
+      "co_fac"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.555209159851074,
+    "child_reform_rate": 11.441915512084961,
+    "children_lifted": 1581.721435546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -269401292.5797043,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 269401294.3369751,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -269401292.5797043
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 188.8,
+    "peak_memory_gb": 7.03
+  },
+  {
+    "state": "CO",
+    "year": 2026,
+    "ids": [
+      "co_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.555209159851074,
+    "child_reform_rate": 11.550070762634277,
+    "children_lifted": 71.72840881347656,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8501842.019357681,
+    "state_eitc_change": 8501832.34338203,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -8501842.019357681
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 204.1,
+    "peak_memory_gb": 7.02
+  },
+  {
+    "state": "CO",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.555209159851074,
+    "child_reform_rate": 11.524975776672363,
+    "children_lifted": 422.0989990234375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -51494912.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 152.7,
+    "peak_memory_gb": 7.03
+  },
+  {
+    "state": "CO",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.555209159851074,
+    "child_reform_rate": 9.362168312072754,
+    "children_lifted": 30617.669921875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1232199680.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 168.1,
+    "peak_memory_gb": 7.02
+  },
+  {
+    "state": "CO",
+    "year": 2026,
+    "ids": [
+      "co_ctc",
+      "co_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 11.555209159851074,
+    "child_reform_rate": 8.64773178100586,
+    "children_lifted": 40592.12890625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2684500738.309078,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1288435233.7885513,
+        "state": 105247.47947311401
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 263.1,
+    "peak_memory_gb": 6.82
+  },
+  {
+    "state": "CT",
+    "year": 2026,
+    "ids": [
+      "ct_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.932290077209473,
+    "child_reform_rate": 12.929352760314941,
+    "children_lifted": 24.46516990661621,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8596990.043592453,
+    "state_eitc_change": 8596990.507261783,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -8596990.043592453
+      }
+    ],
+    "districts": 5,
+    "runtime_s": 154.9,
+    "peak_memory_gb": 5.17
+  },
+  {
+    "state": "CT",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.932290077209473,
+    "child_reform_rate": 12.899284362792969,
+    "children_lifted": 274.8334655761719,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -53411840.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 5,
+    "runtime_s": 120.2,
+    "peak_memory_gb": 5.16
+  },
+  {
+    "state": "CT",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.932290077209473,
+    "child_reform_rate": 11.976786613464355,
+    "children_lifted": 7956.02294921875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -722669568.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 5,
+    "runtime_s": 142.8,
+    "peak_memory_gb": 5.16
+  },
+  {
+    "state": "CT",
+    "year": 2026,
+    "ids": [
+      "ct_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 12.932290077209473,
+    "child_reform_rate": 9.64257526397705,
+    "children_lifted": 27391.875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1486014851.5444183,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -653146499.5444183,
+        "state": 0.0
+      }
+    ],
+    "districts": 5,
+    "runtime_s": 161.9,
+    "peak_memory_gb": 5.03
+  },
+  {
+    "state": "DC",
+    "year": 2026,
+    "ids": [
+      "dc_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.839208602905273,
+    "child_reform_rate": 16.860389709472656,
+    "children_lifted": 1514.2203369140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8262813.0524840355,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 8262813.0508003235,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -8262813.0524840355
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 91.9,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "DC",
+    "year": 2026,
+    "ids": [
+      "dc_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.839208602905273,
+    "child_reform_rate": 17.839208602905273,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1343896.1821770668,
+    "state_eitc_change": 1343892.7771463394,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -1343896.1821770668
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 101.4,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "DC",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.839208602905273,
+    "child_reform_rate": 17.839208602905273,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -13349376.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 92.9,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "DC",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.839208602905273,
+    "child_reform_rate": 12.541292190551758,
+    "children_lifted": 8195.810546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -144583936.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 101.2,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "DC",
+    "year": 2026,
+    "ids": [
+      "dc_ctc",
+      "dc_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 17.839208602905273,
+    "child_reform_rate": 10.312047004699707,
+    "children_lifted": 11644.42578125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -355580880.8427954,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -200855536.0925846,
+        "state": 4127.249789237976
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 168.2,
+    "peak_memory_gb": 2.7
+  },
+  {
+    "state": "GA",
+    "year": 2026,
+    "ids": [
+      "ga_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.386953353881836,
+    "child_reform_rate": 18.34837532043457,
+    "children_lifted": 1054.9693603515625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -169122248.96947098,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 169223261.72838765,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -169122248.96947098
+      }
+    ],
+    "districts": 14,
+    "runtime_s": 260.1,
+    "peak_memory_gb": 10.05
+  },
+  {
+    "state": "GA",
+    "year": 2026,
+    "ids": [
+      "ga_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.386953353881836,
+    "child_reform_rate": 18.36296844482422,
+    "children_lifted": 655.9263916015625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -32122400.157737732,
+    "state_eitc_change": 32122401.24818412,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -32122400.157737732
+      }
+    ],
+    "districts": 14,
+    "runtime_s": 260.9,
+    "peak_memory_gb": 10.05
+  },
+  {
+    "state": "GA",
+    "year": 2026,
+    "ids": [
+      "ga_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.386953353881836,
+    "child_reform_rate": 18.5075740814209,
+    "children_lifted": 0.0,
+    "children_entering": 3298.367919921875,
+    "total_budgetary_impact": 593948152.7118874,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 30570173.193427563,
+    "stacked_rows": [],
+    "districts": 14,
+    "runtime_s": 233.1,
+    "peak_memory_gb": 10.05
+  },
+  {
+    "state": "GA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.386953353881836,
+    "child_reform_rate": 18.334596633911133,
+    "children_lifted": 1431.664794921875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -289583104.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 14,
+    "runtime_s": 185.4,
+    "peak_memory_gb": 10.04
+  },
+  {
+    "state": "GA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.386953353881836,
+    "child_reform_rate": 16.925878524780273,
+    "children_lifted": 39953.1640625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2869112832.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 14,
+    "runtime_s": 253.0,
+    "peak_memory_gb": 10.06
+  },
+  {
+    "state": "GA",
+    "year": 2026,
+    "ids": [
+      "ga_ctc",
+      "ga_eitc",
+      "ga_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 18.386953353881836,
+    "child_reform_rate": 12.633111953735352,
+    "children_lifted": 157339.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5975435059.007462,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": -42057.418247163296,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -3238986216.117859,
+        "state": -1787210.8896026611
+      }
+    ],
+    "districts": 14,
+    "runtime_s": 292.5,
+    "peak_memory_gb": 9.71
+  },
+  {
+    "state": "ID",
+    "year": 2026,
+    "ids": [
+      "id_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.159022331237793,
+    "child_reform_rate": 7.063278675079346,
+    "children_lifted": 505.84130859375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -125486258.9444828,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 125486258.76497589,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -125486258.9444828
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 156.3,
+    "peak_memory_gb": 4.27
+  },
+  {
+    "state": "ID",
+    "year": 2026,
+    "ids": [
+      "id_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.159022331237793,
+    "child_reform_rate": 7.159022331237793,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2895211.046766281,
+    "state_eitc_change": 2895211.2595634293,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -2895211.046766281
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 142.4,
+    "peak_memory_gb": 4.14
+  },
+  {
+    "state": "ID",
+    "year": 2026,
+    "ids": [
+      "id_grocery_credit"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.159022331237793,
+    "child_reform_rate": 7.159022331237793,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -14158999.231862068,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 121.2,
+    "peak_memory_gb": 4.14
+  },
+  {
+    "state": "ID",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.159022331237793,
+    "child_reform_rate": 7.111376762390137,
+    "children_lifted": 251.72503662109375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5229612.803380489,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 129.9,
+    "peak_memory_gb": 4.15
+  },
+  {
+    "state": "ID",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.159022331237793,
+    "child_reform_rate": 6.6753387451171875,
+    "children_lifted": 2555.4384765625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -515008000.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 145.3,
+    "peak_memory_gb": 4.14
+  },
+  {
+    "state": "ID",
+    "year": 2026,
+    "ids": [
+      "id_ctc",
+      "id_eitc",
+      "id_grocery_credit",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 7.159022331237793,
+    "child_reform_rate": 4.2082438468933105,
+    "children_lifted": 15589.8388671875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1093604629.0199785,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 100881109.98752964,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -486526663.31474686,
+        "state": 996.0784368515015
+      },
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -78699057.78366852
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 227.5,
+    "peak_memory_gb": 4.19
+  },
+  {
+    "state": "IL",
+    "year": 2026,
+    "ids": [
+      "il_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.232473373413086,
+    "child_reform_rate": 18.22991943359375,
+    "children_lifted": 81.14166259765625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -7169504.808681488,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 7169508.684756398,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -7169504.808681488
+      }
+    ],
+    "districts": 17,
+    "runtime_s": 258.2,
+    "peak_memory_gb": 11.55
+  },
+  {
+    "state": "IL",
+    "year": 2026,
+    "ids": [
+      "il_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.232473373413086,
+    "child_reform_rate": 18.19698143005371,
+    "children_lifted": 1127.5849609375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -31821467.057655334,
+    "state_eitc_change": 24509980.231471837,
+    "state_ctc_change": 7311485.338980675,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -31821467.057655334
+      }
+    ],
+    "districts": 17,
+    "runtime_s": 232.2,
+    "peak_memory_gb": 11.55
+  },
+  {
+    "state": "IL",
+    "year": 2026,
+    "ids": [
+      "il_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.232473373413086,
+    "child_reform_rate": 18.26276397705078,
+    "children_lifted": 0.0,
+    "children_entering": 962.2649536132812,
+    "total_budgetary_impact": 455892174.38064957,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 17,
+    "runtime_s": 189.3,
+    "peak_memory_gb": 11.55
+  },
+  {
+    "state": "IL",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.232473373413086,
+    "child_reform_rate": 18.21234130859375,
+    "children_lifted": 639.5247192382812,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -225558528.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 17,
+    "runtime_s": 197.7,
+    "peak_memory_gb": 11.55
+  },
+  {
+    "state": "IL",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 18.232473373413086,
+    "child_reform_rate": 10.606415748596191,
+    "children_lifted": 242280.46875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3025084416.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 17,
+    "runtime_s": 239.8,
+    "peak_memory_gb": 11.55
+  },
+  {
+    "state": "IL",
+    "year": 2026,
+    "ids": [
+      "il_ctc",
+      "il_eitc",
+      "il_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 18.232473373413086,
+    "child_reform_rate": 7.639388084411621,
+    "children_lifted": 336543.1875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -6600822367.906784,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -3423686239.906784,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 17,
+    "runtime_s": 311.9,
+    "peak_memory_gb": 11.15
+  },
+  {
+    "state": "MA",
+    "year": 2026,
+    "ids": [
+      "ma_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 22.234790802001953,
+    "child_reform_rate": 22.22654914855957,
+    "children_lifted": 130.2657470703125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -61340557.07902908,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 61340556.93549883,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -61340557.07902908
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 169.0,
+    "peak_memory_gb": 8.36
+  },
+  {
+    "state": "MA",
+    "year": 2026,
+    "ids": [
+      "ma_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 22.234790802001953,
+    "child_reform_rate": 22.229101181030273,
+    "children_lifted": 89.94941711425781,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8021233.887886047,
+    "state_eitc_change": 8021237.090028286,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -8021233.887886047
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 199.6,
+    "peak_memory_gb": 8.36
+  },
+  {
+    "state": "MA",
+    "year": 2026,
+    "ids": [
+      "ma_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 22.234790802001953,
+    "child_reform_rate": 22.248323440551758,
+    "children_lifted": 0.0,
+    "children_entering": 213.93734741210938,
+    "total_budgetary_impact": 89101806.44644165,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 173.0,
+    "peak_memory_gb": 8.36
+  },
+  {
+    "state": "MA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 22.234790802001953,
+    "child_reform_rate": 22.204830169677734,
+    "children_lifted": 473.59979248046875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -81305600.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 175.2,
+    "peak_memory_gb": 8.36
+  },
+  {
+    "state": "MA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 22.234790802001953,
+    "child_reform_rate": 18.991975784301758,
+    "children_lifted": 51262.31640625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1384939520.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 163.2,
+    "peak_memory_gb": 8.37
+  },
+  {
+    "state": "MA",
+    "year": 2026,
+    "ids": [
+      "ma_ctc",
+      "ma_eitc",
+      "ma_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 22.234790802001953,
+    "child_reform_rate": 18.08039665222168,
+    "children_lifted": 65672.5390625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2843797206.438572,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1262677292.4243164,
+        "state": -92586.01425552368
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 299.1,
+    "peak_memory_gb": 8.11
+  },
+  {
+    "state": "MD",
+    "year": 2026,
+    "ids": [
+      "md_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.55953598022461,
+    "child_reform_rate": 17.55048942565918,
+    "children_lifted": 142.11465454101562,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -9072416.621372223,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 9072416.632559985,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -9072416.621372223
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 171.2,
+    "peak_memory_gb": 6.67
+  },
+  {
+    "state": "MD",
+    "year": 2026,
+    "ids": [
+      "md_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.55953598022461,
+    "child_reform_rate": 17.55953598022461,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -10256415.80419159,
+    "state_eitc_change": 9581003.487813056,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -10256415.80419159
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 171.7,
+    "peak_memory_gb": 6.66
+  },
+  {
+    "state": "MD",
+    "year": 2026,
+    "ids": [
+      "md_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.55953598022461,
+    "child_reform_rate": 17.598466873168945,
+    "children_lifted": 0.0,
+    "children_entering": 611.5723876953125,
+    "total_budgetary_impact": 201439320.9466133,
+    "state_eitc_change": 2043484.2170293927,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 165.8,
+    "peak_memory_gb": 6.66
+  },
+  {
+    "state": "MD",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.55953598022461,
+    "child_reform_rate": 17.53167152404785,
+    "children_lifted": 437.7443542480469,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -120123392.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 139.9,
+    "peak_memory_gb": 6.66
+  },
+  {
+    "state": "MD",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.55953598022461,
+    "child_reform_rate": 11.746302604675293,
+    "children_lifted": 91321.734375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1441845248.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 151.3,
+    "peak_memory_gb": 6.66
+  },
+  {
+    "state": "MD",
+    "year": 2026,
+    "ids": [
+      "md_ctc",
+      "md_eitc",
+      "md_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 17.55953598022461,
+    "child_reform_rate": 8.283429145812988,
+    "children_lifted": 145721.015625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3248706357.1768456,
+    "state_eitc_change": -61947.65535181761,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1673324094.3019028,
+        "state": -4390134.87494278
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 223.7,
+    "peak_memory_gb": 6.46
+  },
+  {
+    "state": "MN",
+    "year": 2026,
+    "ids": [
+      "mn_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.232222080230713,
+    "child_reform_rate": 5.217381954193115,
+    "children_lifted": 204.46014404296875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -66767614.55060959,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 64772089.01679623,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -66767614.55060959
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 183.5,
+    "peak_memory_gb": 6.56
+  },
+  {
+    "state": "MN",
+    "year": 2026,
+    "ids": [
+      "mn_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.232222080230713,
+    "child_reform_rate": 5.232030868530273,
+    "children_lifted": 2.6309823989868164,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -25604195.878822327,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 24385826.308749557,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -25604195.878822327
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 190.1,
+    "peak_memory_gb": 6.55
+  },
+  {
+    "state": "MN",
+    "year": 2026,
+    "ids": [
+      "mn_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.232222080230713,
+    "child_reform_rate": 5.232222080230713,
+    "children_lifted": 0.0,
+    "children_entering": 0.00035929412115365267,
+    "total_budgetary_impact": 373422085.63282394,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 206.5,
+    "peak_memory_gb": 6.56
+  },
+  {
+    "state": "MN",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.232222080230713,
+    "child_reform_rate": 5.232030868530273,
+    "children_lifted": 2.6309823989868164,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -70713344.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 192.5,
+    "peak_memory_gb": 6.56
+  },
+  {
+    "state": "MN",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.232222080230713,
+    "child_reform_rate": 5.04260778427124,
+    "children_lifted": 2612.397216796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1405218816.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 172.2,
+    "peak_memory_gb": 6.55
+  },
+  {
+    "state": "MN",
+    "year": 2026,
+    "ids": [
+      "mn_ctc",
+      "mn_eitc",
+      "mn_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 5.232222080230713,
+    "child_reform_rate": 4.164468288421631,
+    "children_lifted": 14710.8466796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2814187538.0012817,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1436370962.0012817,
+        "state": 0.0
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 289.1,
+    "peak_memory_gb": 6.36
+  },
+  {
+    "state": "NJ",
+    "year": 2026,
+    "ids": [
+      "nj_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.825847625732422,
+    "child_reform_rate": 9.683354377746582,
+    "children_lifted": 3047.093994140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -125815956.43819046,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 125815964.73447782,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -125815956.43819046
+      }
+    ],
+    "districts": 12,
+    "runtime_s": 184.1,
+    "peak_memory_gb": 9.34
+  },
+  {
+    "state": "NJ",
+    "year": 2026,
+    "ids": [
+      "nj_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.825847625732422,
+    "child_reform_rate": 9.816161155700684,
+    "children_lifted": 207.13316345214844,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -15749654.502681732,
+    "state_eitc_change": 15749653.168138266,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -15749654.502681732
+      }
+    ],
+    "districts": 12,
+    "runtime_s": 175.8,
+    "peak_memory_gb": 9.35
+  },
+  {
+    "state": "NJ",
+    "year": 2026,
+    "ids": [
+      "nj_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.825847625732422,
+    "child_reform_rate": 9.86804485321045,
+    "children_lifted": 0.0,
+    "children_entering": 902.31884765625,
+    "total_budgetary_impact": 155271505.40242386,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": -18682233.535193205,
+    "stacked_rows": [],
+    "districts": 12,
+    "runtime_s": 168.4,
+    "peak_memory_gb": 9.34
+  },
+  {
+    "state": "NJ",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.825847625732422,
+    "child_reform_rate": 9.678901672363281,
+    "children_lifted": 3142.291748046875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -464896000.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 12,
+    "runtime_s": 189.6,
+    "peak_memory_gb": 9.35
+  },
+  {
+    "state": "NJ",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.825847625732422,
+    "child_reform_rate": 8.39832878112793,
+    "children_lifted": 30525.93359375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1967747072.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 12,
+    "runtime_s": 218.1,
+    "peak_memory_gb": 9.35
+  },
+  {
+    "state": "NJ",
+    "year": 2026,
+    "ids": [
+      "nj_ctc",
+      "nj_eitc",
+      "nj_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 9.825847625732422,
+    "child_reform_rate": 7.1460418701171875,
+    "children_lifted": 57304.71875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -4175493182.5982018,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -2037139781.8840485,
+        "state": 106759.2858467102
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 12,
+    "runtime_s": 270.8,
+    "peak_memory_gb": 9.04
+  },
+  {
+    "state": "NM",
+    "year": 2026,
+    "ids": [
+      "nm_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.55056381225586,
+    "child_reform_rate": 14.54782485961914,
+    "children_lifted": 14.458747863769531,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -29726311.84614849,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 29726295.74132517,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -29726311.84614849
+      }
+    ],
+    "districts": 3,
+    "runtime_s": 122.0,
+    "peak_memory_gb": 3.77
+  },
+  {
+    "state": "NM",
+    "year": 2026,
+    "ids": [
+      "nm_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.55056381225586,
+    "child_reform_rate": 14.55056381225586,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5763335.8865914345,
+    "state_eitc_change": 5763334.950768292,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -5763335.8865914345
+      }
+    ],
+    "districts": 3,
+    "runtime_s": 128.9,
+    "peak_memory_gb": 3.76
+  },
+  {
+    "state": "NM",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.55056381225586,
+    "child_reform_rate": 14.547861099243164,
+    "children_lifted": 14.265177726745605,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -39719936.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 3,
+    "runtime_s": 118.7,
+    "peak_memory_gb": 3.76
+  },
+  {
+    "state": "NM",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.55056381225586,
+    "child_reform_rate": 12.611108779907227,
+    "children_lifted": 10237.44140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -561604608.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 3,
+    "runtime_s": 87.5,
+    "peak_memory_gb": 3.77
+  },
+  {
+    "state": "NM",
+    "year": 2026,
+    "ids": [
+      "nm_ctc",
+      "nm_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 14.55056381225586,
+    "child_reform_rate": 7.2953290939331055,
+    "children_lifted": 38296.86328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1184273239.5337915,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -656280992.3400612,
+        "state": -439.1937303543091
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 3,
+    "runtime_s": 195.7,
+    "peak_memory_gb": 3.69
+  },
+  {
+    "state": "NY",
+    "year": 2026,
+    "ids": [
+      "ny_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.780500411987305,
+    "child_reform_rate": 16.696313858032227,
+    "children_lifted": 4110.982421875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -445780895.79655457,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 445780888.8754449,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -445780895.79655457
+      }
+    ],
+    "districts": 26,
+    "runtime_s": 271.5,
+    "peak_memory_gb": 16.18
+  },
+  {
+    "state": "NY",
+    "year": 2026,
+    "ids": [
+      "ny_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.780500411987305,
+    "child_reform_rate": 16.75327491760254,
+    "children_lifted": 1329.373779296875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -40233169.14035034,
+    "state_eitc_change": 40233157.36571121,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -40233169.14035034
+      }
+    ],
+    "districts": 26,
+    "runtime_s": 292.6,
+    "peak_memory_gb": 16.18
+  },
+  {
+    "state": "NY",
+    "year": 2026,
+    "ids": [
+      "ny_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.780500411987305,
+    "child_reform_rate": 16.82282066345215,
+    "children_lifted": 0.0,
+    "children_entering": 2066.580078125,
+    "total_budgetary_impact": 339923488.11047363,
+    "state_eitc_change": -4705598.291604519,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 26,
+    "runtime_s": 282.7,
+    "peak_memory_gb": 16.18
+  },
+  {
+    "state": "NY",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.780500411987305,
+    "child_reform_rate": 16.738611221313477,
+    "children_lifted": 2045.4755859375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -252108800.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 26,
+    "runtime_s": 279.4,
+    "peak_memory_gb": 16.19
+  },
+  {
+    "state": "NY",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.780500411987305,
+    "child_reform_rate": 14.982403755187988,
+    "children_lifted": 87803.328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -4681998336.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 26,
+    "runtime_s": 229.9,
+    "peak_memory_gb": 16.18
+  },
+  {
+    "state": "NY",
+    "year": 2026,
+    "ids": [
+      "ny_ctc",
+      "ny_eitc",
+      "ny_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 16.780500411987305,
+    "child_reform_rate": 11.744484901428223,
+    "children_lifted": 245915.328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -9826740776.485153,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -4943117414.680298,
+        "state": 53822.19514465332
+      },
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 26,
+    "runtime_s": 461.3,
+    "peak_memory_gb": 15.95
+  },
+  {
+    "state": "OK",
+    "year": 2026,
+    "ids": [
+      "ok_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 13.394986152648926,
+    "child_reform_rate": 13.288283348083496,
+    "children_lifted": 1084.684814453125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -16739887.127242088,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 9969895.034341797,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -16739887.127242088
+      }
+    ],
+    "districts": 5,
+    "runtime_s": 159.3,
+    "peak_memory_gb": 5.06
+  },
+  {
+    "state": "OK",
+    "year": 2026,
+    "ids": [
+      "ok_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 13.394986152648926,
+    "child_reform_rate": 13.288590431213379,
+    "children_lifted": 1081.5528564453125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -6803317.758602142,
+    "state_eitc_change": 6803319.478821561,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -6803317.758602142
+      }
+    ],
+    "districts": 5,
+    "runtime_s": 172.4,
+    "peak_memory_gb": 5.05
+  },
+  {
+    "state": "OK",
+    "year": 2026,
+    "ids": [
+      "ok_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 13.394986152648926,
+    "child_reform_rate": 13.395328521728516,
+    "children_lifted": 0.0,
+    "children_entering": 3.4867727756500244,
+    "total_budgetary_impact": 39904852.20870876,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 5,
+    "runtime_s": 156.3,
+    "peak_memory_gb": 5.06
+  },
+  {
+    "state": "OK",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 13.394986152648926,
+    "child_reform_rate": 13.332526206970215,
+    "children_lifted": 634.927734375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -70072320.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 5,
+    "runtime_s": 155.1,
+    "peak_memory_gb": 5.05
+  },
+  {
+    "state": "OK",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 13.394986152648926,
+    "child_reform_rate": 11.839126586914062,
+    "children_lifted": 15815.935546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1160804352.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 5,
+    "runtime_s": 138.8,
+    "peak_memory_gb": 5.06
+  },
+  {
+    "state": "OK",
+    "year": 2026,
+    "ids": [
+      "ok_ctc",
+      "ok_eitc",
+      "ok_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 13.394986152648926,
+    "child_reform_rate": 10.361383438110352,
+    "children_lifted": 30837.7734375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2258787292.843604,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 46889352.23307101,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1222563259.562315,
+        "state": -19623457.2812891
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 5,
+    "runtime_s": 259.3,
+    "peak_memory_gb": 4.92
+  },
+  {
+    "state": "OR",
+    "year": 2026,
+    "ids": [
+      "or_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.14555549621582,
+    "child_reform_rate": 15.137505531311035,
+    "children_lifted": 73.2950439453125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -13946907.891599655,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 13946908.227172956,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -13946907.891599655
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 159.6,
+    "peak_memory_gb": 5.71
+  },
+  {
+    "state": "OR",
+    "year": 2026,
+    "ids": [
+      "or_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.14555549621582,
+    "child_reform_rate": 15.104673385620117,
+    "children_lifted": 372.2020263671875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5474795.405653,
+    "state_eitc_change": 5474795.709312946,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -5474795.405653
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 160.1,
+    "peak_memory_gb": 5.7
+  },
+  {
+    "state": "OR",
+    "year": 2026,
+    "ids": [
+      "or_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.14555549621582,
+    "child_reform_rate": 15.190045356750488,
+    "children_lifted": 0.0,
+    "children_entering": 405.092529296875,
+    "total_budgetary_impact": 171589500.27056122,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 148.3,
+    "peak_memory_gb": 5.71
+  },
+  {
+    "state": "OR",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.14555549621582,
+    "child_reform_rate": 15.099343299865723,
+    "children_lifted": 420.7413330078125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -77441024.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 168.1,
+    "peak_memory_gb": 5.71
+  },
+  {
+    "state": "OR",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.14555549621582,
+    "child_reform_rate": 10.359054565429688,
+    "children_lifted": 43580.37890625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -928567296.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 142.5,
+    "peak_memory_gb": 5.71
+  },
+  {
+    "state": "OR",
+    "year": 2026,
+    "ids": [
+      "or_ctc",
+      "or_eitc",
+      "or_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 15.14555549621582,
+    "child_reform_rate": 9.816774368286133,
+    "children_lifted": 48517.765625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1971036468.89118,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1076993834.6377068,
+        "state": 16662005.746526718
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 226.7,
+    "peak_memory_gb": 5.55
+  },
+  {
+    "state": "RI",
+    "year": 2026,
+    "ids": [
+      "ri_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.301885604858398,
+    "child_reform_rate": 12.301885604858398,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1852624.1221375465,
+    "state_eitc_change": 1852624.172940351,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -1852624.1221375465
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 118.3,
+    "peak_memory_gb": 3.04
+  },
+  {
+    "state": "RI",
+    "year": 2026,
+    "ids": [
+      "ri_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.301885604858398,
+    "child_reform_rate": 12.33481216430664,
+    "children_lifted": 0.0,
+    "children_entering": 78.11115264892578,
+    "total_budgetary_impact": 39566667.634934425,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 100.1,
+    "peak_memory_gb": 3.04
+  },
+  {
+    "state": "RI",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.301885604858398,
+    "child_reform_rate": 12.301885604858398,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -16980480.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 74.4,
+    "peak_memory_gb": 3.04
+  },
+  {
+    "state": "RI",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.301885604858398,
+    "child_reform_rate": 9.719269752502441,
+    "children_lifted": 6126.75341796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -239880704.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 97.9,
+    "peak_memory_gb": 3.04
+  },
+  {
+    "state": "RI",
+    "year": 2026,
+    "ids": [
+      "ri_eitc",
+      "ri_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 12.301885604858398,
+    "child_reform_rate": 4.952420234680176,
+    "children_lifted": 17435.177734375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -473372390.1046543,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -236093158.1046543,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 170.7,
+    "peak_memory_gb": 2.99
+  },
+  {
+    "state": "VT",
+    "year": 2026,
+    "ids": [
+      "vt_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.306453704833984,
+    "child_reform_rate": 10.306453704833984,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -9760390.272010088,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 9760390.249281138,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -9760390.272010088
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 106.0,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "VT",
+    "year": 2026,
+    "ids": [
+      "vt_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.306453704833984,
+    "child_reform_rate": 10.306453704833984,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -740662.1705708504,
+    "state_eitc_change": 740662.3122061267,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -740662.1705708504
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 102.7,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "VT",
+    "year": 2026,
+    "ids": [
+      "vt_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.306453704833984,
+    "child_reform_rate": 10.306453704833984,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": 27413624.9814198,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 115.4,
+    "peak_memory_gb": 2.75
+  },
+  {
+    "state": "VT",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.306453704833984,
+    "child_reform_rate": 10.306453704833984,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8441344.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 73.4,
+    "peak_memory_gb": 2.74
+  },
+  {
+    "state": "VT",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.306453704833984,
+    "child_reform_rate": 10.21630859375,
+    "children_lifted": 117.6659164428711,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -137642240.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 106.8,
+    "peak_memory_gb": 2.74
+  },
+  {
+    "state": "VT",
+    "year": 2026,
+    "ids": [
+      "vt_ctc",
+      "vt_eitc",
+      "vt_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 10.306453704833984,
+    "child_reform_rate": 9.625303268432617,
+    "children_lifted": 889.1005249023438,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -254848580.34892988,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -124312644.34892988,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 181.6,
+    "peak_memory_gb": 2.7
+  },
+  {
+    "state": "DE",
+    "year": 2026,
+    "ids": [
+      "de_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 24.068614959716797,
+    "child_reform_rate": 24.068614959716797,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -824082.67466259,
+    "state_eitc_change": 824083.0194574445,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -824082.67466259
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 107.4,
+    "peak_memory_gb": 3.08
+  },
+  {
+    "state": "DE",
+    "year": 2026,
+    "ids": [
+      "de_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 24.068614959716797,
+    "child_reform_rate": 24.068614959716797,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": 12057509.15694809,
+    "state_eitc_change": 2153023.4332905933,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 12057509.15694809
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 105.0,
+    "peak_memory_gb": 3.08
+  },
+  {
+    "state": "DE",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 24.068614959716797,
+    "child_reform_rate": 22.243459701538086,
+    "children_lifted": 4371.341796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -11594752.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 119.0,
+    "peak_memory_gb": 3.08
+  },
+  {
+    "state": "DE",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 24.068614959716797,
+    "child_reform_rate": 18.6527156829834,
+    "children_lifted": 12971.35546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -235903488.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 104.2,
+    "peak_memory_gb": 3.08
+  },
+  {
+    "state": "DE",
+    "year": 2026,
+    "ids": [
+      "de_eitc",
+      "de_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 24.068614959716797,
+    "child_reform_rate": 13.267154693603516,
+    "children_lifted": 25870.05078125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -522574829.1766405,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -283068909.1766405,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 139.7,
+    "peak_memory_gb": 3.02
+  },
+  {
+    "state": "HI",
+    "year": 2026,
+    "ids": [
+      "hi_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.511928081512451,
+    "child_reform_rate": 7.511928081512451,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2099626.1267461777,
+    "state_eitc_change": 2099626.8400536478,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -2099626.1267461777
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 78.1,
+    "peak_memory_gb": 3.45
+  },
+  {
+    "state": "HI",
+    "year": 2026,
+    "ids": [
+      "hi_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.511928081512451,
+    "child_reform_rate": 7.529748916625977,
+    "children_lifted": 0.0,
+    "children_entering": 57.79795837402344,
+    "total_budgetary_impact": 18668215.71635008,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 104.4,
+    "peak_memory_gb": 3.45
+  },
+  {
+    "state": "HI",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.511928081512451,
+    "child_reform_rate": 6.4686737060546875,
+    "children_lifted": 3383.465087890625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -149927936.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 106.0,
+    "peak_memory_gb": 3.45
+  },
+  {
+    "state": "HI",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.511928081512451,
+    "child_reform_rate": 5.685956001281738,
+    "children_lifted": 5921.96142578125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -324328448.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 117.4,
+    "peak_memory_gb": 3.44
+  },
+  {
+    "state": "HI",
+    "year": 2026,
+    "ids": [
+      "hi_eitc",
+      "hi_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 7.511928081512451,
+    "child_reform_rate": 2.5487871170043945,
+    "children_lifted": 16096.37890625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -652732985.0052795,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -328398393.00527954,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 170.8,
+    "peak_memory_gb": 3.38
+  },
+  {
+    "state": "IN",
+    "year": 2026,
+    "ids": [
+      "in_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.674666404724121,
+    "child_reform_rate": 9.674100875854492,
+    "children_lifted": 10.045372009277344,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -13304114.83664608,
+    "state_eitc_change": 13304112.620846123,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -13304114.83664608
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 199.4,
+    "peak_memory_gb": 7.53
+  },
+  {
+    "state": "IN",
+    "year": 2026,
+    "ids": [
+      "in_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.674666404724121,
+    "child_reform_rate": 9.709882736206055,
+    "children_lifted": 0.0,
+    "children_entering": 626.5548095703125,
+    "total_budgetary_impact": 51499601.007884026,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 192.7,
+    "peak_memory_gb": 7.53
+  },
+  {
+    "state": "IN",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.674666404724121,
+    "child_reform_rate": 9.660991668701172,
+    "children_lifted": 243.29275512695312,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -139563008.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 188.9,
+    "peak_memory_gb": 7.53
+  },
+  {
+    "state": "IN",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.674666404724121,
+    "child_reform_rate": 9.290061950683594,
+    "children_lifted": 6842.69140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1780039680.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 148.1,
+    "peak_memory_gb": 7.54
+  },
+  {
+    "state": "IN",
+    "year": 2026,
+    "ids": [
+      "in_eitc",
+      "in_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 9.674666404724121,
+    "child_reform_rate": 7.271462440490723,
+    "children_lifted": 42756.5390625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3543495942.644432,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1764263174.644432,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 241.1,
+    "peak_memory_gb": 7.31
+  },
+  {
+    "state": "IA",
+    "year": 2026,
+    "ids": [
+      "ia_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.531697750091553,
+    "child_reform_rate": 5.531697750091553,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -4710525.870949745,
+    "state_eitc_change": 4710525.263090879,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -4710525.870949745
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 153.5,
+    "peak_memory_gb": 4.93
+  },
+  {
+    "state": "IA",
+    "year": 2026,
+    "ids": [
+      "ia_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.531697750091553,
+    "child_reform_rate": 5.535888195037842,
+    "children_lifted": 0.0,
+    "children_entering": 34.215389251708984,
+    "total_budgetary_impact": 28367885.80951357,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 28367885.80951357
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 200.1,
+    "peak_memory_gb": 4.92
+  },
+  {
+    "state": "IA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.531697750091553,
+    "child_reform_rate": 5.519873142242432,
+    "children_lifted": 96.5353775024414,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -43298816.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 203.2,
+    "peak_memory_gb": 4.93
+  },
+  {
+    "state": "IA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.531697750091553,
+    "child_reform_rate": 5.024118900299072,
+    "children_lifted": 4143.9658203125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -846213120.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 194.1,
+    "peak_memory_gb": 4.93
+  },
+  {
+    "state": "IA",
+    "year": 2026,
+    "ids": [
+      "ia_eitc",
+      "ia_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 5.531697750091553,
+    "child_reform_rate": 4.474671363830566,
+    "children_lifted": 8629.7666015625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1622183414.6424718,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -805721054.1430244,
+        "state": -12824.499447345734
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 280.3,
+    "peak_memory_gb": 4.81
+  },
+  {
+    "state": "KS",
+    "year": 2026,
+    "ids": [
+      "ks_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.134774208068848,
+    "child_reform_rate": 11.134774208068848,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -4855184.193259239,
+    "state_eitc_change": 4855184.450420871,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -4855184.193259239
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 136.2,
+    "peak_memory_gb": 4.44
+  },
+  {
+    "state": "KS",
+    "year": 2026,
+    "ids": [
+      "ks_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.134774208068848,
+    "child_reform_rate": 11.160353660583496,
+    "children_lifted": 0.0,
+    "children_entering": 199.49346923828125,
+    "total_budgetary_impact": 92247874.33046722,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 164.9,
+    "peak_memory_gb": 4.44
+  },
+  {
+    "state": "KS",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.134774208068848,
+    "child_reform_rate": 11.113682746887207,
+    "children_lifted": 164.49398803710938,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -52250624.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 152.5,
+    "peak_memory_gb": 4.43
+  },
+  {
+    "state": "KS",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.134774208068848,
+    "child_reform_rate": 11.030767440795898,
+    "children_lifted": 811.168212890625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -818227200.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 147.3,
+    "peak_memory_gb": 4.43
+  },
+  {
+    "state": "KS",
+    "year": 2026,
+    "ids": [
+      "ks_eitc",
+      "ks_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 11.134774208068848,
+    "child_reform_rate": 4.38013219833374,
+    "children_lifted": 52680.93359375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1643829206.6890888,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -863868886.6890888,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 223.4,
+    "peak_memory_gb": 4.33
+  },
+  {
+    "state": "LA",
+    "year": 2026,
+    "ids": [
+      "la_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.638327598571777,
+    "child_reform_rate": 11.635665893554688,
+    "children_lifted": 32.74937438964844,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -16133425.927739143,
+    "state_eitc_change": 16133425.381348059,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -16133425.927739143
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 159.5,
+    "peak_memory_gb": 5.72
+  },
+  {
+    "state": "LA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.638327598571777,
+    "child_reform_rate": 11.632485389709473,
+    "children_lifted": 71.88627624511719,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -152715264.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 148.3,
+    "peak_memory_gb": 5.73
+  },
+  {
+    "state": "LA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 11.638327598571777,
+    "child_reform_rate": 11.127628326416016,
+    "children_lifted": 6284.2333984375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1301395456.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 158.7,
+    "peak_memory_gb": 5.73
+  },
+  {
+    "state": "LA",
+    "year": 2026,
+    "ids": [
+      "la_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 11.638327598571777,
+    "child_reform_rate": 6.789536952972412,
+    "children_lifted": 59665.1328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2706106315.2335434,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1475547083.2335434,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 241.3,
+    "peak_memory_gb": 5.57
+  },
+  {
+    "state": "ME",
+    "year": 2026,
+    "ids": [
+      "me_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.316906929016113,
+    "child_reform_rate": 7.3169050216674805,
+    "children_lifted": 0.0043892450630664825,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -30960785.419117928,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 30960784.77696599,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 102.2,
+    "peak_memory_gb": 3.36
+  },
+  {
+    "state": "ME",
+    "year": 2026,
+    "ids": [
+      "me_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.316906929016113,
+    "child_reform_rate": 7.316906929016113,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1779698.7677841187,
+    "state_eitc_change": 1779698.0087227374,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -1779698.7677841187
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 117.6,
+    "peak_memory_gb": 3.37
+  },
+  {
+    "state": "ME",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.316906929016113,
+    "child_reform_rate": 7.316906929016113,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -21432320.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 99.5,
+    "peak_memory_gb": 3.37
+  },
+  {
+    "state": "ME",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.316906929016113,
+    "child_reform_rate": 7.1138105392456055,
+    "children_lifted": 564.34716796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -282984448.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 110.1,
+    "peak_memory_gb": 3.36
+  },
+  {
+    "state": "ME",
+    "year": 2026,
+    "ids": [
+      "me_ctc",
+      "me_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 7.316906929016113,
+    "child_reform_rate": 4.570742130279541,
+    "children_lifted": 7630.87060546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -565259485.1071372,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -287351022.07123184,
+        "state": -7151.0359053611755
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 197.9,
+    "peak_memory_gb": 3.3
+  },
+  {
+    "state": "MI",
+    "year": 2026,
+    "ids": [
+      "mi_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.842528343200684,
+    "child_reform_rate": 9.833146095275879,
+    "children_lifted": 212.2718963623047,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -20448921.90893364,
+    "state_eitc_change": 20448930.731140494,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -20448921.90893364
+      }
+    ],
+    "districts": 13,
+    "runtime_s": 209.0,
+    "peak_memory_gb": 10.09
+  },
+  {
+    "state": "MI",
+    "year": 2026,
+    "ids": [
+      "mi_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.842528343200684,
+    "child_reform_rate": 10.052314758300781,
+    "children_lifted": 0.0,
+    "children_entering": 4745.927734375,
+    "total_budgetary_impact": 529523773.636631,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 13,
+    "runtime_s": 214.8,
+    "peak_memory_gb": 10.1
+  },
+  {
+    "state": "MI",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.842528343200684,
+    "child_reform_rate": 9.830657005310059,
+    "children_lifted": 268.58251953125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -177217536.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 13,
+    "runtime_s": 251.2,
+    "peak_memory_gb": 10.1
+  },
+  {
+    "state": "MI",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.842528343200684,
+    "child_reform_rate": 6.927525997161865,
+    "children_lifted": 65945.328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2359427072.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 13,
+    "runtime_s": 221.2,
+    "peak_memory_gb": 10.1
+  },
+  {
+    "state": "MI",
+    "year": 2026,
+    "ids": [
+      "mi_eitc",
+      "mi_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 9.842528343200684,
+    "child_reform_rate": 3.622310161590576,
+    "children_lifted": 140718.375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -4637817248.403679,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -2375416224.403679,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 13,
+    "runtime_s": 341.0,
+    "peak_memory_gb": 9.77
+  },
+  {
+    "state": "MO",
+    "year": 2026,
+    "ids": [
+      "mo_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.86932373046875,
+    "child_reform_rate": 12.311896324157715,
+    "children_lifted": 69559.9765625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -219174404.96821213,
+    "state_eitc_change": 219174406.56397426,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -219174404.96821213
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 192.7,
+    "peak_memory_gb": 6.94
+  },
+  {
+    "state": "MO",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.86932373046875,
+    "child_reform_rate": 16.862627029418945,
+    "children_lifted": 102.21004486083984,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -112713728.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 219.9,
+    "peak_memory_gb": 6.94
+  },
+  {
+    "state": "MO",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.86932373046875,
+    "child_reform_rate": 11.934699058532715,
+    "children_lifted": 75317.140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1635598336.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 193.3,
+    "peak_memory_gb": 6.93
+  },
+  {
+    "state": "MO",
+    "year": 2026,
+    "ids": [
+      "mo_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 16.86932373046875,
+    "child_reform_rate": 3.943030595779419,
+    "children_lifted": 197293.953125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3237767464.7670755,
+    "state_eitc_change": -437417.0587686822,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1706169136.3784065,
+        "state": -5084664.388669014
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 267.5,
+    "peak_memory_gb": 6.72
+  },
+  {
+    "state": "MT",
+    "year": 2026,
+    "ids": [
+      "mt_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 4.875868320465088,
+    "child_reform_rate": 4.875868320465088,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1610843.2101364136,
+    "state_eitc_change": 1618152.537656121,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -1610843.2101364136
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 115.9,
+    "peak_memory_gb": 3.12
+  },
+  {
+    "state": "MT",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 4.875868320465088,
+    "child_reform_rate": 4.875868320465088,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -11000320.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 121.1,
+    "peak_memory_gb": 3.12
+  },
+  {
+    "state": "MT",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 4.875868320465088,
+    "child_reform_rate": 4.51698112487793,
+    "children_lifted": 942.3963623046875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -243576320.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 126.1,
+    "peak_memory_gb": 3.13
+  },
+  {
+    "state": "MT",
+    "year": 2026,
+    "ids": [
+      "mt_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 4.875868320465088,
+    "child_reform_rate": 3.810711145401001,
+    "children_lifted": 2796.982666015625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -509889750.61442566,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -247277782.61442566,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 191.4,
+    "peak_memory_gb": 3.07
+  },
+  {
+    "state": "NE",
+    "year": 2026,
+    "ids": [
+      "ne_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.4803853034973145,
+    "child_reform_rate": 7.4803853034973145,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3020573.8224191666,
+    "state_eitc_change": 3020574.69449649,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -3020573.8224191666
+      }
+    ],
+    "districts": 3,
+    "runtime_s": 135.1,
+    "peak_memory_gb": 3.83
+  },
+  {
+    "state": "NE",
+    "year": 2026,
+    "ids": [
+      "ne_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.4803853034973145,
+    "child_reform_rate": 7.49212121963501,
+    "children_lifted": 0.0,
+    "children_entering": 62.40789031982422,
+    "total_budgetary_impact": 82181568.34299946,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 3,
+    "runtime_s": 159.6,
+    "peak_memory_gb": 3.84
+  },
+  {
+    "state": "NE",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.4803853034973145,
+    "child_reform_rate": 7.4803853034973145,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -27753472.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 3,
+    "runtime_s": 153.4,
+    "peak_memory_gb": 3.84
+  },
+  {
+    "state": "NE",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.4803853034973145,
+    "child_reform_rate": 7.331263065338135,
+    "children_lifted": 793.0076293945312,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -502113280.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 3,
+    "runtime_s": 137.7,
+    "peak_memory_gb": 3.83
+  },
+  {
+    "state": "NE",
+    "year": 2026,
+    "ids": [
+      "ne_eitc",
+      "ne_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 7.4803853034973145,
+    "child_reform_rate": 2.6787149906158447,
+    "children_lifted": 25534.595703125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1084399159.7471967,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -552406381.126709,
+        "state": -118986.62048768997
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 3,
+    "runtime_s": 184.0,
+    "peak_memory_gb": 3.76
+  },
+  {
+    "state": "OH",
+    "year": 2026,
+    "ids": [
+      "oh_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.367110252380371,
+    "child_reform_rate": 7.620441913604736,
+    "children_lifted": 49142.3984375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -649287329.3174171,
+    "state_eitc_change": 649416120.7009664,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -649287329.3174171
+      }
+    ],
+    "districts": 15,
+    "runtime_s": 263.3,
+    "peak_memory_gb": 11.57
+  },
+  {
+    "state": "OH",
+    "year": 2026,
+    "ids": [
+      "oh_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.367110252380371,
+    "child_reform_rate": 9.367110252380371,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": 87895462.74040985,
+    "state_eitc_change": 31230751.103127196,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 15,
+    "runtime_s": 277.3,
+    "peak_memory_gb": 11.58
+  },
+  {
+    "state": "OH",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.367110252380371,
+    "child_reform_rate": 9.34100341796875,
+    "children_lifted": 734.52685546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -175972352.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 15,
+    "runtime_s": 260.5,
+    "peak_memory_gb": 11.58
+  },
+  {
+    "state": "OH",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.367110252380371,
+    "child_reform_rate": 7.079903602600098,
+    "children_lifted": 64350.4140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2969427968.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 15,
+    "runtime_s": 278.8,
+    "peak_memory_gb": 11.58
+  },
+  {
+    "state": "OH",
+    "year": 2026,
+    "ids": [
+      "oh_eitc",
+      "oh_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 9.367110252380371,
+    "child_reform_rate": 5.021866798400879,
+    "children_lifted": 122253.1484375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5903214531.034874,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -3089582019.034874,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 15,
+    "runtime_s": 374.1,
+    "peak_memory_gb": 11.19
+  },
+  {
+    "state": "PA",
+    "year": 2026,
+    "ids": [
+      "pa_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.470521926879883,
+    "child_reform_rate": 14.469328880310059,
+    "children_lifted": 35.162254333496094,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -21894477.597515106,
+    "state_eitc_change": 21894478.97071004,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -21894477.597515106
+      }
+    ],
+    "districts": 17,
+    "runtime_s": 292.7,
+    "peak_memory_gb": 12.51
+  },
+  {
+    "state": "PA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.470521926879883,
+    "child_reform_rate": 14.468457221984863,
+    "children_lifted": 60.845001220703125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -244703232.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 17,
+    "runtime_s": 271.0,
+    "peak_memory_gb": 12.5
+  },
+  {
+    "state": "PA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.470521926879883,
+    "child_reform_rate": 12.933521270751953,
+    "children_lifted": 45299.28515625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3071188992.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 17,
+    "runtime_s": 308.4,
+    "peak_memory_gb": 12.51
+  },
+  {
+    "state": "PA",
+    "year": 2026,
+    "ids": [
+      "pa_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 14.470521926879883,
+    "child_reform_rate": 10.140921592712402,
+    "children_lifted": 127604.25,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5951391359.602234,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -3003942527.602234,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 17,
+    "runtime_s": 489.1,
+    "peak_memory_gb": 12.07
+  },
+  {
+    "state": "SC",
+    "year": 2026,
+    "ids": [
+      "sc_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.475754737854004,
+    "child_reform_rate": 8.106112480163574,
+    "children_lifted": 31271.611328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1639774116.8137693,
+    "state_eitc_change": 1639916257.942845,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -1639774116.8137693
+      }
+    ],
+    "districts": 7,
+    "runtime_s": 217.9,
+    "peak_memory_gb": 6.64
+  },
+  {
+    "state": "SC",
+    "year": 2026,
+    "ids": [
+      "sc_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.475754737854004,
+    "child_reform_rate": 10.515094757080078,
+    "children_lifted": 0.0,
+    "children_entering": 519.1599731445312,
+    "total_budgetary_impact": 172505787.89626503,
+    "state_eitc_change": 9250591.241774017,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -8545958.114245415
+      }
+    ],
+    "districts": 7,
+    "runtime_s": 298.9,
+    "peak_memory_gb": 6.64
+  },
+  {
+    "state": "SC",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.475754737854004,
+    "child_reform_rate": 10.443948745727539,
+    "children_lifted": 419.73638916015625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -81033216.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 7,
+    "runtime_s": 167.9,
+    "peak_memory_gb": 6.64
+  },
+  {
+    "state": "SC",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.475754737854004,
+    "child_reform_rate": 8.765421867370605,
+    "children_lifted": 22570.859375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1289068544.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 7,
+    "runtime_s": 247.9,
+    "peak_memory_gb": 6.63
+  },
+  {
+    "state": "SC",
+    "year": 2026,
+    "ids": [
+      "sc_eitc",
+      "sc_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 10.475754737854004,
+    "child_reform_rate": 5.914621829986572,
+    "children_lifted": 60192.1953125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2774658286.9185333,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1454918894.9185333,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 7,
+    "runtime_s": 356.7,
+    "peak_memory_gb": 6.45
+  },
+  {
+    "state": "UT",
+    "year": 2026,
+    "ids": [
+      "ut_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 8.465742111206055,
+    "child_reform_rate": 8.43704605102539,
+    "children_lifted": 284.61962890625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -106749965.46602726,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 106749967.48304899,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -106749965.46602726
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 177.9,
+    "peak_memory_gb": 5.06
+  },
+  {
+    "state": "UT",
+    "year": 2026,
+    "ids": [
+      "ut_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 8.465742111206055,
+    "child_reform_rate": 8.356038093566895,
+    "children_lifted": 1088.0572509765625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -75712895.12886906,
+    "state_eitc_change": 75819642.20528404,
+    "state_ctc_change": -104955.34356960654,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -75712895.12886906
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 142.9,
+    "peak_memory_gb": 4.92
+  },
+  {
+    "state": "UT",
+    "year": 2026,
+    "ids": [
+      "ut_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 8.465742111206055,
+    "child_reform_rate": 8.470149993896484,
+    "children_lifted": 0.0,
+    "children_entering": 43.718223571777344,
+    "total_budgetary_impact": 91409243.83491611,
+    "state_eitc_change": 2649159.651876267,
+    "state_ctc_change": 4840460.497568227,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 149.6,
+    "peak_memory_gb": 4.93
+  },
+  {
+    "state": "UT",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 8.465742111206055,
+    "child_reform_rate": 8.459293365478516,
+    "children_lifted": 63.96142578125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -50178048.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 134.8,
+    "peak_memory_gb": 4.93
+  },
+  {
+    "state": "UT",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 8.465742111206055,
+    "child_reform_rate": 7.822783470153809,
+    "children_lifted": 6376.94287109375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -991945728.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 147.4,
+    "peak_memory_gb": 4.93
+  },
+  {
+    "state": "UT",
+    "year": 2026,
+    "ids": [
+      "ut_ctc",
+      "ut_eitc",
+      "ut_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 8.465742111206055,
+    "child_reform_rate": 6.794278144836426,
+    "children_lifted": 16577.767578125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1851495446.8297434,
+    "state_eitc_change": -1979.6711219474673,
+    "state_ctc_change": 57.45018599182367,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -859289216.818428,
+        "state": -179606.01131534576
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 225.5,
+    "peak_memory_gb": 4.8
+  },
+  {
+    "state": "VA",
+    "year": 2026,
+    "ids": [
+      "va_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.639999389648438,
+    "child_reform_rate": 15.63413143157959,
+    "children_lifted": 123.51872253417969,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -14715294.278198242,
+    "state_eitc_change": 14715295.014466107,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -14715294.278198242
+      }
+    ],
+    "districts": 11,
+    "runtime_s": 234.2,
+    "peak_memory_gb": 8.59
+  },
+  {
+    "state": "VA",
+    "year": 2026,
+    "ids": [
+      "va_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.639999389648438,
+    "child_reform_rate": 15.660407066345215,
+    "children_lifted": 0.0,
+    "children_entering": 429.5479736328125,
+    "total_budgetary_impact": 95419474.70822906,
+    "state_eitc_change": 3172773.103409052,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 11,
+    "runtime_s": 209.9,
+    "peak_memory_gb": 8.59
+  },
+  {
+    "state": "VA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.639999389648438,
+    "child_reform_rate": 15.634027481079102,
+    "children_lifted": 125.7161865234375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -128401408.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 11,
+    "runtime_s": 180.3,
+    "peak_memory_gb": 8.59
+  },
+  {
+    "state": "VA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.639999389648438,
+    "child_reform_rate": 13.830144882202148,
+    "children_lifted": 38096.05859375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2055233536.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 11,
+    "runtime_s": 215.1,
+    "peak_memory_gb": 8.59
+  },
+  {
+    "state": "VA",
+    "year": 2026,
+    "ids": [
+      "va_eitc",
+      "va_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 15.639999389648438,
+    "child_reform_rate": 9.31656265258789,
+    "children_lifted": 133103.453125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -4360247781.303413,
+    "state_eitc_change": 6857.523446381092,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -2254391825.202942,
+        "state": -860116.1004714966
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 11,
+    "runtime_s": 379.9,
+    "peak_memory_gb": 8.3
+  },
+  {
+    "state": "WA",
+    "year": 2026,
+    "ids": [
+      "wa_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.345243453979492,
+    "child_reform_rate": 14.345243453979492,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": 1411996.5135424137,
+    "state_eitc_change": -1411996.5135421455,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 1411996.5135424137
+      }
+    ],
+    "districts": 10,
+    "runtime_s": 206.6,
+    "peak_memory_gb": 8.58
+  },
+  {
+    "state": "WA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.345243453979492,
+    "child_reform_rate": 14.333356857299805,
+    "children_lifted": 226.24282836914062,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -79003648.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 10,
+    "runtime_s": 195.8,
+    "peak_memory_gb": 8.57
+  },
+  {
+    "state": "WA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.345243453979492,
+    "child_reform_rate": 13.327240943908691,
+    "children_lifted": 19375.748046875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1794678784.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 10,
+    "runtime_s": 177.0,
+    "peak_memory_gb": 8.58
+  },
+  {
+    "state": "WA",
+    "year": 2026,
+    "ids": [
+      "wa_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 14.345243453979492,
+    "child_reform_rate": 10.712127685546875,
+    "children_lifted": 69149.4765625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3873143815.9159546,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1969769479.9159546,
+        "state": 0.0
+      }
+    ],
+    "districts": 10,
+    "runtime_s": 244.2,
+    "peak_memory_gb": 8.31
+  },
+  {
+    "state": "WI",
+    "year": 2026,
+    "ids": [
+      "wi_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.907530307769775,
+    "child_reform_rate": 5.907530307769775,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -7894672.735315323,
+    "state_eitc_change": 7894673.594344586,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -7894672.735315323
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 217.3,
+    "peak_memory_gb": 7.15
+  },
+  {
+    "state": "WI",
+    "year": 2026,
+    "ids": [
+      "wi_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.907530307769775,
+    "child_reform_rate": 5.908425807952881,
+    "children_lifted": 0.0,
+    "children_entering": 12.15604305267334,
+    "total_budgetary_impact": 39107766.63859177,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 206.0,
+    "peak_memory_gb": 7.15
+  },
+  {
+    "state": "WI",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.907530307769775,
+    "child_reform_rate": 5.90453577041626,
+    "children_lifted": 40.64696502685547,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -59740160.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 256.1,
+    "peak_memory_gb": 7.15
+  },
+  {
+    "state": "WI",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 5.907530307769775,
+    "child_reform_rate": 3.9062044620513916,
+    "children_lifted": 27167.466796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1407066112.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 8,
+    "runtime_s": 217.1,
+    "peak_memory_gb": 7.15
+  },
+  {
+    "state": "WI",
+    "year": 2026,
+    "ids": [
+      "wi_eitc",
+      "wi_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 5.907530307769775,
+    "child_reform_rate": 2.3850042819976807,
+    "children_lifted": 47817.359375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2698877132.193001,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1341352140.1930008,
+        "state": 0.0
+      }
+    ],
+    "districts": 8,
+    "runtime_s": 287.6,
+    "peak_memory_gb": 6.95
+  },
+  {
+    "state": "AK",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.132911682128906,
+    "child_reform_rate": 12.132911682128906,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -13462016.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 122.9,
+    "peak_memory_gb": 2.83
+  },
+  {
+    "state": "AK",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 12.132911682128906,
+    "child_reform_rate": 10.48425579071045,
+    "children_lifted": 3368.50244140625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -208224000.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 111.6,
+    "peak_memory_gb": 2.82
+  },
+  {
+    "state": "AK",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 12.132911682128906,
+    "child_reform_rate": 5.259524822235107,
+    "children_lifted": 14043.5625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -426785758.2361088,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -222452190.23610878,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 166.7,
+    "peak_memory_gb": 2.78
+  },
+  {
+    "state": "FL",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 24.826278686523438,
+    "child_reform_rate": 24.809791564941406,
+    "children_lifted": 851.1478271484375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -337289216.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 28,
+    "runtime_s": 326.3,
+    "peak_memory_gb": 18.5
+  },
+  {
+    "state": "FL",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 24.826278686523438,
+    "child_reform_rate": 21.94434928894043,
+    "children_lifted": 148806.40625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5450727424.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 28,
+    "runtime_s": 323.8,
+    "peak_memory_gb": 18.5
+  },
+  {
+    "state": "FL",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 24.826278686523438,
+    "child_reform_rate": 17.407550811767578,
+    "children_lifted": 383060.28125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -11308466892.483398,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -6144901836.483398,
+        "state": 0.0
+      }
+    ],
+    "districts": 28,
+    "runtime_s": 337.3,
+    "peak_memory_gb": 17.85
+  },
+  {
+    "state": "NV",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.690839767456055,
+    "child_reform_rate": 13.836532592773438,
+    "children_lifted": 6501.505859375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -45948928.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 124.2,
+    "peak_memory_gb": 4.55
+  },
+  {
+    "state": "NV",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.690839767456055,
+    "child_reform_rate": 12.70888614654541,
+    "children_lifted": 15083.208984375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -784647168.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 140.2,
+    "peak_memory_gb": 4.55
+  },
+  {
+    "state": "NV",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 14.690839767456055,
+    "child_reform_rate": 8.357894897460938,
+    "children_lifted": 48195.3671875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1599489662.8677635,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -838435454.8677635,
+        "state": 0.0
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 186.0,
+    "peak_memory_gb": 4.44
+  },
+  {
+    "state": "SD",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 6.7138752937316895,
+    "child_reform_rate": 6.7138752937316895,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -21006080.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 119.8,
+    "peak_memory_gb": 3.02
+  },
+  {
+    "state": "SD",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 6.7138752937316895,
+    "child_reform_rate": 5.358550071716309,
+    "children_lifted": 3281.333251953125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -224626432.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 116.0,
+    "peak_memory_gb": 3.04
+  },
+  {
+    "state": "SD",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 6.7138752937316895,
+    "child_reform_rate": 4.108426094055176,
+    "children_lifted": 6307.96484375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -453088237.55858994,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -210951917.55858994,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 151.1,
+    "peak_memory_gb": 2.98
+  },
+  {
+    "state": "TN",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 19.425506591796875,
+    "child_reform_rate": 18.708168029785156,
+    "children_lifted": 12748.85546875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -145795072.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 221.0,
+    "peak_memory_gb": 7.46
+  },
+  {
+    "state": "TN",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 19.425506591796875,
+    "child_reform_rate": 16.022781372070312,
+    "children_lifted": 60474.74609375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1866166272.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 199.2,
+    "peak_memory_gb": 7.46
+  },
+  {
+    "state": "TN",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 19.425506591796875,
+    "child_reform_rate": 11.6917724609375,
+    "children_lifted": 137447.25,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3810646236.1768265,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -2033144028.1768265,
+        "state": 0.0
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 305.0,
+    "peak_memory_gb": 7.22
+  },
+  {
+    "state": "TX",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.019933700561523,
+    "child_reform_rate": 15.98354434967041,
+    "children_lifted": 3012.83056640625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -369737728.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 38,
+    "runtime_s": 380.1,
+    "peak_memory_gb": 22.54
+  },
+  {
+    "state": "TX",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.019933700561523,
+    "child_reform_rate": 14.420344352722168,
+    "children_lifted": 132439.96875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8350294016.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 38,
+    "runtime_s": 463.0,
+    "peak_memory_gb": 22.54
+  },
+  {
+    "state": "TX",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 16.019933700561523,
+    "child_reform_rate": 11.195838928222656,
+    "children_lifted": 399417.3125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -17223952490.266052,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -8943700074.266052,
+        "state": 0.0
+      }
+    ],
+    "districts": 38,
+    "runtime_s": 481.7,
+    "peak_memory_gb": 21.66
+  },
+  {
+    "state": "WY",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.329740524291992,
+    "child_reform_rate": 9.27298355102539,
+    "children_lifted": 82.74951171875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8540416.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 98.2,
+    "peak_memory_gb": 2.74
+  },
+  {
+    "state": "WY",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.329740524291992,
+    "child_reform_rate": 7.81532621383667,
+    "children_lifted": 2207.96630859375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -135477248.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 108.1,
+    "peak_memory_gb": 2.74
+  },
+  {
+    "state": "WY",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 9.329740524291992,
+    "child_reform_rate": 6.09841775894165,
+    "children_lifted": 4711.1611328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -273484573.0003309,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -127685917.00033092,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 156.4,
+    "peak_memory_gb": 2.7
+  },
+  {
+    "state": "AL",
+    "year": 2026,
+    "ids": [
+      "al_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.151151657104492,
+    "child_reform_rate": 16.144498825073242,
+    "children_lifted": 85.52925872802734,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -14518648.188180923,
+    "state_eitc_change": 14518649.616526665,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -14518648.188180923
+      }
+    ],
+    "districts": 7,
+    "runtime_s": 191.1,
+    "peak_memory_gb": 6.07
+  },
+  {
+    "state": "AL",
+    "year": 2026,
+    "ids": [
+      "al_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.151151657104492,
+    "child_reform_rate": 16.16292381286621,
+    "children_lifted": 0.0,
+    "children_entering": 151.35577392578125,
+    "total_budgetary_impact": 40172472.737335205,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 7,
+    "runtime_s": 170.1,
+    "peak_memory_gb": 6.08
+  },
+  {
+    "state": "AL",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.151151657104492,
+    "child_reform_rate": 16.14754867553711,
+    "children_lifted": 46.34639358520508,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -102606848.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 7,
+    "runtime_s": 191.0,
+    "peak_memory_gb": 6.07
+  },
+  {
+    "state": "AL",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 16.151151657104492,
+    "child_reform_rate": 13.5391845703125,
+    "children_lifted": 33583.98046875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1422080000.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 7,
+    "runtime_s": 179.9,
+    "peak_memory_gb": 6.07
+  },
+  {
+    "state": "AL",
+    "year": 2026,
+    "ids": [
+      "al_eitc",
+      "al_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 16.151151657104492,
+    "child_reform_rate": 10.709501266479492,
+    "children_lifted": 69967.296875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2919507685.786188,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1646326627.6013489,
+        "state": 12741757.815160751
+      }
+    ],
+    "districts": 7,
+    "runtime_s": 178.3,
+    "peak_memory_gb": 5.89
+  },
+  {
+    "state": "AZ",
+    "year": 2026,
+    "ids": [
+      "az_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.38787078857422,
+    "child_reform_rate": 17.38787078857422,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -14925731.773833275,
+    "state_eitc_change": 14925731.308226412,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -14925731.773833275
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 157.9,
+    "peak_memory_gb": 7.63
+  },
+  {
+    "state": "AZ",
+    "year": 2026,
+    "ids": [
+      "az_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.38787078857422,
+    "child_reform_rate": 17.4371280670166,
+    "children_lifted": 0.0,
+    "children_entering": 889.559814453125,
+    "total_budgetary_impact": 153545810.70394516,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": -153546490.56781426,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 153545810.70394516
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 156.8,
+    "peak_memory_gb": 7.62
+  },
+  {
+    "state": "AZ",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.38787078857422,
+    "child_reform_rate": 17.38787078857422,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -86712320.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 151.3,
+    "peak_memory_gb": 7.63
+  },
+  {
+    "state": "AZ",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 17.38787078857422,
+    "child_reform_rate": 13.203380584716797,
+    "children_lifted": 75573.328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1918763008.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 9,
+    "runtime_s": 150.0,
+    "peak_memory_gb": 7.62
+  },
+  {
+    "state": "AZ",
+    "year": 2026,
+    "ids": [
+      "az_eitc",
+      "az_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 17.38787078857422,
+    "child_reform_rate": 7.357433319091797,
+    "children_lifted": 181153.125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3887410215.37442,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -2081287207.3744202,
+        "state": 0.0
+      }
+    ],
+    "districts": 9,
+    "runtime_s": 214.7,
+    "peak_memory_gb": 7.38
+  },
+  {
+    "state": "AR",
+    "year": 2026,
+    "ids": [
+      "ar_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 6.992536544799805,
+    "child_reform_rate": 6.9890289306640625,
+    "children_lifted": 27.90958023071289,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -8254598.267492771,
+    "state_eitc_change": 8254598.301956824,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -8254598.267492771
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 157.8,
+    "peak_memory_gb": 4.84
+  },
+  {
+    "state": "AR",
+    "year": 2026,
+    "ids": [
+      "ar_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 6.992536544799805,
+    "child_reform_rate": 6.993328094482422,
+    "children_lifted": 0.0,
+    "children_entering": 6.296939373016357,
+    "total_budgetary_impact": 20102596.798251152,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 20102596.798251152
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 127.2,
+    "peak_memory_gb": 4.85
+  },
+  {
+    "state": "AR",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 6.992536544799805,
+    "child_reform_rate": 6.964105606079102,
+    "children_lifted": 226.22149658203125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -66608128.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 147.2,
+    "peak_memory_gb": 4.85
+  },
+  {
+    "state": "AR",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 6.992536544799805,
+    "child_reform_rate": 5.63267183303833,
+    "children_lifted": 10820.2001953125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -844821504.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 140.8,
+    "peak_memory_gb": 4.84
+  },
+  {
+    "state": "AR",
+    "year": 2026,
+    "ids": [
+      "ar_eitc",
+      "ar_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 6.992536544799805,
+    "child_reform_rate": 4.210658550262451,
+    "children_lifted": 22134.912109375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1722653100.7811909,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -926933420.7811909,
+        "state": 0.0
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 205.4,
+    "peak_memory_gb": 4.73
+  },
+  {
+    "state": "KY",
+    "year": 2026,
+    "ids": [
+      "ky_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.700128555297852,
+    "child_reform_rate": 9.675854682922363,
+    "children_lifted": 288.11724853515625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -10218936.538489342,
+    "state_eitc_change": 10218936.457510851,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -10218936.538489342
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 182.0,
+    "peak_memory_gb": 5.66
+  },
+  {
+    "state": "KY",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.700128555297852,
+    "child_reform_rate": 9.675640106201172,
+    "children_lifted": 290.6630554199219,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -72404992.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 181.3,
+    "peak_memory_gb": 5.66
+  },
+  {
+    "state": "KY",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 9.700128555297852,
+    "child_reform_rate": 9.27872085571289,
+    "children_lifted": 5002.08984375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1289670656.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 6,
+    "runtime_s": 174.9,
+    "peak_memory_gb": 5.66
+  },
+  {
+    "state": "KY",
+    "year": 2026,
+    "ids": [
+      "ky_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 9.700128555297852,
+    "child_reform_rate": 6.831668853759766,
+    "children_lifted": 34048.453125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2542957830.517193,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1355916550.5171928,
+        "state": 0.0
+      }
+    ],
+    "districts": 6,
+    "runtime_s": 220.7,
+    "peak_memory_gb": 5.49
+  },
+  {
+    "state": "MS",
+    "year": 2026,
+    "ids": [
+      "ms_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.319196701049805,
+    "child_reform_rate": 14.373178482055664,
+    "children_lifted": 7772.154296875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -11334601.946219206,
+    "state_eitc_change": 11334602.09299866,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -11334601.946219206
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 175.8,
+    "peak_memory_gb": 4.57
+  },
+  {
+    "state": "MS",
+    "year": 2026,
+    "ids": [
+      "ms_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.319196701049805,
+    "child_reform_rate": 15.319196701049805,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": 39978696.94120526,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 158.2,
+    "peak_memory_gb": 4.57
+  },
+  {
+    "state": "MS",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.319196701049805,
+    "child_reform_rate": 15.291020393371582,
+    "children_lifted": 231.49526977539062,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -60243968.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 144.5,
+    "peak_memory_gb": 4.57
+  },
+  {
+    "state": "MS",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.319196701049805,
+    "child_reform_rate": 11.265548706054688,
+    "children_lifted": 33303.3984375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -908132352.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 4,
+    "runtime_s": 181.2,
+    "peak_memory_gb": 4.57
+  },
+  {
+    "state": "MS",
+    "year": 2026,
+    "ids": [
+      "ms_eitc",
+      "ms_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 15.319196701049805,
+    "child_reform_rate": 8.724198341369629,
+    "children_lifted": 54182.25,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -1848887489.8543472,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -1027241153.8543472,
+        "state": 0.0
+      }
+    ],
+    "districts": 4,
+    "runtime_s": 190.1,
+    "peak_memory_gb": 4.45
+  },
+  {
+    "state": "NC",
+    "year": 2026,
+    "ids": [
+      "nc_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.974498748779297,
+    "child_reform_rate": 14.954657554626465,
+    "children_lifted": 505.95086669921875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -24048585.49015999,
+    "state_eitc_change": 24048585.310530983,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -24048585.49015999
+      }
+    ],
+    "districts": 14,
+    "runtime_s": 236.4,
+    "peak_memory_gb": 10.77
+  },
+  {
+    "state": "NC",
+    "year": 2026,
+    "ids": [
+      "nc_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.974498748779297,
+    "child_reform_rate": 15.280207633972168,
+    "children_lifted": 0.0,
+    "children_entering": 7795.49755859375,
+    "total_budgetary_impact": 101869329.54401207,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 14,
+    "runtime_s": 284.3,
+    "peak_memory_gb": 10.77
+  },
+  {
+    "state": "NC",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.974498748779297,
+    "child_reform_rate": 14.286772727966309,
+    "children_lifted": 17536.736328125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -228626432.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 14,
+    "runtime_s": 246.4,
+    "peak_memory_gb": 10.77
+  },
+  {
+    "state": "NC",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 14.974498748779297,
+    "child_reform_rate": 9.385483741760254,
+    "children_lifted": 142517.515625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -2620432384.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 14,
+    "runtime_s": 253.1,
+    "peak_memory_gb": 10.77
+  },
+  {
+    "state": "NC",
+    "year": 2026,
+    "ids": [
+      "nc_eitc",
+      "nc_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 14.974498748779297,
+    "child_reform_rate": 5.86085319519043,
+    "children_lifted": 232394.0625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -5261010770.449921,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -2710968146.4499207,
+        "state": 0.0
+      }
+    ],
+    "districts": 14,
+    "runtime_s": 378.9,
+    "peak_memory_gb": 10.41
+  },
+  {
+    "state": "ND",
+    "year": 2026,
+    "ids": [
+      "nd_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.781352043151855,
+    "child_reform_rate": 10.781352043151855,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -977374.1647179127,
+    "state_eitc_change": 977374.1647178845,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -977374.1647179127
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 114.5,
+    "peak_memory_gb": 2.92
+  },
+  {
+    "state": "ND",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.781352043151855,
+    "child_reform_rate": 10.781352043151855,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -13933568.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 105.1,
+    "peak_memory_gb": 2.93
+  },
+  {
+    "state": "ND",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 10.781352043151855,
+    "child_reform_rate": 9.855071067810059,
+    "children_lifted": 1896.4942626953125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -199845120.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 1,
+    "runtime_s": 109.5,
+    "peak_memory_gb": 2.93
+  },
+  {
+    "state": "ND",
+    "year": 2026,
+    "ids": [
+      "nd_eitc",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 10.781352043151855,
+    "child_reform_rate": 9.328874588012695,
+    "children_lifted": 2973.845947265625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -378614702.20291615,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -173868462.20291615,
+        "state": 0.0
+      }
+    ],
+    "districts": 1,
+    "runtime_s": 169.7,
+    "peak_memory_gb": 2.88
+  },
+  {
+    "state": "NH",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.767421722412109,
+    "child_reform_rate": 7.767421722412109,
+    "children_lifted": 0.0,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -17341440.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 101.9,
+    "peak_memory_gb": 3.31
+  },
+  {
+    "state": "NH",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 7.767421722412109,
+    "child_reform_rate": 7.315606117248535,
+    "children_lifted": 1274.273681640625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -276421632.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 123.2,
+    "peak_memory_gb": 3.31
+  },
+  {
+    "state": "NH",
+    "year": 2026,
+    "ids": [
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 7.767421722412109,
+    "child_reform_rate": 5.4413323402404785,
+    "children_lifted": 6560.3603515625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -526383396.3904381,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -244347172.39043808,
+        "state": 0.0
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 153.8,
+    "peak_memory_gb": 3.25
+  },
+  {
+    "state": "WV",
+    "year": 2026,
+    "ids": [
+      "wv_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.766924858093262,
+    "child_reform_rate": 15.764737129211426,
+    "children_lifted": 8.959866523742676,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -3519138.153904915,
+    "state_eitc_change": 3519138.1235850845,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -3519138.153904915
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 128.0,
+    "peak_memory_gb": 3.6
+  },
+  {
+    "state": "WV",
+    "year": 2026,
+    "ids": [
+      "wv_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.766924858093262,
+    "child_reform_rate": 15.768365859985352,
+    "children_lifted": 0.0,
+    "children_entering": 5.896326541900635,
+    "total_budgetary_impact": 25753975.038805485,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 132.7,
+    "peak_memory_gb": 3.59
+  },
+  {
+    "state": "WV",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.766924858093262,
+    "child_reform_rate": 15.764737129211426,
+    "children_lifted": 8.959866523742676,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -31431680.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 131.2,
+    "peak_memory_gb": 3.6
+  },
+  {
+    "state": "WV",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 15.766924858093262,
+    "child_reform_rate": 12.371224403381348,
+    "children_lifted": 13901.16796875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -438014976.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 2,
+    "runtime_s": 131.9,
+    "peak_memory_gb": 3.6
+  },
+  {
+    "state": "WV",
+    "year": 2026,
+    "ids": [
+      "wv_eitc",
+      "wv_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 15.766924858093262,
+    "child_reform_rate": 4.406267166137695,
+    "children_lifted": 46507.7578125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -905613667.6027193,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -496221539.6027193,
+        "state": 0.0
+      }
+    ],
+    "districts": 2,
+    "runtime_s": 163.4,
+    "peak_memory_gb": 3.53
+  }
+]

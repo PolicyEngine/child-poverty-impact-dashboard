@@ -59,9 +59,12 @@ The per-state options are surfaced by `getReformOptionsForState` in
    a federal/universal option needs a new `case` in `applyReformOption`. Emit
    **only changed parameters** (keep the no-op-at-default guard).
 
-4. **Keep the `policyengine-us` pin in sync** if you bump it — it appears in
-   four places that must match: `pyproject.toml`, `backend/requirements.txt`,
-   the Modal image in `scripts/modal_cpid_endpoint.py`, and the install step in
+4. **Keep the policyengine.py pin in sync** if you bump it. policyengine.py
+   (`policyengine[us]`) pins the `policyengine-us` version every check runs
+   against; the pin appears in `pyproject.toml`, `backend/requirements.txt`,
+   the Modal images in `scripts/modal_cpid_endpoint.py`,
+   `scripts/build_populace_state_slices.py` and
+   `analysis/state_audit/state_audit_py_modal.py`, and the install steps in
    `.github/workflows/ci.yml`.
 
 5. **Run the gates locally** (see below). Fix any failure by correcting the
@@ -124,7 +127,7 @@ npm run test            # includes the coverage sweep
 npm run manifest        # writes frontend/__generated__/reform-manifest.json
 npm run anchors         # writes frontend/__generated__/default-anchors.json
 cd ..
-pip install "policyengine-us==<pinned>" pytest
+pip install "policyengine[us]==<pinned>" pytest
 pytest tests/calculations/ -q
 # Optional exhaustive sweeps (slow): CPID_FULL_COMPUTE=1 pytest tests/calculations/ -q
 ```
@@ -135,7 +138,7 @@ pytest tests/calculations/ -q
 > `npm run anchors` → `generate_current_law_defaults.py` → `npm run anchors`
 > again (the audit fails until the second pass).
 
-### After a policyengine-us pin bump
+### After a policyengine.py pin bump
 
 Regenerate the current-law defaults so displayed values track the new engine
 (the anchor audit fails until you do):

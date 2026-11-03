@@ -123,21 +123,25 @@ export default function AboutPage() {
         <h2 id="methodology-heading" className="section-title">Methodology</h2>
         <div className="space-y-4 text-gray-700">
           <p>
-            <strong>Data Source:</strong> The dashboard runs on the local-area arm of{' '}
+            <strong>Data Source:</strong> The dashboard runs on{' '}
+            <a href="https://github.com/PolicyEngine/policyengine.py" className="text-pe-teal-500 hover:underline">policyengine.py</a>,
+            whose release bundle pins the PolicyEngine US model version and certifies
+            the dataset used for state and congressional-district analysis: the
+            local-area release of{' '}
             <a href="https://github.com/PolicyEngine/microcosm" className="text-pe-teal-500 hover:underline">Microcosm</a>,
             PolicyEngine&apos;s calibrated national microdata (
             <a href="https://huggingface.co/datasets/policyengine/populace-us" className="text-pe-teal-500 hover:underline">policyengine/populace-us</a>
-            ): about 1.6 million households on a hybrid survey spine (the CPS ASEC
-            carrying detailed program and tax information, plus the 2024 American
-            Community Survey for local-area density), reweighted against roughly 4,500
-            administrative targets: the full IRS Statistics of Income surface by state
-            (including federal CTC, ACTC, and EITC amounts), USDA SNAP benefits and
-            caseloads, Medicaid enrollment, and state and congressional-district
-            populations. One file covers all 50 states and DC, pre-partitioned into
-            per-state slices so each analysis simulates exactly the selected
-            state&apos;s households. Both the dataset release and the PolicyEngine US
-            model version are pinned per deployment (shown at the backend&apos;s health
-            endpoint) and bumped deliberately.
+            , October 2026 release): about 1.6 million households on a hybrid survey
+            spine (the CPS ASEC carrying detailed program and tax information, plus the
+            2024 American Community Survey for local-area density), reweighted against
+            about 4,800 administrative targets: IRS Statistics of Income totals by state
+            (including federal EITC amounts), USDA SNAP benefits and caseloads, Medicaid
+            enrollment, and state and congressional-district populations. One file
+            covers all 50 states and DC; each analysis simulates exactly the selected
+            state&apos;s households, chosen the way policyengine.py selects a state. The
+            policyengine.py version, and with it the model version and dataset release,
+            is pinned per deployment (shown at the backend&apos;s health endpoint) and
+            bumped deliberately.
           </p>
           <p>
             <strong>Microsimulation:</strong> PolicyEngine&apos;s open-source tax-benefit
@@ -148,9 +152,13 @@ export default function AboutPage() {
           <p>
             <strong>Poverty Measurement:</strong> We use the Supplemental Poverty Measure
             (SPM), which accounts for geographic cost-of-living differences, taxes, and
-            the value of government benefits. State child-SPM rates on the current
-            dataset track the Census Bureau&apos;s published state figures with a median
-            deviation under 5%, though individual small states can differ more;
+            the value of government benefits. Statewide results set each
+            household&apos;s SPM threshold from its county; following the Census
+            Bureau&apos;s ACS method, people in group quarters (such as dormitories and
+            nursing homes) are outside the measure. The household calculator asks only
+            for a state, so it uses national SPM thresholds. State child-SPM rates for
+            2024 match the Census Bureau&apos;s CPS-based state estimates at a median
+            deviation of &minus;0.6%, though individual states can differ much more;
             see Validation below.
           </p>
           <p>
@@ -166,34 +174,47 @@ export default function AboutPage() {
         <h2 id="validation-heading" className="section-title">Validation</h2>
         <div className="space-y-4 text-gray-700">
           <p>
-            The dataset&apos;s calibrated surfaces reproduce their administrative
-            targets essentially exactly: federal CTC, ACTC, and EITC amounts by state
-            (IRS Statistics of Income), SNAP benefits and caseloads (USDA, FY2024),
-            Medicaid enrollment, and state populations (our audit measures the
-            population fit at a median +0.9%). Each release is also scored against
-            benchmarks it was <em>not</em> calibrated to, published on
-            PolicyEngine&apos;s calibration dashboard.
+            The dataset is calibrated to IRS Statistics of Income totals by state,
+            SNAP benefits and caseloads (USDA, FY2024), Medicaid enrollment, and state
+            and congressional-district populations; its release diagnostics put 96% of
+            its 4,765 targets within 10%. Our audit measures the state population fit at
+            a median +0.9%. Each release is also scored against benchmarks it was{' '}
+            <em>not</em> calibrated to, published on PolicyEngine&apos;s calibration
+            dashboard.
           </p>
           <p>
             <strong>State child poverty:</strong> for 2024, the year the microdata
-            represents, simulated state child-SPM rates run modestly above
-            the Census figures on net (a median <em>signed</em> deviation of
-            about +5%; absolute per-state errors are larger, with 28 of 51
-            states within ±25% and real outliers beyond that). The
-            dashboard&apos;s <em>2026</em> baseline rates run roughly 20% below the
-            latest (2023) Census print, largely because 2026 law is genuinely
-            different: the $2,200 OBBBA Child Tax Credit, SNAP rule changes, and new
-            state childcare programs all reduce projected child poverty relative to
-            2023 law. Individual small states can deviate substantially in either
-            direction (Vermont and Maine high; Arkansas, Hawaii, and Michigan low).
+            represents, simulated state child-SPM rates match the Census
+            Bureau&apos;s CPS-based state estimates (three-year average, 2023&ndash;2025)
+            at a median <em>signed</em> deviation of &minus;0.6%; absolute per-state
+            errors are larger, with 31 of 51 states within ±25% and real outliers beyond
+            that. Against the ACS-based 2023 state table they run lower (median
+            &minus;19.7%, 26 of 51 within ±25%), as ACS-based SPM rates run higher than
+            CPS-based ones. The model projects child poverty rising after 2024 (from
+            13.4% nationally in 2024 to 15.4% in 2026), so the dashboard&apos;s{' '}
+            <em>2026</em> baseline rates run 8.8% below the ACS 2023 table at the
+            median and 10.1% above the CPS three-year estimates. Individual states can
+            deviate substantially in either direction (against the ACS table, Vermont,
+            Delaware, and Missouri high; Arkansas, Montana, and Hawaii low).
           </p>
           <p>
             <strong>State credit costs (2026 vs official outlays):</strong> state EITC
-            totals land at a median +2.4% of official figures (23 of 29 states within
-            ±25%). State CTC totals run about a third above official outlays, chiefly
-            because the model assumes full take-up of refundable child credits, where
-            real-world participation among low- and no-liability filers runs roughly
-            50&ndash;75%; several benchmarks also predate recent program restructures.
+            totals land at a median +2.6% of official figures (23 of 29 states within
+            ±25%). State CTC totals run about two-fifths above official outlays (median
+            +40.8%), chiefly because the model assumes full take-up of refundable child
+            credits, where real-world participation among low- and no-liability filers
+            runs roughly 50&ndash;75%; several benchmarks also predate recent program
+            restructures.
+          </p>
+          <p>
+            <strong>Model and dataset update (October 2026):</strong> the dashboard
+            moved to policyengine.py, which pins PolicyEngine US 2.2.1 and the October
+            2026 release of the local-area dataset (previously PolicyEngine US 1.825.2 on
+            the August 2026 release). The newer model projects higher child poverty for
+            2026 (15.4% nationally, from 13.1%) and larger effects for some reforms
+            (restoring the 2021 Child Tax Credit: &minus;3.9 points of national child
+            poverty in 2026, from &minus;3.5), so results from before the update are not
+            comparable.
           </p>
           <p>
             <strong>Dataset transition (August 2026):</strong> the dashboard moved from
@@ -271,9 +292,9 @@ export default function AboutPage() {
           </li>
           <li>
             <strong>SSI:</strong> Supplemental Security Income is not among the
-            dataset&apos;s calibration targets and runs about a third below
-            administrative totals; deep-poverty results and reforms interacting with
-            SSI carry that bias.
+            dataset&apos;s calibration targets, and the simulated national total
+            ($43.8 billion for 2024) runs below administrative totals; deep-poverty
+            results and reforms interacting with SSI carry that bias.
           </li>
           <li>
             <strong>State-Level Precision:</strong> State poverty <em>levels</em> are
