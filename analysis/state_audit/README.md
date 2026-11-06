@@ -46,10 +46,7 @@ python analysis/state_audit/build_csvs.py
 
 | Metric | Target source | Status |
 |---|---|---|
-| Total population | `population_by_state.csv` (data repo calibration) | exact |
-| Under-5 population | `population_by_state.csv` `population_under_5` | exact |
-| Under-6 / under-18 population | `age_state.csv` 5-yr brackets | **approximate** (15-19 bracket overcounts 18-19yo; under-6 ≈ 0-4 + ⅕·5-9) |
-| Under-1 population | — | no target (PE only) |
+| Population: total, under 1, under 5, under 6, under 18 | `targets/census_pep_v2025_state_single_age.csv` (Census Vintage 2025 resident population by single year of age, July 1 of the audit year; audits after 2025 use 2025) | exact |
 | Child SPM poverty | `targets/census_child_spm.csv` (Census ACS SPM State-by-Age, Under-18, **2023**) | exact measure match (SPM vs SPM) |
 | State EITC / CTC cost | `targets/state_credit_costs.csv` (hand-compiled) | **INCOMPLETE** — see caveat |
 
@@ -60,11 +57,15 @@ python analysis/state_audit/build_csvs.py
   expenditure / budget reports. `targets/state_credit_costs.csv` is a stub to
   be filled best-effort; PE costs are reported regardless, with `pct_diff`
   only where a target is present.
-- **Vintage**: PE values are 2026; population and poverty targets are 2023-24.
-  Some of the % diff is genuine vintage drift (e.g. post-ARPA child poverty
-  rose after 2021-2023).
-- **Child population cuts** (under-1/under-6/under-18) have no exact
-  calibration target; only total and under-5 are exact.
+- **Vintage**: a 2026 audit compares with Census's 2025 population estimates
+  and with 2023 poverty targets, so part of its % diff is vintage drift (e.g.
+  post-ARPA child poverty rose after 2021-2023). The `target_year` column
+  records the population year.
+- **Approximate age targets**: `state_populations_poverty.csv`, `_buildp` and
+  `_populace` compare under-18 with ages 0-19 and under-6 with ages 0-4 plus a
+  fifth of ages 5-9, from the data repo's five-year brackets (columns ending
+  `_approx`). Against Census's exact counts for 2024, Build P's slices hold
+  10% more children under 18 (`ANALYSIS_CENSUS_AGE_1528.md`).
 - **State datasets are calibrated to population / AGI / SNAP, not poverty**,
   so a poverty gap vs the Census target is one plausible source of the
   divergence — alongside vintage (2026 vs 2023) and measure differences. The
@@ -99,3 +100,24 @@ python analysis/state_audit/decompose_sweep.py
   SPM measurement (policyengine-us#9462).
 - **Run with deploy + spawn**: a long `modal run` depends on its local client;
   if that process dies, Modal cancels the remote job.
+
+## Census age checks (`census_age_fit.py`, `census_age_reweight_modal.py`)
+
+`census_age_fit.py` scores any audit output's ages against the Census single
+years, and `census_age_reweight_modal.py` projects Census-correct ages onto a
+slice set: it reweights each state's 2024 household weights to Census's age
+groups, holds the slice's SNAP, Medicaid, AGI, EITC and CTC aggregates, and
+simulates the result. `ANALYSIS_CENSUS_AGE_1528.md` has the results.
+
+```bash
+python analysis/state_audit/census_age_fit.py --year 2024 \
+    buildp_18252=state_audit_buildp_v2_2024_raw.json
+AUDIT_PE_US=1.825.2 AUDIT_SPM_CALC=0.3.1 \
+    AUDIT_PE_US_SPEC="policyengine-us @ git+https://github.com/PolicyEngine/policyengine-us@9f77bffb6b" \
+    modal deploy analysis/state_audit/census_age_reweight_modal.py
+python analysis/state_audit/census_age_reweight_modal.py spawn 1.825.2 592ae5d6 buildp_18252
+python analysis/state_audit/census_age_reweight_modal.py collect buildp_18252
+python analysis/state_audit/census_age_reweight_summary.py buildp_18252 \
+    --audit-2024 state_audit_buildp_v2_2024_raw.json \
+    --audit-2026 state_audit_buildp_v2_2026_raw.json
+```
