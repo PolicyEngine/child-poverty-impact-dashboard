@@ -176,8 +176,10 @@ def by_state_rows(rows: list[dict]) -> list[dict]:
 def summary_md(label: str, rows: list[dict]) -> str:
     lines = [f"# Weight concentration in the state slices: {label}", ""]
     lines += [
-        f"Slices `{rows[0]['slice_tag']}`, policyengine-us {rows[0]['versions']['policyengine-us']}. "
-        "Household weights at 2024 for the slices as published (P) and for the same slices balanced to",
+        (
+            f"Slices `{rows[0]['slice_tag']}`, policyengine-us {rows[0]['versions']['policyengine-us']}. "
+            "Household weights at 2024 for the slices as published (P) and for the same slices balanced to"
+        ),
         "Census Vintage 2025 ages (R, `census_age_reweight_modal.py`). Top 1% = the heaviest",
         "max(1, n // 100) households. ASEC-by-PUF = households whose `household_spine` is `asec_puf`;",
         "ACS = every other household.",
@@ -229,8 +231,10 @@ def summary_md(label: str, rows: list[dict]) -> str:
 
     lines += ["", "## By state", ""]
     lines += [
-        "| State | Households | Kish, P | Kish, R | Top 1%, P | Top 1%, R | ASEC weight, P | ASEC weight, R "
-        "| Lifted, P | Lifted, R | Lifting households, P | Top household, P | Top household, R |",
+        (
+            "| State | Households | Kish, P | Kish, R | Top 1%, P | Top 1%, R | ASEC weight, P | ASEC weight, R "
+            "| Lifted, P | Lifted, R | Lifting households, P | Top household, P | Top household, R |"
+        ),
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for r in rows:

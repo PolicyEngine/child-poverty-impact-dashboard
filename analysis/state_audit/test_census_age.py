@@ -13,13 +13,24 @@ import os
 
 import numpy as np
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
-
 from build_csvs import CENSUS_YEARS, pop_target_year
 from census_age_fit import CENSUS
-from census_age_reweight_modal import AGE_GROUPS, ASEC_SPINE, _balance, _kish, _lift_stats, _weight_stats
-from weight_concentration_summary import FLOAT32_COST_TOL, FLOAT32_TOL, check_against_audit, check_against_projection
+from census_age_reweight_modal import (
+    AGE_GROUPS,
+    ASEC_SPINE,
+    _balance,
+    _kish,
+    _lift_stats,
+    _weight_stats,
+)
+from hypothesis import given, settings
+from hypothesis import strategies as st
+from weight_concentration_summary import (
+    FLOAT32_COST_TOL,
+    FLOAT32_TOL,
+    check_against_audit,
+    check_against_projection,
+)
 
 
 @st.composite

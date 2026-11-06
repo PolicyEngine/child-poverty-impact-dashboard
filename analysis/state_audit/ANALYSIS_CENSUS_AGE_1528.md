@@ -119,12 +119,13 @@ effective sample changes by −11% to +5%. New York and Virginia took the full
 ## Weight concentration
 
 Balancing to Census ages barely changes how few households hold each state's
-weight. On Build P it lowers the median Kish effective sample 2.3%, from 331
-households to 314, and leaves the top 1% of households with 67.7% of the median
-state's weight. Households on the ASEC-by-PUF spine (`household_spine` of
-`asec_puf`) make up 3.6% of Build P's households, 57,240 of 1,588,854, and hold
-67.6% of the median state's weight before the balance and 67.0% after. Build O
-shows the same pattern.
+weight. On Build P it lowers the Kish effective sample in 43 of 51 states, by
+2.3% in the median state, and moves the median across states from 331 households
+to 314. The top 1% of households keep 67.7% of the median state's weight.
+Households on the ASEC-by-PUF spine (`household_spine` of `asec_puf`) make up
+3.6% of Build P's households, 57,240 of 1,588,854, and hold 67.6% of the median
+state's weight before the balance and 67.0% after. Build O shows the same
+pattern.
 
 | 2024 weights, 51 states: median (lowest to highest) | Build P | Build P reweighted | Build O | Build O reweighted |
 |---|---:|---:|---:|---:|

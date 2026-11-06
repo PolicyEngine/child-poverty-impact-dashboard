@@ -379,7 +379,7 @@ def _write_reweighted(path: str, hh_ids, w_new, rpath: str) -> None:
 
     entities = ("household", "person", "tax_unit", "spm_unit", "family", "marital_unit")
     with pd.HDFStore(path, "r") as store:
-        tables = {k.strip("/"): store[k] for k in store.keys() if k.strip("/") in entities}
+        tables = {k.strip("/"): store[k] for k in store if k.strip("/") in entities}
     hh = tables["household"].copy()
     order = pd.Index(hh["household_id"]).get_indexer(hh_ids)
     if (order < 0).any() or len(set(order)) != len(order):
