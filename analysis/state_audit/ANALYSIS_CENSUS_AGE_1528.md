@@ -168,6 +168,9 @@ the data. PolicyEngine/child-poverty-impact-dashboard#127 runs Build O under
 `output/weight_concentration_buildp_18252_summary.md` and
 `output/weight_concentration_buildo_18252_summary.md` hold more measures, and
 the `_by_state.csv` files beside them hold each state.
+PolicyEngine/microcosm#1446 plans a higher ACS share of state mass and a
+calibration anchor, and PolicyEngine/child-poverty-impact-dashboard#130 asks how
+the dashboard should show results that rest on so few households.
 
 ## Reproduce
 
