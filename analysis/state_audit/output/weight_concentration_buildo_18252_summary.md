@@ -25,8 +25,10 @@ ACS = every other household.
 | ASEC-by-PUF households' share of them | 78.4% | 75.2% |
 | Sample households lifting a child, median state | 18 | 18 |
 | Top household's share of a state's children lifted, median state | 50.2% | 47.2% |
-| States where one household carries more than half | 26 | 24 |
-| States where one household carries more than a quarter | 43 | 44 |
+| States where one household accounts for more than half | 26 | 24 |
+| States where one household accounts for more than a quarter | 43 | 44 |
+| States lifting at least 1,000 children | 36 | 37 |
+| Of those, states where one household accounts for more than half | 16 | 14 |
 | States where the top lifting household comes from ASEC-by-PUF | 17 | 17 |
 | States with no net lift | 0 | 0 |
 

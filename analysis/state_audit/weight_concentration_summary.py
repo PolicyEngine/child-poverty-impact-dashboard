@@ -45,6 +45,10 @@ RUNS = ("production", "reweighted")
 REL_TOL = 1e-9
 FLOAT32_TOL = 1e-6
 FLOAT32_COST_TOL = 5e-5
+#: Children a state must lift before one household's share of the lift counts
+#: in the large-lift rows. Without it, the District of Columbia counts on Build
+#: P with a net lift under 0.001 children.
+LARGE_LIFT = 1_000
 
 
 def load(label: str) -> list[dict]:
@@ -140,6 +144,15 @@ def pct(x: float, digits: int = 1) -> str:
     return f"{100 * x:.{digits}f}%"
 
 
+def large_lift_counts(rows: list[dict], run: str) -> tuple[int, int]:
+    """States lifting at least ``LARGE_LIFT`` children, and how many of those
+    have one household accounting for more than half of the lift."""
+
+    lifts = [r["universal_under4_2000"][run] for r in rows]
+    large = [lift for lift in lifts if lift["children_lifted_net"] >= LARGE_LIFT]
+    return len(large), sum(1 for lift in large if (lift["top1_share"] or 0) > 0.5)
+
+
 def by_state_rows(rows: list[dict]) -> list[dict]:
     out = []
     for r in rows:
@@ -224,10 +237,12 @@ def summary_md(label: str, rows: list[dict]) -> str:
         ("Sample households lifting a child, median state", lambda run: f"{statistics.median(r['universal_under4_2000'][run]['households_with_net_lift'] for r in rows):,.0f}"),
         ("Top household's share of a state's children lifted, median state", lambda run: pct(statistics.median(
             r["universal_under4_2000"][run]["top1_share"] for r in rows if r["universal_under4_2000"][run]["top1_share"] is not None))),
-        ("States where one household carries more than half", lambda run: str(sum(
+        ("States where one household accounts for more than half", lambda run: str(sum(
             1 for r in rows if (r["universal_under4_2000"][run]["top1_share"] or 0) > 0.5))),
-        ("States where one household carries more than a quarter", lambda run: str(sum(
+        ("States where one household accounts for more than a quarter", lambda run: str(sum(
             1 for r in rows if (r["universal_under4_2000"][run]["top1_share"] or 0) > 0.25))),
+        (f"States lifting at least {LARGE_LIFT:,} children", lambda run: str(large_lift_counts(rows, run)[0])),
+        ("Of those, states where one household accounts for more than half", lambda run: str(large_lift_counts(rows, run)[1])),
         ("States where the top lifting household comes from ASEC-by-PUF", lambda run: str(sum(
             1 for r in rows if r["universal_under4_2000"][run]["top_household_spine"] == "asec_puf"))),
         ("States with no net lift", lambda run: str(sum(

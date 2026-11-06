@@ -22,8 +22,8 @@ the fix onto existing slices:
    credit for each child under 4 in 2026 on both datasets and record its cost
    (benefit change less federal and state income tax change).
 
-This is a projection, not the rebuilt release: the release fits all 5,632
-targets of its default surface (4,227 state SOI targets, state SNAP and
+This is a projection, not the rebuilt release: the release calibrates to all
+5,632 targets of its default surface (4,227 state SOI targets, state SNAP and
 Medicaid targets, state and district populations and the age groups) rather
 than the slices' current values.
 
@@ -32,7 +32,7 @@ reaches the same weights, and measures how concentrated each weight set is:
 Kish effective sample, the top 1% of households' share of the weight, and the
 share held by households from the ASEC-by-PUF spine. It then simulates the
 $2,000 under-4 allowance on both datasets in every state and records how many
-sample households carry the children it lifts out of SPM poverty.
+sample households stand behind the children it lifts out of SPM poverty.
 
 The pin is baked into the image at deploy time, as in
 ``state_audit_sweep_modal.py``::
@@ -551,7 +551,7 @@ def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
               volumes={"/slices": slices_volume})
 def concentration_state(state: str, slice_tag: str, census: dict) -> dict:
     """Weight concentration before and after the Census-age balance, and how
-    many sample households carry the children the $2,000 under-4 allowance
+    many sample households stand behind the children the $2,000 under-4 allowance
     lifts out of SPM poverty in 2026, from each dataset's own simulation."""
     import gc
     import importlib.metadata as md

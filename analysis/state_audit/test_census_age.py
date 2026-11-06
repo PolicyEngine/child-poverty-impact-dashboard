@@ -31,8 +31,10 @@ from hypothesis import strategies as st
 from weight_concentration_summary import (
     FLOAT32_COST_TOL,
     FLOAT32_TOL,
+    LARGE_LIFT,
     check_against_audit,
     check_against_projection,
+    large_lift_counts,
 )
 
 
@@ -271,6 +273,7 @@ def _census_states() -> list[str]:
         return sorted({r["state"] for r in csv.DictReader(f)})
 
 
+@settings(deadline=None)
 @given(st.lists(st.sampled_from([*_census_states(), "PR"]), max_size=60) | st.permutations(_census_states()))
 def test_state_coverage_passes_each_census_state_once_and_nothing_else(states):
     assert (state_coverage_problems(states) == []) == (sorted(states) == _census_states())
@@ -312,6 +315,39 @@ def test_the_summaries_read_each_state_once(module, loader, filename, tmp_path, 
 
     path.write_text(json.dumps([_summary_row(s) for s in _census_states()]), encoding="utf-8")
     assert len(getattr(module, loader)("run")) == 51
+
+
+def _lift_row(children_lifted_net: float, top1_share: float | None) -> dict:
+    lift = {"children_lifted_net": children_lifted_net, "top1_share": top1_share}
+    return {"universal_under4_2000": {"production": lift}}
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    st.lists(
+        st.tuples(st.floats(-1e5, 1e5), st.none() | st.floats(0, 1)),
+        max_size=51,
+    )
+)
+def test_large_lift_counts_stay_within_the_states_they_count(lifts):
+    rows = [_lift_row(net, top1) for net, top1 in lifts]
+
+    large, above_half = large_lift_counts(rows, "production")
+
+    assert above_half <= large <= len(rows)
+    assert above_half <= sum((top1 or 0) > 0.5 for _, top1 in lifts)
+    assert large == sum(net >= LARGE_LIFT for net, _ in lifts)
+
+
+def test_large_lift_counts_read_the_threshold_and_more_than_half():
+    rows = [
+        _lift_row(999.9, 0.9),  # below the threshold
+        _lift_row(1_000, 0.5),  # half, not more
+        _lift_row(1_000, 0.51),
+        _lift_row(5_000, None),  # no household lifts on net
+    ]
+
+    assert large_lift_counts(rows, "production") == (3, 1)
 
 
 def test_census_age_groups_tile_each_state_total():

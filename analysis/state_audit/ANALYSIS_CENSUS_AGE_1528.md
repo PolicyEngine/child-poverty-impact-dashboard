@@ -137,9 +137,12 @@ pattern.
 We simulate the universal $2,000 for each child under 4 in 2026 in every state
 on all four datasets, and count the sample households behind the children it
 lifts out of SPM poverty. In the median state, 19 households on Build P account
-for the whole lift, and one of them accounts for 43.2% of it. One household
-accounts for more than half of the lift in 21 states, and the balance raises
-that to 24.
+for the whole lift, and one of them accounts for 43.2% of it. Build P lifts at
+least 1,000 children in 36 states, before the balance and after, and one
+household accounts for more than half of the lift in 15 of them each time.
+Across all 51 states that count rises from 21 to 24, all of it in states lifting
+fewer than 1,000, and the District of Columbia counts in both on a net lift under
+0.001 children.
 
 | $2,000 for each child under 4, 2026 | Build P | Build P reweighted | Build O | Build O reweighted |
 |---|---:|---:|---:|---:|
@@ -149,6 +152,8 @@ that to 24.
 | Top household's share of a state's lift, median state | 43.2% | 45.3% | 50.2% | 47.2% |
 | States where one household accounts for more than half | 21 | 24 | 26 | 24 |
 | States where one household accounts for more than a quarter | 42 | 43 | 43 | 44 |
+| States lifting at least 1,000 children | 36 | 36 | 36 | 37 |
+| Of those, states where one household accounts for more than half | 15 | 15 | 16 | 14 |
 
 For example, we estimate that the allowance lifts 68,158 Illinois children on
 Build P, and one household accounts for 92.7% of them. In Arizona it cuts child
