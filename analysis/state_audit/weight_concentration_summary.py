@@ -30,6 +30,8 @@ import json
 import os
 import statistics
 
+from census_age_fit import state_coverage_problems
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "output")
 RUNS = ("production", "reweighted")
@@ -51,8 +53,12 @@ def load(label: str) -> list[dict]:
     problems = [r["state"] for r in rows if r.get("status") != "ok"]
     problems += [r["state"] for r in rows if r.get("status") == "ok" and not r["balance"]["converged"]]
     problems += [r["state"] for r in rows if r.get("status") == "ok" and not r["spine_available"]]
-    if problems or len(rows) != 51:
-        raise SystemExit(f"refusing: {len(rows)} states, errors, unconverged or no spine in {sorted(set(problems))}")
+    coverage = state_coverage_problems(r["state"] for r in rows)
+    if problems or coverage:
+        raise SystemExit(
+            f"refusing: errors, unconverged or no spine in {sorted(set(problems))}; "
+            f"states left out, repeated or unknown: {coverage}"
+        )
     return rows
 
 

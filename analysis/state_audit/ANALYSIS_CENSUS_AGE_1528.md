@@ -104,9 +104,9 @@ rate at 11.63%, against Build P's 10.98%.
 
 ### Limits
 
-The rebuilt release fits all 5,632 targets of its default surface, including
+The rebuild calibrates to all 5,632 targets of its default surface, including
 4,227 state SOI targets, state SNAP and Medicaid targets and each
-congressional district's population. It fits those targets themselves rather
+congressional district's population. It aims at those targets themselves rather
 than the slices' current values, so its figures will differ.
 
 A few household weights move far. The largest ratio, 435, falls on an Iowa

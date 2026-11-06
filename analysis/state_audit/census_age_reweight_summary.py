@@ -23,6 +23,8 @@ import json
 import os
 import statistics
 
+from census_age_fit import state_coverage_problems
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "output")
 CENSUS = os.path.join(HERE, "targets", "census_pep_v2025_state_single_age.csv")
@@ -64,8 +66,9 @@ def load_rows(label: str) -> dict[str, dict]:
     unconverged = [r["state"] for r in rows if not r["balance"]["converged"]]
     if unconverged:
         raise SystemExit(f"balance did not converge: {unconverged}")
-    if len(rows) != 51:
-        raise SystemExit(f"{len(rows)} states, not 51")
+    coverage = state_coverage_problems(r["state"] for r in rows)
+    if coverage:
+        raise SystemExit(f"states left out, repeated or unknown: {coverage}")
     return {r["state"]: r for r in rows}
 
 

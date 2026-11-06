@@ -9,12 +9,15 @@ Run locally (CI does not collect analysis/)::
 from __future__ import annotations
 
 import csv
+import json
 import os
 
+import census_age_reweight_summary
 import numpy as np
 import pytest
+import weight_concentration_summary
 from build_csvs import CENSUS_YEARS, pop_target_year
-from census_age_fit import CENSUS
+from census_age_fit import CENSUS, state_coverage_problems
 from census_age_reweight_modal import (
     AGE_GROUPS,
     ASEC_SPINE,
@@ -261,6 +264,54 @@ def test_target_year_falls_back_to_the_latest_census_year(year):
 def test_target_year_refuses_an_uncovered_request():
     with pytest.raises(SystemExit):
         pop_target_year({"AL": {"year": 2024}}, requested=2023)
+
+
+def _census_states() -> list[str]:
+    with open(CENSUS, newline="", encoding="utf-8") as f:
+        return sorted({r["state"] for r in csv.DictReader(f)})
+
+
+@given(st.lists(st.sampled_from([*_census_states(), "PR"]), max_size=60) | st.permutations(_census_states()))
+def test_state_coverage_passes_each_census_state_once_and_nothing_else(states):
+    assert (state_coverage_problems(states) == []) == (sorted(states) == _census_states())
+
+
+@pytest.mark.parametrize(
+    ("change", "named"),
+    [
+        (lambda s: [x for x in s if x != "DC"], ["DC"]),
+        (lambda s: [*s, "IN"], ["IN"]),
+        (lambda s: [*(x for x in s if x != "DC"), "IN"], ["DC", "IN"]),
+        (lambda s: [*s, "PR"], ["PR"]),
+    ],
+)
+def test_state_coverage_names_each_state_a_run_gets_wrong(change, named):
+    assert state_coverage_problems(change(_census_states())) == named
+
+
+def _summary_row(state: str) -> dict:
+    return {"state": state, "status": "ok", "balance": {"converged": True}, "spine_available": True}
+
+
+@pytest.mark.parametrize(
+    ("module", "loader", "filename"),
+    [
+        (census_age_reweight_summary, "load_rows", "census_age_reweight_run.json"),
+        (weight_concentration_summary, "load", "weight_concentration_run.json"),
+    ],
+)
+def test_the_summaries_read_each_state_once(module, loader, filename, tmp_path, monkeypatch):
+    monkeypatch.setattr(module, "OUT", str(tmp_path))
+    path = tmp_path / filename
+
+    # Fifty-one rows that repeat Indiana and leave out DC.
+    states = [s for s in _census_states() if s != "DC"]
+    path.write_text(json.dumps([_summary_row(s) for s in [*states, "IN"]]), encoding="utf-8")
+    with pytest.raises(SystemExit, match=r"\['DC', 'IN'\]"):
+        getattr(module, loader)("run")
+
+    path.write_text(json.dumps([_summary_row(s) for s in _census_states()]), encoding="utf-8")
+    assert len(getattr(module, loader)("run")) == 51
 
 
 def test_census_age_groups_tile_each_state_total():

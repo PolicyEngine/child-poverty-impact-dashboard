@@ -1,9 +1,7 @@
 """Score state slices' age counts against exact Census single-year estimates.
 
-``build_csvs.py`` approximates under-18 as ages 0-19 (four five-year
-brackets, so it counts 18- and 19-year-olds) and under-6 as 0-4 plus a fifth
-of 5-9. This script compares each audit output with exact counts instead:
-Census Vintage 2025 resident population by single year of age
+This script compares each audit output with Census Vintage 2025 resident
+population by single year of age
 (``targets/census_pep_v2025_state_single_age.csv``, from
 ``sc-est2025-alldata6.csv``: SUMLEV 040, SEX 0, ORIGIN 0, summed over RACE
 1-6; July 1 estimates for 2024 and 2025).
@@ -26,6 +24,8 @@ import csv
 import json
 import os
 import statistics
+from collections import Counter
+from collections.abc import Iterable
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "output")
@@ -39,6 +39,14 @@ GROUPS = {
     "pop_under_6": "under_6",
     "pop_under_18": "under_18",
 }
+
+
+def state_coverage_problems(states: Iterable[str]) -> list[str]:
+    """States a run leaves out, repeats or adds, against the Census file's."""
+    seen = Counter(states)
+    with open(CENSUS, newline="", encoding="utf-8") as f:
+        census = {r["state"] for r in csv.DictReader(f)}
+    return sorted(s for s in census | set(seen) if seen[s] != 1 or s not in census)
 
 
 def load_census(year: int) -> dict[str, dict[str, float]]:
