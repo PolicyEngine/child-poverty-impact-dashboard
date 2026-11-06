@@ -96,21 +96,23 @@ Build P's 24, and miss by 2.70 points on average, against 2.81:
 ### Indiana: universal $2,000 for each child under 4 in 2026 (report r=82)
 
 For example, Build P puts 373,860 Indiana children under 4 in 2026, and the
-reweighted slice puts 327,339. We estimate the allowance costs $747.7 million
-on Build P and $654.7 million on the reweighted slice. The payments make up
-the whole cost, since neither federal nor state income tax changes. Before the
-reform, the reweighted slice puts Indiana's 2026 child SPM poverty rate at
-11.63%, against Build P's 10.98%.
+reweighted slice puts 327,339. We estimate the allowance would cost $747.7
+million on Build P and $654.7 million on the reweighted slice. The payments
+make up the whole cost, since neither federal nor state income tax changes.
+Before the reform, the reweighted slice puts Indiana's 2026 child SPM poverty
+rate at 11.63%, against Build P's 10.98%.
 
 ### Limits
 
-The rebuilt release re-solves every target jointly, including IRS SOI by
-congressional district and county populations, and fits its SNAP, Medicaid and
-SOI targets rather than the slices' current values, so its figures will
-differ. A few household weights move far. The largest ratio, 435, falls on an
-Iowa household, and Iowa's production slice has a Kish effective sample of 238
-of its 17,112 households. Most weights move less: across states, the median
-1st percentile of the ratio comes to 0.47 and the median 99th to 2.12, and the
+The rebuilt release fits all 5,632 targets of its default surface, including
+4,227 state SOI targets, state SNAP and Medicaid targets and each
+congressional district's population. It fits those targets themselves rather
+than the slices' current values, so its figures will differ.
+
+A few household weights move far. The largest ratio, 435, falls on an Iowa
+household, and Iowa's production slice has a Kish effective sample of 238 of
+its 17,112 households. Most weights move less: across states, the median 1st
+percentile of the ratio comes to 0.47 and the median 99th to 2.12, and the
 effective sample changes by −11% to +5%. New York and Virginia took the full
 200 Newton steps and still met every constraint to within 1.1 in 100 million.
 
