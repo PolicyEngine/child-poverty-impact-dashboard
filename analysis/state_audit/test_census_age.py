@@ -82,7 +82,10 @@ def test_balance_scales_with_targets_and_weights(problem, c):
     np.testing.assert_allclose(w_scaled, c * w, rtol=1e-6)
 
 
-weights = st.lists(st.floats(0.0, 1e5, allow_nan=False), min_size=1, max_size=300)
+#: Zero or at least 1e-6. Scaling or squaring a far smaller weight underflows:
+#: 0.5 * 5e-324 rounds to zero and leaves no positive weight. The slices store
+#: float32 weights, whose squares stay above 1e-90 in float64.
+weights = st.lists(st.just(0.0) | st.floats(1e-6, 1e5), min_size=1, max_size=300)
 
 
 @given(weights, st.floats(0.01, 100))
