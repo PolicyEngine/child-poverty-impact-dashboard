@@ -116,6 +116,58 @@ percentile of the ratio comes to 0.47 and the median 99th to 2.12, and the
 effective sample changes by −11% to +5%. New York and Virginia took the full
 200 Newton steps and still met every constraint to within 1.1 in 100 million.
 
+## Weight concentration
+
+Balancing to Census ages barely changes how few households hold each state's
+weight. On Build P it lowers the median Kish effective sample 2.3%, from 331
+households to 314, and leaves the top 1% of households with 67.7% of the median
+state's weight. Households on the ASEC-by-PUF spine (`household_spine` of
+`asec_puf`) make up 3.6% of Build P's households, 57,240 of 1,588,854, and hold
+67.6% of the median state's weight before the balance and 67.0% after. Build O
+shows the same pattern.
+
+| 2024 weights, 51 states: median (lowest to highest) | Build P | Build P reweighted | Build O | Build O reweighted |
+|---|---:|---:|---:|---:|
+| Kish effective sample, households | 331 (194 to 1,501) | 314 (190 to 1,482) | 280 (193 to 1,146) | 278 (185 to 1,124) |
+| Kish effective sample, % of households | 1.4% (0.6% to 8.6%) | 1.4% (0.6% to 7.7%) | 1.2% (0.5% to 7.2%) | 1.2% (0.5% to 6.8%) |
+| Top 1% of households' share of weight | 67.7% (25.1% to 73.6%) | 67.7% (26.8% to 73.6%) | 66.6% (28.9% to 75.4%) | 66.3% (29.0% to 75.8%) |
+| ASEC-by-PUF households' share of weight | 67.6% (57.8% to 72.3%) | 67.0% (59.2% to 72.3%) | 66.2% (55.6% to 73.2%) | 66.0% (57.5% to 73.3%) |
+
+We simulate the universal $2,000 for each child under 4 in 2026 in every state
+on all four datasets, and count the sample households behind the children it
+lifts out of SPM poverty. In the median state, 19 households on Build P account
+for the whole lift, and one of them accounts for 43.2% of it. One household
+accounts for more than half of the lift in 21 states, and the balance raises
+that to 24.
+
+| $2,000 for each child under 4, 2026 | Build P | Build P reweighted | Build O | Build O reweighted |
+|---|---:|---:|---:|---:|
+| Children lifted out of SPM poverty, net, 51 states | 638,471 | 615,401 | 796,573 | 770,047 |
+| ASEC-by-PUF households' share of them | 73.6% | 69.9% | 78.4% | 75.2% |
+| Sample households lifting a child, median state | 19 | 19 | 18 | 18 |
+| Top household's share of a state's lift, median state | 43.2% | 45.3% | 50.2% | 47.2% |
+| States where one household accounts for more than half | 21 | 24 | 26 | 24 |
+| States where one household accounts for more than a quarter | 42 | 43 | 43 | 44 |
+
+For example, we estimate that the allowance lifts 68,158 Illinois children on
+Build P, and one household accounts for 92.7% of them. In Arizona it cuts child
+SPM poverty 7.09 points, from 16.11% to 9.03%, against 0.22 points in the median
+state, and five households account for 97.0% of that lift.
+
+The balance moves the 51-state lift 3.6% and individual states' lifts far more:
+among the 36 states where Build P lifts at least 1,000 children, it moves the
+lift by more than a fifth in 10, from a 36% fall in Washington to a 64% rise in
+Mississippi. Build O's lift exceeds Build P's by 25% across the 51 states, and
+among those 36 states it falls below half of Build P's or exceeds double in 6.
+Indiana's falls from 12,417 to 2,356, and Minnesota's rises from 2,284 to 9,476.
+We ran both builds under policyengine-us 1.825.2, so these differences come from
+the data. PolicyEngine/child-poverty-impact-dashboard#127 runs Build O under
+2.2.1, which this section does not cover.
+
+`output/weight_concentration_buildp_18252_summary.md` and
+`output/weight_concentration_buildo_18252_summary.md` hold more measures, and
+the `_by_state.csv` files beside them hold each state.
+
 ## Reproduce
 
 ```bash
@@ -133,4 +185,10 @@ python analysis/state_audit/census_age_reweight_modal.py collect buildp_18252
 python analysis/state_audit/census_age_reweight_summary.py buildp_18252 \
     --audit-2024 state_audit_buildp_v2_2024_raw.json \
     --audit-2026 state_audit_buildp_v2_2026_raw.json
+python analysis/state_audit/census_age_reweight_modal.py spawn-concentration 1.825.2 592ae5d6 buildp_18252
+python analysis/state_audit/census_age_reweight_modal.py collect-concentration buildp_18252
+python analysis/state_audit/weight_concentration_summary.py buildp_18252
+python analysis/state_audit/census_age_reweight_modal.py spawn-concentration 1.825.2 766b7c7 buildo_18252
+python analysis/state_audit/census_age_reweight_modal.py collect-concentration buildo_18252
+python analysis/state_audit/weight_concentration_summary.py buildo_18252 --audit-label o1017_18252
 ```

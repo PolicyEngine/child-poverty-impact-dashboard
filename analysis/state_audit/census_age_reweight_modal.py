@@ -22,8 +22,17 @@ the fix onto existing slices:
    credit for each child under 4 in 2026 on both datasets and record its cost
    (benefit change less federal and state income tax change).
 
-This is a projection, not the rebuilt release: the release re-solves every
-target jointly (IRS SOI by district, counties, and so on).
+This is a projection, not the rebuilt release: the release fits all 5,632
+targets of its default surface (4,227 state SOI targets, state SNAP and
+Medicaid targets, state and district populations and the age groups) rather
+than the slices' current values.
+
+``concentration_state`` repeats the same balance from the same start, so it
+reaches the same weights, and measures how concentrated each weight set is:
+Kish effective sample, the top 1% of households' share of the weight, and the
+share held by households from the ASEC-by-PUF spine. It then simulates the
+$2,000 under-4 allowance on both datasets in every state and records how many
+sample households carry the children it lifts out of SPM poverty.
 
 The pin is baked into the image at deploy time, as in
 ``state_audit_sweep_modal.py``::
@@ -34,8 +43,12 @@ The pin is baked into the image at deploy time, as in
     python analysis/state_audit/census_age_reweight_modal.py spawn 1.825.2 592ae5d6 buildp_18252
     python analysis/state_audit/census_age_reweight_modal.py collect buildp_18252
 
+    python analysis/state_audit/census_age_reweight_modal.py spawn-concentration 1.825.2 592ae5d6 buildp_18252
+    python analysis/state_audit/census_age_reweight_modal.py collect-concentration buildp_18252
+
 ``collect`` exits 3 while calls are still running and writes
-``output/census_age_reweight_{label}.json`` when all are done.
+``output/census_age_reweight_{label}.json`` when all are done;
+``collect-concentration`` writes ``output/weight_concentration_{label}.json``.
 """
 
 from __future__ import annotations
@@ -124,6 +137,9 @@ STATES = [
 # state_audit_sweep_modal.py.
 ACS_CHANNEL = "acs_2024_1yr"
 ACS_GROUP_QUARTERS = {2: 37, 3: 38}
+#: The slices tag each household with its source spine: the 2024 ACS 1-year
+#: file or the CPS ASEC records the release pools with the PUF.
+ASEC_SPINE = "asec_puf"
 
 
 def _outside_person_ids(path: str):
@@ -184,6 +200,214 @@ def _balance(X, targets, w0, max_iter=200):
     return w, it, float(np.abs(rel).max())
 
 
+def _arr(sim, name, period, **kw):
+    import numpy as np
+
+    return np.asarray(sim.calculate(name, period=period, **kw))
+
+
+def _kish(x) -> float:
+    """Kish effective sample size of nonnegative weights: (sum w)^2 / sum w^2."""
+    import numpy as np
+
+    x = np.asarray(x, dtype=float)
+    x = x[x > 0]
+    if not x.size:
+        return 0.0
+    x = x / x.max()  # scale first, so tiny weights cannot underflow when squared
+    return float(x.sum() ** 2 / (x ** 2).sum())
+
+
+def _weight_stats(w, spine, kids) -> dict:
+    """How concentrated one vector of household weights is, overall and by spine.
+
+    The top 1% takes the max(1, n // 100) heaviest households. Child weight is
+    each household's weight times its children under 18. ``spine`` (or None)
+    tags each household's source spine.
+    """
+    import numpy as np
+
+    w = np.asarray(w, dtype=float)
+    child_w = w * np.asarray(kids, dtype=float)
+    n = len(w)
+    heaviest = np.sort(w)[::-1]
+    out = {
+        "n_households": int(n),
+        "kish_ess": _kish(w),
+        "top1pct_share": float(heaviest[: max(1, n // 100)].sum() / heaviest.sum()),
+        "max_weight": float(heaviest[0]),
+        "median_weight": float(np.median(w)),
+        "p99_weight": float(np.percentile(w, 99)),
+        "child_kish_ess": _kish(child_w),
+    }
+    if spine is not None:
+        asec = np.asarray(spine) == ASEC_SPINE
+        out.update({
+            "asec_households": int(asec.sum()),
+            "asec_weight_share": float(w[asec].sum() / w.sum()),
+            "asec_child_weight_share": (
+                float(child_w[asec].sum() / child_w.sum()) if child_w.sum() > 0 else None
+            ),
+            "asec_kish_ess": _kish(w[asec]),
+            "other_kish_ess": _kish(w[~asec]),
+        })
+    return out
+
+
+def _lift_stats(contrib, spine) -> dict:
+    """How a reform's children lifted out of poverty spread across households.
+
+    ``contrib`` holds each household's weight times its children under 18
+    lifted out of SPM poverty, less its children the reform pushes into it.
+    """
+    import numpy as np
+
+    c = np.asarray(contrib, dtype=float)
+    total = float(c.sum())
+    lifting = np.sort(c[c > 0])[::-1]
+    out = {
+        "children_lifted_net": total,
+        "households_with_net_lift": int((c > 0).sum()),
+        "households_with_net_entry": int((c < 0).sum()),
+        "lifters_kish_ess": _kish(lifting),
+        "top1_share": None,
+        "top5_share": None,
+        "asec_share": None,
+        "top_household_spine": None,
+    }
+    if lifting.size and total > 0:
+        out["top1_share"] = float(lifting[0] / total)
+        out["top5_share"] = float(lifting[:5].sum() / total)
+        if spine is not None:
+            spine = np.asarray(spine)
+            out["asec_share"] = float(c[spine == ASEC_SPINE].sum() / total)
+            out["top_household_spine"] = str(spine[int(np.argmax(c))])
+    return out
+
+
+def _setup(base, census: dict, by: int = BASE_YEAR) -> dict:
+    """Household maps, 2024 weights and the balance's constraints for one slice.
+
+    The constraint columns hold each household's count in each Census age
+    group, then the slice's 16 held aggregates; a held aggregate the slice
+    puts at zero is dropped.
+    """
+    import numpy as np
+    import pandas as pd
+
+    hh_ids = _arr(base, "household_id", by)
+    p_hh = _arr(base, "person_household_id", by)
+    p_spm = _arr(base, "person_spm_unit_id", by)
+    p_tu = _arr(base, "person_tax_unit_id", by)
+    spm_ids = _arr(base, "spm_unit_id", by)
+    tu_ids = _arr(base, "tax_unit_id", by)
+    hh_index = pd.Index(hh_ids)
+    p_hix = hh_index.get_indexer(p_hh)
+    spm_hix = hh_index.get_indexer(
+        pd.Series(p_hh, index=p_spm).groupby(level=0).first().reindex(spm_ids).to_numpy()
+    )
+    tu_hix = hh_index.get_indexer(
+        pd.Series(p_hh, index=p_tu).groupby(level=0).first().reindex(tu_ids).to_numpy()
+    )
+    if (p_hix < 0).any() or (spm_hix < 0).any() or (tu_hix < 0).any():
+        raise ValueError("an entity does not map to a household")
+    n_hh = len(hh_ids)
+
+    def hh_sum(values, index):
+        total = np.zeros(n_hh)
+        np.add.at(total, index, np.asarray(values, dtype=float))
+        return total
+
+    w24 = _arr(base, "household_weight", by)
+    age24 = _arr(base, "age", by)
+    cols, targets, names, kinds = [], [], [], []
+    for name, lo, hi in AGE_GROUPS:
+        cols.append(hh_sum((age24 >= lo) & (age24 < hi), p_hix))
+        targets.append(float(census[name]))
+        names.append(name)
+        kinds.append("census_age")
+    snap = _arr(base, "snap", by)
+    filer = _arr(base, "tax_unit_is_filer", by).astype(bool)
+    agi = _arr(base, "adjusted_gross_income", by)
+    eitc = _arr(base, "eitc", by)
+    eitc_kids = _arr(base, "eitc_child_count", by)
+    held = [
+        ("snap_units", hh_sum(snap > 0, spm_hix)),
+        ("snap_dollars", hh_sum(snap, spm_hix)),
+        ("medicaid_enrolled", hh_sum(_arr(base, "medicaid_enrolled", by), p_hix)),
+        ("agi_filers", hh_sum(agi * filer, tu_hix)),
+        ("eitc_claims_0", hh_sum((eitc > 0) & (eitc_kids == 0), tu_hix)),
+        ("eitc_claims_1", hh_sum((eitc > 0) & (eitc_kids == 1), tu_hix)),
+        ("eitc_claims_2", hh_sum((eitc > 0) & (eitc_kids == 2), tu_hix)),
+        ("eitc_claims_3p", hh_sum((eitc > 0) & (eitc_kids >= 3), tu_hix)),
+        ("ctc_claims", hh_sum(_arr(base, "ctc_value", by) > 0, tu_hix)),
+        ("actc_claims", hh_sum(_arr(base, "refundable_ctc", by) > 0, tu_hix)),
+    ] + [
+        (name, hh_sum(filer & (agi >= lo) & (agi < hi), tu_hix))
+        for name, lo, hi in AGI_BRACKETS
+    ]
+    dropped = []
+    for name, col in held:
+        current = float(col @ w24)
+        if not current > 0:
+            dropped.append(name)
+            continue
+        cols.append(col)
+        targets.append(current)
+        names.append(name)
+        kinds.append("held_at_current")
+    return {
+        "hh_ids": hh_ids,
+        "p_hix": p_hix,
+        "n_hh": n_hh,
+        "hh_sum": hh_sum,
+        "w24": w24,
+        "age24": age24,
+        "X": np.column_stack(cols),
+        "t": np.asarray(targets),
+        "names": names,
+        "kinds": kinds,
+        "dropped": dropped,
+    }
+
+
+def _write_reweighted(path: str, hh_ids, w_new, rpath: str) -> None:
+    """Save a copy of the slice whose 2024 household weights are ``w_new``."""
+    import numpy as np
+    import pandas as pd
+    from policyengine_us.data import USSingleYearDataset
+
+    entities = ("household", "person", "tax_unit", "spm_unit", "family", "marital_unit")
+    with pd.HDFStore(path, "r") as store:
+        tables = {k.strip("/"): store[k] for k in store.keys() if k.strip("/") in entities}
+    hh = tables["household"].copy()
+    order = pd.Index(hh["household_id"]).get_indexer(hh_ids)
+    if (order < 0).any() or len(set(order)) != len(order):
+        raise ValueError("household ids differ between the store and the simulation")
+    new_col = np.asarray(hh["household_weight"], dtype=float).copy()
+    new_col[order] = w_new
+    hh["household_weight"] = new_col
+    tables["household"] = hh
+    USSingleYearDataset(time_period=BASE_YEAR, **tables).save(rpath)
+
+
+def _household_spine(path: str, hh_ids):
+    """Each simulated household's source spine from the store, or None."""
+    import pandas as pd
+
+    with pd.HDFStore(path, "r") as store:
+        household = store["household"]
+    if "household_spine" not in household.columns:
+        return None
+    order = pd.Index(household["household_id"]).get_indexer(hh_ids)
+    if (order < 0).any():
+        raise ValueError("a simulated household is missing from the store")
+    spine = household["household_spine"].map(
+        lambda v: v.decode() if isinstance(v, bytes) else str(v)
+    )
+    return spine.to_numpy()[order].astype(str)
+
+
 @app.function(image=image, memory=32768, cpu=4.0, timeout=5400, retries=1,
               volumes={"/slices": slices_volume})
 def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
@@ -204,76 +428,13 @@ def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
         "slice_tag": slice_tag,
         "versions": {p: md.version(p) for p in ("policyengine-us", "policyengine-core", "numpy", "pandas")},
     }
-
-    def arr(sim, name, period, **kw):
-        return np.asarray(sim.calculate(name, period=period, **kw))
+    arr = _arr
 
     try:
         base = Microsimulation(dataset=USSingleYearDataset(file_path=path))
-        by = BASE_YEAR
-        hh_ids = arr(base, "household_id", by)
-        p_hh = arr(base, "person_household_id", by)
-        p_spm = arr(base, "person_spm_unit_id", by)
-        p_tu = arr(base, "person_tax_unit_id", by)
-        spm_ids = arr(base, "spm_unit_id", by)
-        tu_ids = arr(base, "tax_unit_id", by)
-        hh_index = pd.Index(hh_ids)
-        p_hix = hh_index.get_indexer(p_hh)
-        spm_hix = hh_index.get_indexer(
-            pd.Series(p_hh, index=p_spm).groupby(level=0).first().reindex(spm_ids).to_numpy()
-        )
-        tu_hix = hh_index.get_indexer(
-            pd.Series(p_hh, index=p_tu).groupby(level=0).first().reindex(tu_ids).to_numpy()
-        )
-        if (p_hix < 0).any() or (spm_hix < 0).any() or (tu_hix < 0).any():
-            raise ValueError("an entity does not map to a household")
-        n_hh = len(hh_ids)
-
-        def hh_sum(values, index):
-            total = np.zeros(n_hh)
-            np.add.at(total, index, np.asarray(values, dtype=float))
-            return total
-
-        w24 = arr(base, "household_weight", by)
-        age24 = arr(base, "age", by)
-        cols, targets, names, kinds = [], [], [], []
-        for name, lo, hi in AGE_GROUPS:
-            cols.append(hh_sum((age24 >= lo) & (age24 < hi), p_hix))
-            targets.append(float(census[name]))
-            names.append(name)
-            kinds.append("census_age")
-        snap = arr(base, "snap", by)
-        filer = arr(base, "tax_unit_is_filer", by).astype(bool)
-        agi = arr(base, "adjusted_gross_income", by)
-        eitc = arr(base, "eitc", by)
-        eitc_kids = arr(base, "eitc_child_count", by)
-        held = [
-            ("snap_units", hh_sum(snap > 0, spm_hix)),
-            ("snap_dollars", hh_sum(snap, spm_hix)),
-            ("medicaid_enrolled", hh_sum(arr(base, "medicaid_enrolled", by), p_hix)),
-            ("agi_filers", hh_sum(agi * filer, tu_hix)),
-            ("eitc_claims_0", hh_sum((eitc > 0) & (eitc_kids == 0), tu_hix)),
-            ("eitc_claims_1", hh_sum((eitc > 0) & (eitc_kids == 1), tu_hix)),
-            ("eitc_claims_2", hh_sum((eitc > 0) & (eitc_kids == 2), tu_hix)),
-            ("eitc_claims_3p", hh_sum((eitc > 0) & (eitc_kids >= 3), tu_hix)),
-            ("ctc_claims", hh_sum(arr(base, "ctc_value", by) > 0, tu_hix)),
-            ("actc_claims", hh_sum(arr(base, "refundable_ctc", by) > 0, tu_hix)),
-        ] + [
-            (name, hh_sum(filer & (agi >= lo) & (agi < hi), tu_hix))
-            for name, lo, hi in AGI_BRACKETS
-        ]
-        dropped = []
-        for name, col in held:
-            current = float(col @ w24)
-            if not current > 0:
-                dropped.append(name)
-                continue
-            cols.append(col)
-            targets.append(current)
-            names.append(name)
-            kinds.append("held_at_current")
-        X = np.column_stack(cols)
-        t = np.asarray(targets)
+        s = _setup(base, census)
+        hh_ids, w24 = s["hh_ids"], s["w24"]
+        X, t, names, kinds = s["X"], s["t"], s["names"], s["kinds"]
         before = X.T @ w24
         w_new, iters, max_rel = _balance(X, t, w24)
         positive = w24 > 0
@@ -282,7 +443,7 @@ def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
             "iterations": iters,
             "max_abs_rel_error": max_rel,
             "converged": max_rel < 1e-6,
-            "dropped_held_at_zero": dropped,
+            "dropped_held_at_zero": s["dropped"],
             "constraints": [
                 {"name": n, "kind": k, "before": float(b), "target": float(tt)}
                 for n, k, b, tt in zip(names, kinds, before, t)
@@ -293,7 +454,7 @@ def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
             )),
             "kish_ess_before": float(w24.sum() ** 2 / (w24 ** 2).sum()),
             "kish_ess_after": float(w_new.sum() ** 2 / (w_new ** 2).sum()),
-            "n_households": int(n_hh),
+            "n_households": int(s["n_hh"]),
         }
 
         outside = _outside_person_ids(path)
@@ -333,20 +494,9 @@ def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
 
         # Write the reweighted 2024 household weights into a copy of the slice
         # and simulate it: every reweighted figure comes from that run.
-        entities = ("household", "person", "tax_unit", "spm_unit", "family", "marital_unit")
-        with pd.HDFStore(path, "r") as store:
-            tables = {k.strip("/"): store[k] for k in store.keys() if k.strip("/") in entities}
-        hh = tables["household"].copy()
-        order = pd.Index(hh["household_id"]).get_indexer(hh_ids)
-        if (order < 0).any() or len(set(order)) != len(order):
-            raise ValueError("household ids differ between the store and the simulation")
-        new_col = np.asarray(hh["household_weight"], dtype=float).copy()
-        new_col[order] = w_new
-        hh["household_weight"] = new_col
-        tables["household"] = hh
         with tempfile.TemporaryDirectory() as tmp:
             rpath = os.path.join(tmp, f"{state}_census_age.h5")
-            USSingleYearDataset(time_period=BASE_YEAR, **tables).save(rpath)
+            _write_reweighted(path, hh_ids, w_new, rpath)
             resim = Microsimulation(dataset=USSingleYearDataset(file_path=rpath))
             metrics, checks = {}, {}
             for y in YEARS:
@@ -397,25 +547,132 @@ def reweight_state(state: str, slice_tag: str, census: dict) -> dict:
     return out
 
 
+@app.function(image=image, memory=32768, cpu=4.0, timeout=5400, retries=1,
+              volumes={"/slices": slices_volume})
+def concentration_state(state: str, slice_tag: str, census: dict) -> dict:
+    """Weight concentration before and after the Census-age balance, and how
+    many sample households carry the children the $2,000 under-4 allowance
+    lifts out of SPM poverty in 2026, from each dataset's own simulation."""
+    import gc
+    import importlib.metadata as md
+    import tempfile
+    import time
+
+    import numpy as np
+    import pandas as pd
+    from policyengine_core.reforms import Reform
+    from policyengine_us import Microsimulation
+    from policyengine_us.data import USSingleYearDataset
+
+    t0 = time.perf_counter()
+    path = f"/slices/{slice_tag}/{state}.h5"
+    out: dict = {
+        "state": state,
+        "slice_tag": slice_tag,
+        "versions": {p: md.version(p) for p in ("policyengine-us", "policyengine-core", "numpy", "pandas")},
+    }
+    try:
+        base = Microsimulation(dataset=USSingleYearDataset(file_path=path))
+        s = _setup(base, census)
+        hh_ids, w24, hh_sum = s["hh_ids"], s["w24"], s["hh_sum"]
+        w_new, iters, max_rel = _balance(s["X"], s["t"], w24)
+        out["balance"] = {
+            "iterations": iters,
+            "max_abs_rel_error": max_rel,
+            "converged": max_rel < 1e-6,
+        }
+        spine = _household_spine(path, hh_ids)
+        out["spine_available"] = spine is not None
+        kids = hh_sum(s["age24"] < 18, s["p_hix"])
+        out["weights_2024"] = {
+            "production": _weight_stats(w24, spine, kids),
+            "reweighted": _weight_stats(w_new, spine, kids),
+        }
+        year = REFORM_YEAR
+        reform = Reform.from_dict(_universal_under4(year), country_id="us")
+        results = {}
+        with tempfile.TemporaryDirectory() as tmp:
+            rpath = os.path.join(tmp, f"{state}_census_age.h5")
+            _write_reweighted(path, hh_ids, w_new, rpath)
+            for label, dataset_path in (("production", path), ("reweighted", rpath)):
+                b = (
+                    base if label == "production"
+                    else Microsimulation(dataset=USSingleYearDataset(file_path=dataset_path))
+                )
+                r = Microsimulation(dataset=USSingleYearDataset(file_path=dataset_path), reform=reform)
+                hid = _arr(b, "household_id", year)
+                if not np.array_equal(hid, hh_ids):
+                    raise ValueError(f"{label}: households ordered differently at {year}")
+                hw = _arr(b, "household_weight", year)
+                pix = pd.Index(hid).get_indexer(_arr(b, "person_household_id", year))
+                pw = _arr(b, "person_weight", year)
+                if not np.allclose(pw, hw[pix]):
+                    raise ValueError(f"{label}: person_weight is not the household weight at {year}")
+                if not np.array_equal(_arr(b, "person_id", year), _arr(r, "person_id", year)):
+                    raise ValueError(f"{label}: baseline and reform order persons differently")
+                age = _arr(b, "age", year)
+                pov_b = _arr(b, "in_poverty", year, map_to="person").astype(bool)
+                pov_r = _arr(r, "in_poverty", year, map_to="person").astype(bool)
+                child, young = age < 18, age < 4
+                lifted = hh_sum(child & pov_b & ~pov_r, pix) - hh_sum(child & ~pov_b & pov_r, pix)
+                young_poor = hw * hh_sum(young & pov_b, pix)
+
+                def total(sim, name):
+                    return float(_arr(sim, name, year, map_to="household") @ hw)
+
+                d_ben = total(r, "household_benefits") - total(b, "household_benefits")
+                d_fed = total(r, "income_tax") - total(b, "income_tax")
+                d_st = total(r, "state_income_tax") - total(b, "state_income_tax")
+                results[label] = {
+                    "cost": d_ben - d_fed - d_st,
+                    "children_under_4": float(pw[young].sum()),
+                    "child_poverty_baseline": float(pw[child & pov_b].sum() / pw[child].sum() * 100),
+                    "child_poverty_reform": float(pw[child & pov_r].sum() / pw[child].sum() * 100),
+                    "young_poor_households": int((young_poor > 0).sum()),
+                    "young_poor_kish_ess": _kish(young_poor),
+                    **_lift_stats(hw * lifted, spine),
+                }
+                del r
+                if label != "production":
+                    del b
+                gc.collect()
+        out["universal_under4_2000"] = {"year": year, **results}
+        out["status"] = "ok"
+    except Exception as exc:  # recorded so one state cannot sink the map
+        out["status"] = "error"
+        out["error"] = f"{type(exc).__name__}: {str(exc)[:600]}"
+    out["runtime_s"] = round(time.perf_counter() - t0, 1)
+    return out
+
+
 def _census_groups(year: int = BASE_YEAR) -> dict[str, dict[str, float]]:
     with open(CENSUS, newline="", encoding="utf-8") as f:
         rows = [r for r in csv.DictReader(f) if int(r["year"]) == year]
     return {r["state"]: {name: float(r[name]) for name, _, _ in AGE_GROUPS} for r in rows}
 
 
-def spawn(pin: str, slice_tag: str, label: str, states: str = "") -> None:
+#: CLI kinds: the Modal function and the file prefix for its calls and output.
+KINDS = {
+    "reweight": ("reweight_state", "census_age_reweight"),
+    "concentration": ("concentration_state", "weight_concentration"),
+}
+
+
+def spawn(pin: str, slice_tag: str, label: str, states: str = "", kind: str = "reweight") -> None:
+    function, prefix = KINDS[kind]
     census = _census_groups()
-    f = modal.Function.from_name(f"cpid-census-age-reweight-{pin.replace('.', '-')}", "reweight_state")
+    f = modal.Function.from_name(f"cpid-census-age-reweight-{pin.replace('.', '-')}", function)
     chosen = [s.strip().upper() for s in states.split(",") if s.strip()] or STATES
     calls = {st: f.spawn(st, slice_tag, census[st]).object_id for st in chosen}
     os.makedirs(CALLS, exist_ok=True)
-    with open(os.path.join(CALLS, f"census_age_reweight_{label}.json"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(CALLS, f"{prefix}_{label}.json"), "w", encoding="utf-8") as fh:
         json.dump(calls, fh, indent=1)
-    print(f"spawned {len(calls)} calls for {label} ({slice_tag} @ pe-us {pin})")
+    print(f"spawned {len(calls)} {function} calls for {label} ({slice_tag} @ pe-us {pin})")
 
 
-def collect(label: str) -> None:
-    with open(os.path.join(CALLS, f"census_age_reweight_{label}.json"), encoding="utf-8") as fh:
+def collect(label: str, kind: str = "reweight") -> None:
+    _, prefix = KINDS[kind]
+    with open(os.path.join(CALLS, f"{prefix}_{label}.json"), encoding="utf-8") as fh:
         calls = json.load(fh)
     done, pending, failed = {}, [], {}
     for st, cid in calls.items():
@@ -431,7 +688,7 @@ def collect(label: str) -> None:
     rows = [done[st] for st in STATES if st in done] + [
         {"state": st, "status": "error", "error": f"call failed: {msg}"} for st, msg in failed.items()
     ]
-    path = os.path.join(OUT, f"census_age_reweight_{label}.json")
+    path = os.path.join(OUT, f"{prefix}_{label}.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(rows, fh, indent=1)
     errors = [r["state"] for r in rows if r.get("status") != "ok"]
@@ -445,5 +702,12 @@ if __name__ == "__main__":
         spawn(*sys.argv[2:6])
     elif command == "collect":
         collect(sys.argv[2])
+    elif command == "spawn-concentration":
+        spawn(*sys.argv[2:6], kind="concentration")
+    elif command == "collect-concentration":
+        collect(sys.argv[2], kind="concentration")
     else:
-        sys.exit("usage: census_age_reweight_modal.py spawn <pin> <slice_tag> <label> | collect <label>")
+        sys.exit(
+            "usage: census_age_reweight_modal.py spawn|spawn-concentration <pin> <slice_tag> <label> [states]"
+            " | collect|collect-concentration <label>"
+        )

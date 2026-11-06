@@ -121,3 +121,24 @@ python analysis/state_audit/census_age_reweight_summary.py buildp_18252 \
     --audit-2024 state_audit_buildp_v2_2024_raw.json \
     --audit-2026 state_audit_buildp_v2_2026_raw.json
 ```
+
+`concentration_state` in the same app repeats the balance and measures the
+concentration of the weights before and after it: Kish effective sample, the
+top 1% of households' share of the weight, and the share that households on
+the ASEC-by-PUF spine hold. It also simulates the universal $2,000 allowance
+for each child under 4 in 2026 on both datasets in every state and records how
+many sample households account for the children it lifts out of SPM poverty.
+`weight_concentration_summary.py` refuses unless the run's Kish values, 2026
+counts of children under 4, 2026 child SPM poverty and Indiana's cost match
+the projection run's. For a slice set with no projection run, `--audit-label`
+checks the run's year, slice tag, pin, household counts and child SPM poverty
+against that audit sweep instead.
+
+```bash
+python analysis/state_audit/census_age_reweight_modal.py spawn-concentration 1.825.2 592ae5d6 buildp_18252
+python analysis/state_audit/census_age_reweight_modal.py collect-concentration buildp_18252
+python analysis/state_audit/weight_concentration_summary.py buildp_18252
+python analysis/state_audit/census_age_reweight_modal.py spawn-concentration 1.825.2 766b7c7 buildo_18252
+python analysis/state_audit/census_age_reweight_modal.py collect-concentration buildo_18252
+python analysis/state_audit/weight_concentration_summary.py buildo_18252 --audit-label o1017_18252
+```
