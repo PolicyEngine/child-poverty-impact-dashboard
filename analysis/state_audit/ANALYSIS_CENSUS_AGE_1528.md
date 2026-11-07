@@ -137,9 +137,10 @@ pattern.
 We simulate the universal $2,000 for each child under 4 in 2026 in every state
 on all four datasets, and count the sample households behind the children it
 lifts out of SPM poverty. In the median state, 19 households on Build P account
-for the whole lift, and one of them accounts for 43.2% of it. Build P lifts at
-least 1,000 children in 36 states, before the balance and after, and one
-household accounts for more than half of the lift in 15 of them each time.
+for the whole lift, and one of them accounts for 43.2% of it. On Build P, the
+allowance lifts at least 1,000 children in 36 states, before the balance and
+after, and one household accounts for more than half of the lift in 15 of them
+each time.
 Across all 51 states that count rises from 21 to 24, all of it in states lifting
 fewer than 1,000, and the District of Columbia counts in both on a net lift under
 0.001 children.
@@ -161,9 +162,9 @@ SPM poverty 7.09 points, from 16.11% to 9.03%, against 0.22 points in the median
 state, and five households account for 97.0% of that lift.
 
 The balance moves the 51-state lift 3.6% and individual states' lifts far more:
-among the 36 states where Build P lifts at least 1,000 children, it moves the
-lift by more than a fifth in 10, from a 36% fall in Washington to a 64% rise in
-Mississippi. Build O's lift exceeds Build P's by 25% across the 51 states, and
+among the 36 states with a lift of at least 1,000 children on Build P, it moves
+the lift by more than a fifth in 10, from a 36% fall in Washington to a 64% rise
+in Mississippi. Build O's lift exceeds Build P's by 25% across the 51 states, and
 among those 36 states it falls below half of Build P's or exceeds double in 6.
 Indiana's falls from 12,417 to 2,356, and Minnesota's rises from 2,284 to 9,476.
 We ran both builds under policyengine-us 1.825.2, so these differences come from
