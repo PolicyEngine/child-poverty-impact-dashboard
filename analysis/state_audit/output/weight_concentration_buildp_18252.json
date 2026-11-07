@@ -1,0 +1,4235 @@
+[
+ {
+  "state": "AL",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 8.992806499463768e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 26552,
+    "kish_ess": 397.9366469143926,
+    "top1pct_share": 0.6749396201657367,
+    "max_weight": 18054.939453125,
+    "median_weight": 8.785141468048096,
+    "p99_weight": 563.4121942138569,
+    "child_kish_ess": 154.64965828545974,
+    "asec_households": 1061,
+    "asec_weight_share": 0.6757335184589215,
+    "asec_child_weight_share": 0.6663807783087253,
+    "asec_kish_ess": 182.97938091603532,
+    "other_kish_ess": 6003.897651505307
+   },
+   "reweighted": {
+    "n_households": 26552,
+    "kish_ess": 376.503286711407,
+    "top1pct_share": 0.6686708232178439,
+    "max_weight": 18662.016359984216,
+    "median_weight": 9.104716135782361,
+    "p99_weight": 642.2426278592195,
+    "child_kish_ess": 168.21522563343038,
+    "asec_households": 1061,
+    "asec_weight_share": 0.6693974765777295,
+    "asec_child_weight_share": 0.633410628313453,
+    "asec_kish_ess": 169.92756576585506,
+    "other_kish_ess": 5736.021861971754
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 444667904.0,
+    "children_under_4": 222333.03125,
+    "child_poverty_baseline": 13.54213809967041,
+    "child_poverty_reform": 13.011835098266602,
+    "young_poor_households": 216,
+    "young_poor_kish_ess": 7.092853284463576,
+    "children_lifted_net": 6661.530581943203,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.3947996659300452,
+    "top1_share": 0.6355804307254922,
+    "top5_share": 0.8407825380656107,
+    "asec_share": 0.6355805842649459,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 480319488.0,
+    "children_under_4": 240159.484375,
+    "child_poverty_baseline": 15.029436111450195,
+    "child_poverty_reform": 14.223630905151367,
+    "young_poor_households": 216,
+    "young_poor_kish_ess": 5.541276549185894,
+    "children_lifted_net": 9177.96605174878,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.9913988270989305,
+    "top1_share": 0.5583326817232125,
+    "top5_share": 0.8123462671755829,
+    "asec_share": 0.5583327892876956,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 260.3
+ },
+ {
+  "state": "AK",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 3.9968028886505635e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 3904,
+    "kish_ess": 303.2011536845475,
+    "top1pct_share": 0.27334725387702863,
+    "max_weight": 3541.97119140625,
+    "median_weight": 10.633202075958252,
+    "p99_weight": 1171.6404101562473,
+    "child_kish_ess": 120.22939899784586,
+    "asec_households": 826,
+    "asec_weight_share": 0.578238478543749,
+    "asec_child_weight_share": 0.5909335747383656,
+    "asec_kish_ess": 107.9933632774708,
+    "other_kish_ess": 880.4913383107455
+   },
+   "reweighted": {
+    "n_households": 3904,
+    "kish_ess": 276.5850816153259,
+    "top1pct_share": 0.29865906326628394,
+    "max_weight": 3739.1721926578284,
+    "median_weight": 9.813775473389683,
+    "p99_weight": 1263.1069346337217,
+    "child_kish_ess": 118.82901055675518,
+    "asec_households": 826,
+    "asec_weight_share": 0.5917423281903947,
+    "asec_child_weight_share": 0.6039938647317811,
+    "asec_kish_ess": 102.47028144696516,
+    "other_kish_ess": 840.3124799161283
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 78628096.0,
+    "children_under_4": 39314.078125,
+    "child_poverty_baseline": 9.568800926208496,
+    "child_poverty_reform": 8.832778930664062,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 3.9956219502725823,
+    "children_lifted_net": 1438.1225852966309,
+    "households_with_net_lift": 2,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.0354366417135767,
+    "top1_share": 0.9825847785910976,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 73445888.0,
+    "children_under_4": 36722.8125,
+    "child_poverty_baseline": 10.657234191894531,
+    "child_poverty_reform": 9.937686920166016,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 3.811918448455592,
+    "children_lifted_net": 1271.6377220153809,
+    "households_with_net_lift": 2,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.01628044269604,
+    "top1_share": 0.991924976022132,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 105.2
+ },
+ {
+  "state": "AZ",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 8.215650382226158e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 35091,
+    "kish_ess": 319.5047049121922,
+    "top1pct_share": 0.6908966537614091,
+    "max_weight": 40235.7421875,
+    "median_weight": 10.626673698425293,
+    "p99_weight": 305.5012573242184,
+    "child_kish_ess": 125.422402183268,
+    "asec_households": 1164,
+    "asec_weight_share": 0.6713963854178203,
+    "asec_child_weight_share": 0.6372428588839751,
+    "asec_kish_ess": 144.60846325759118,
+    "other_kish_ess": 8537.953655421024
+   },
+   "reweighted": {
+    "n_households": 35091,
+    "kish_ess": 308.8167864751047,
+    "top1pct_share": 0.6989595613551646,
+    "max_weight": 32291.073348651185,
+    "median_weight": 11.017261750162788,
+    "p99_weight": 302.36318593633183,
+    "child_kish_ess": 133.31034534107567,
+    "asec_households": 1164,
+    "asec_weight_share": 0.6777583467543749,
+    "asec_child_weight_share": 0.6263357486059273,
+    "asec_kish_ess": 142.4265711325309,
+    "other_kish_ess": 8018.199447426218
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 685805568.0,
+    "children_under_4": 342903.25,
+    "child_poverty_baseline": 16.112512588500977,
+    "child_poverty_reform": 9.025355339050293,
+    "young_poor_households": 222,
+    "young_poor_kish_ess": 11.45541804477084,
+    "children_lifted_net": 124168.4123096466,
+    "households_with_net_lift": 29,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.2865306009265183,
+    "top1_share": 0.4257798518940849,
+    "top5_share": 0.9699102602819899,
+    "asec_share": 0.9630721526704129,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 643985408.0,
+    "children_under_4": 321990.1875,
+    "child_poverty_baseline": 16.999496459960938,
+    "child_poverty_reform": 9.7550630569458,
+    "young_poor_households": 222,
+    "young_poor_kish_ess": 10.820063946833093,
+    "children_lifted_net": 118599.13743424416,
+    "households_with_net_lift": 29,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.207680662415031,
+    "top1_share": 0.43813655235317406,
+    "top5_share": 0.9733505561198251,
+    "asec_share": 0.9642093520649752,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 184.5
+ },
+ {
+  "state": "AR",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 1.5027978861326119e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 15919,
+    "kish_ess": 347.2737902672901,
+    "top1pct_share": 0.5993920361965567,
+    "max_weight": 12478.3056640625,
+    "median_weight": 8.255921363830566,
+    "p99_weight": 2065.6298583984294,
+    "child_kish_ess": 159.96170421087282,
+    "asec_households": 952,
+    "asec_weight_share": 0.6710737567220256,
+    "asec_child_weight_share": 0.638492916027812,
+    "asec_kish_ess": 158.0653642691457,
+    "other_kish_ess": 3547.5371194731642
+   },
+   "reweighted": {
+    "n_households": 15919,
+    "kish_ess": 315.6391223816042,
+    "top1pct_share": 0.604206811922996,
+    "max_weight": 16137.610637236798,
+    "median_weight": 8.496455655925807,
+    "p99_weight": 1765.6141645191913,
+    "child_kish_ess": 173.6876096032211,
+    "asec_households": 952,
+    "asec_weight_share": 0.665424424936847,
+    "asec_child_weight_share": 0.6043251032596667,
+    "asec_kish_ess": 141.32865556233327,
+    "other_kish_ess": 3186.8696689115654
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 264431616.0,
+    "children_under_4": 132214.65625,
+    "child_poverty_baseline": 5.15477991104126,
+    "child_poverty_reform": 5.116671085357666,
+    "young_poor_households": 104,
+    "young_poor_kish_ess": 3.1524734372281733,
+    "children_lifted_net": 296.4050461053848,
+    "households_with_net_lift": 8,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 5.016430698325466,
+    "top1_share": 0.2991228234714451,
+    "top5_share": 0.9042798789139466,
+    "asec_share": 0.0013372002007438998,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 291540992.0,
+    "children_under_4": 145771.078125,
+    "child_poverty_baseline": 5.4211859703063965,
+    "child_poverty_reform": 5.367889404296875,
+    "young_poor_households": 104,
+    "young_poor_kish_ess": 4.648256930107857,
+    "children_lifted_net": 380.6357584744692,
+    "households_with_net_lift": 8,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.1207066612141,
+    "top1_share": 0.3727380038193044,
+    "top5_share": 0.9287843959430465,
+    "asec_share": 0.0009017866789193566,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 196.0
+ },
+ {
+  "state": "CA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 10,
+   "max_abs_rel_error": 5.282885240376345e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 163211,
+    "kish_ess": 1500.8147160336948,
+    "top1pct_share": 0.7352994764629973,
+    "max_weight": 45150.62890625,
+    "median_weight": 13.060432434082031,
+    "p99_weight": 245.47494201660086,
+    "child_kish_ess": 618.3844607950535,
+    "asec_households": 2659,
+    "asec_weight_share": 0.7226179833085004,
+    "asec_child_weight_share": 0.6806450687534877,
+    "asec_kish_ess": 785.4535912142717,
+    "other_kish_ess": 51444.84502152279
+   },
+   "reweighted": {
+    "n_households": 163211,
+    "kish_ess": 1482.4631503439978,
+    "top1pct_share": 0.7362135697162625,
+    "max_weight": 45186.451265797696,
+    "median_weight": 13.084110143394994,
+    "p99_weight": 248.94204400702628,
+    "child_kish_ess": 674.9512411451601,
+    "asec_households": 2659,
+    "asec_weight_share": 0.7231409601531199,
+    "asec_child_weight_share": 0.6755708180041338,
+    "asec_kish_ess": 776.9842170654222,
+    "other_kish_ess": 50292.466210072744
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 3497132032.0,
+    "children_under_4": 1748564.25,
+    "child_poverty_baseline": 16.818021774291992,
+    "child_poverty_reform": 15.868708610534668,
+    "young_poor_households": 1261,
+    "young_poor_kish_ess": 26.63142325248818,
+    "children_lifted_net": 88505.82795437374,
+    "households_with_net_lift": 184,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.9130835315009802,
+    "top1_share": 0.7219540905734486,
+    "top5_share": 0.770431637988781,
+    "asec_share": 0.7486619765045033,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 3364388864.0,
+    "children_under_4": 1682188.0,
+    "child_poverty_baseline": 17.537857055664062,
+    "child_poverty_reform": 16.726119995117188,
+    "young_poor_households": 1261,
+    "young_poor_kish_ess": 26.134315311868733,
+    "children_lifted_net": 68601.73825678843,
+    "households_with_net_lift": 184,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.578246078346122,
+    "top1_share": 0.621096176663333,
+    "top5_share": 0.6740118189451041,
+    "asec_share": 0.6400279475443736,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 1386.2
+ },
+ {
+  "state": "CO",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 9,
+   "max_abs_rel_error": 1.0547118733938987e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 30079,
+    "kish_ess": 288.13912588410244,
+    "top1pct_share": 0.6823926844852897,
+    "max_weight": 21596.623046875,
+    "median_weight": 10.993131637573242,
+    "p99_weight": 263.24917480468827,
+    "child_kish_ess": 97.78969256419512,
+    "asec_households": 1164,
+    "asec_weight_share": 0.6620908729730863,
+    "asec_child_weight_share": 0.6521884420307084,
+    "asec_kish_ess": 126.83193288924714,
+    "other_kish_ess": 7993.625006847379
+   },
+   "reweighted": {
+    "n_households": 30079,
+    "kish_ess": 282.5987948371241,
+    "top1pct_share": 0.6798773417775111,
+    "max_weight": 29033.21762624729,
+    "median_weight": 11.35667386704866,
+    "p99_weight": 301.35550048367816,
+    "child_kish_ess": 106.05229233218716,
+    "asec_households": 1164,
+    "asec_weight_share": 0.6543214723407443,
+    "asec_child_weight_share": 0.6382574545332054,
+    "asec_kish_ess": 121.58981250411568,
+    "other_kish_ess": 6855.472747604073
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 507453440.0,
+    "children_under_4": 253727.53125,
+    "child_poverty_baseline": 7.943569660186768,
+    "child_poverty_reform": 7.617855072021484,
+    "young_poor_households": 103,
+    "young_poor_kish_ess": 4.249748675301815,
+    "children_lifted_net": 4513.48657327969,
+    "households_with_net_lift": 19,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 5.190305552060267,
+    "top1_share": 0.3318481107387323,
+    "top5_share": 0.8187138698305162,
+    "asec_share": 0.3318481403861482,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 512286720.0,
+    "children_under_4": 256143.828125,
+    "child_poverty_baseline": 8.298935890197754,
+    "child_poverty_reform": 7.846552848815918,
+    "young_poor_households": 103,
+    "young_poor_kish_ess": 4.5603402425969355,
+    "children_lifted_net": 5652.189098120958,
+    "households_with_net_lift": 19,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.1798632401624465,
+    "top1_share": 0.4045910089768515,
+    "top5_share": 0.8412533159277478,
+    "asec_share": 0.24472381464493265,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 220.3
+ },
+ {
+  "state": "CT",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 4.884981308350689e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 18358,
+    "kish_ess": 235.0589921208243,
+    "top1pct_share": 0.6914902878474455,
+    "max_weight": 21344.89453125,
+    "median_weight": 10.894606113433838,
+    "p99_weight": 368.5081170654297,
+    "child_kish_ess": 113.23182160061083,
+    "asec_households": 908,
+    "asec_weight_share": 0.6865955170815327,
+    "asec_child_weight_share": 0.6552478889832879,
+    "asec_kish_ess": 111.32891620696307,
+    "other_kish_ess": 4952.953410794426
+   },
+   "reweighted": {
+    "n_households": 18358,
+    "kish_ess": 232.14845915860505,
+    "top1pct_share": 0.691363732059244,
+    "max_weight": 21187.172776331816,
+    "median_weight": 10.938431287770317,
+    "p99_weight": 390.4580683540524,
+    "child_kish_ess": 110.73946269132632,
+    "asec_households": 908,
+    "asec_weight_share": 0.6851684040159417,
+    "asec_child_weight_share": 0.6606983397771016,
+    "asec_kish_ess": 109.5190387894462,
+    "other_kish_ess": 4705.02588910206
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 317229056.0,
+    "children_under_4": 158613.8125,
+    "child_poverty_baseline": 11.56490421295166,
+    "child_poverty_reform": 10.973055839538574,
+    "young_poor_households": 86,
+    "young_poor_kish_ess": 6.303256654777644,
+    "children_lifted_net": 4861.9945686094,
+    "households_with_net_lift": 9,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.5228335176444845,
+    "top1_share": 0.8039436737809005,
+    "top5_share": 0.970835680851461,
+    "asec_share": 0.8039438080985203,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 296382464.0,
+    "children_under_4": 148192.375,
+    "child_poverty_baseline": 11.04300594329834,
+    "child_poverty_reform": 10.571318626403809,
+    "young_poor_households": 86,
+    "young_poor_kish_ess": 7.69712318409043,
+    "children_lifted_net": 3471.930621323074,
+    "households_with_net_lift": 9,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.9306163752376386,
+    "top1_share": 0.7041137337794874,
+    "top5_share": 0.9639390815310849,
+    "asec_share": 0.7041138263977444,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 179.0
+ },
+ {
+  "state": "DE",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 2.220446049250313e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 5594,
+    "kish_ess": 269.8683635788747,
+    "top1pct_share": 0.3737312791991698,
+    "max_weight": 6164.115234375,
+    "median_weight": 9.355775833129883,
+    "p99_weight": 1637.7016735839818,
+    "child_kish_ess": 99.25586652701126,
+    "asec_households": 1068,
+    "asec_weight_share": 0.6399462773116582,
+    "asec_child_weight_share": 0.6573920009954218,
+    "asec_kish_ess": 113.501327783293,
+    "other_kish_ess": 1331.7067830367332
+   },
+   "reweighted": {
+    "n_households": 5594,
+    "kish_ess": 250.42546005219646,
+    "top1pct_share": 0.39292221902411983,
+    "max_weight": 6426.138100325889,
+    "median_weight": 9.907280169918163,
+    "p99_weight": 1748.9187181764603,
+    "child_kish_ess": 97.12245378637344,
+    "asec_households": 1068,
+    "asec_weight_share": 0.6500531808422859,
+    "asec_child_weight_share": 0.6410375633242505,
+    "asec_kish_ess": 108.55997346969454,
+    "other_kish_ess": 1216.0020279462838
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 95847424.0,
+    "children_under_4": 47923.5390625,
+    "child_poverty_baseline": 17.256973266601562,
+    "child_poverty_reform": 16.928220748901367,
+    "young_poor_households": 31,
+    "young_poor_kish_ess": 4.434540704383974,
+    "children_lifted_net": 773.5319671630859,
+    "households_with_net_lift": 3,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.536236238138484,
+    "top1_share": 0.46109716989072774,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 88599552.0,
+    "children_under_4": 44299.74609375,
+    "child_poverty_baseline": 16.197490692138672,
+    "child_poverty_reform": 15.855142593383789,
+    "young_poor_households": 31,
+    "young_poor_kish_ess": 5.5829569034240905,
+    "children_lifted_net": 734.7960395812988,
+    "households_with_net_lift": 3,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.149229955255508,
+    "top1_share": 0.5567175106912425,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 96.6
+ },
+ {
+  "state": "DC",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 2.9976021664879227e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 4228,
+    "kish_ess": 364.47534998653504,
+    "top1pct_share": 0.2506415427272805,
+    "max_weight": 4807.4248046875,
+    "median_weight": 16.218748092651367,
+    "p99_weight": 1215.511658935545,
+    "child_kish_ess": 81.02347257459616,
+    "asec_households": 551,
+    "asec_weight_share": 0.5974678408094531,
+    "asec_child_weight_share": 0.5748510293900662,
+    "asec_kish_ess": 137.96580932222136,
+    "other_kish_ess": 1036.6382056006678
+   },
+   "reweighted": {
+    "n_households": 4228,
+    "kish_ess": 324.61466499400365,
+    "top1pct_share": 0.26762571507004596,
+    "max_weight": 6022.896625846412,
+    "median_weight": 16.034051907509983,
+    "p99_weight": 1258.643979849922,
+    "child_kish_ess": 92.01713691154255,
+    "asec_households": 551,
+    "asec_weight_share": 0.6050240409127503,
+    "asec_child_weight_share": 0.5668859108231314,
+    "asec_kish_ess": 125.67439624300219,
+    "other_kish_ess": 929.3958613842672
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 67156224.0,
+    "children_under_4": 33578.15625,
+    "child_poverty_baseline": 9.846368789672852,
+    "child_poverty_reform": 9.846367835998535,
+    "young_poor_households": 23,
+    "young_poor_kish_ess": 6.501081283207764,
+    "children_lifted_net": 0.0001595839967194479,
+    "households_with_net_lift": 1,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.0,
+    "top1_share": 1.0,
+    "top5_share": 1.0,
+    "asec_share": 1.0,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 63986432.0,
+    "children_under_4": 31993.076171875,
+    "child_poverty_baseline": 14.351937294006348,
+    "child_poverty_reform": 14.351938247680664,
+    "young_poor_households": 23,
+    "young_poor_kish_ess": 8.764402530167091,
+    "children_lifted_net": 0.00012092329598090146,
+    "households_with_net_lift": 1,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.0,
+    "top1_share": 1.0,
+    "top5_share": 1.0,
+    "asec_share": 1.0,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 110.2
+ },
+ {
+  "state": "FL",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 1.2434497875801753e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 99898,
+    "kish_ess": 618.042616738419,
+    "top1pct_share": 0.7342411041605891,
+    "max_weight": 60806.0625,
+    "median_weight": 11.372678756713867,
+    "p99_weight": 327.88726348876946,
+    "child_kish_ess": 255.77685343693534,
+    "asec_households": 1642,
+    "asec_weight_share": 0.7136364269089456,
+    "asec_child_weight_share": 0.6797684364755521,
+    "asec_kish_ess": 315.48477622701597,
+    "other_kish_ess": 21905.77317697485
+   },
+   "reweighted": {
+    "n_households": 99898,
+    "kish_ess": 638.6670575079266,
+    "top1pct_share": 0.731107899958732,
+    "max_weight": 63195.81446732938,
+    "median_weight": 12.416001099875288,
+    "p99_weight": 335.6432663553604,
+    "child_kish_ess": 299.5865161802399,
+    "asec_households": 1642,
+    "asec_weight_share": 0.7108736688854281,
+    "asec_child_weight_share": 0.646018709392025,
+    "asec_kish_ess": 323.4959151750726,
+    "other_kish_ess": 22996.558231660983
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 2167676928.0,
+    "children_under_4": 1083844.75,
+    "child_poverty_baseline": 20.513460159301758,
+    "child_poverty_reform": 19.552553176879883,
+    "young_poor_households": 776,
+    "young_poor_kish_ess": 22.885093439878332,
+    "children_lifted_net": 49102.58775754944,
+    "households_with_net_lift": 81,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.853428183964153,
+    "top1_share": 0.5103326018359343,
+    "top5_share": 0.8558591219580217,
+    "asec_share": 0.8080327655887938,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 1853702144.0,
+    "children_under_4": 926852.75,
+    "child_poverty_baseline": 23.058223724365234,
+    "child_poverty_reform": 21.885231018066406,
+    "young_poor_households": 776,
+    "young_poor_kish_ess": 21.863674221731205,
+    "children_lifted_net": 53160.22622371536,
+    "households_with_net_lift": 81,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.0498863696849057,
+    "top1_share": 0.48731561985327165,
+    "top5_share": 0.8475253237232041,
+    "asec_share": 0.7842002943276951,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 532.4
+ },
+ {
+  "state": "GA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 1.27675647831893e-13,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 50241,
+    "kish_ess": 378.8271737518809,
+    "top1pct_share": 0.732825807072691,
+    "max_weight": 40751.07421875,
+    "median_weight": 10.013567924499512,
+    "p99_weight": 248.41684265136385,
+    "child_kish_ess": 165.4775315147216,
+    "asec_households": 1215,
+    "asec_weight_share": 0.7141703962972933,
+    "asec_child_weight_share": 0.6702612427114929,
+    "asec_kish_ess": 193.6945526818569,
+    "other_kish_ess": 12547.0064397505
+   },
+   "reweighted": {
+    "n_households": 50241,
+    "kish_ess": 368.5494704799902,
+    "top1pct_share": 0.7360291988775435,
+    "max_weight": 38556.718781667536,
+    "median_weight": 10.126216909800224,
+    "p99_weight": 259.60414950066627,
+    "child_kish_ess": 170.44312764539973,
+    "asec_households": 1215,
+    "asec_weight_share": 0.7152150559474649,
+    "asec_child_weight_share": 0.6576865225092899,
+    "asec_kish_ess": 189.03008066754504,
+    "other_kish_ess": 11187.980645451866
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 1015267328.0,
+    "children_under_4": 507633.5,
+    "child_poverty_baseline": 12.784637451171875,
+    "child_poverty_reform": 12.037561416625977,
+    "young_poor_households": 441,
+    "young_poor_kish_ess": 6.443434322632901,
+    "children_lifted_net": 20602.258294530402,
+    "households_with_net_lift": 59,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.3648260568174595,
+    "top1_share": 0.6389790354345504,
+    "top5_share": 0.8163702792810955,
+    "asec_share": 0.7456406194377745,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 1035771904.0,
+    "children_under_4": 517891.625,
+    "child_poverty_baseline": 13.88955307006836,
+    "child_poverty_reform": 13.197080612182617,
+    "young_poor_households": 441,
+    "young_poor_kish_ess": 9.470227096714263,
+    "children_lifted_net": 17734.038895384063,
+    "households_with_net_lift": 59,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.9273759346235337,
+    "top1_share": 0.5714573611852352,
+    "top5_share": 0.7674881504033022,
+    "asec_share": 0.663981441306351,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 310.3
+ },
+ {
+  "state": "HI",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 6.8833827526759706e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 6789,
+    "kish_ess": 330.5514932899032,
+    "top1pct_share": 0.3466785287930177,
+    "max_weight": 8315.498046875,
+    "median_weight": 11.424884796142578,
+    "p99_weight": 1622.1343505859372,
+    "child_kish_ess": 130.62293705850078,
+    "asec_households": 838,
+    "asec_weight_share": 0.6793313590873865,
+    "asec_child_weight_share": 0.6601136575076161,
+    "asec_kish_ess": 155.63187062663127,
+    "other_kish_ess": 1714.5622585092299
+   },
+   "reweighted": {
+    "n_households": 6789,
+    "kish_ess": 334.15943878053844,
+    "top1pct_share": 0.35191645944002686,
+    "max_weight": 7643.68533151931,
+    "median_weight": 11.676936519183387,
+    "p99_weight": 1698.2792386845197,
+    "child_kish_ess": 142.23126227907346,
+    "asec_households": 838,
+    "asec_weight_share": 0.6715694404369262,
+    "asec_child_weight_share": 0.6357454573866121,
+    "asec_kish_ess": 154.24516505629066,
+    "other_kish_ess": 1571.6878552695825
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 112307200.0,
+    "children_under_4": 56153.7734375,
+    "child_poverty_baseline": 5.638088703155518,
+    "child_poverty_reform": 5.048297882080078,
+    "young_poor_households": 35,
+    "young_poor_kish_ess": 5.146089001800879,
+    "children_lifted_net": 1933.4554414749146,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.1365667727751436,
+    "top1_share": 0.6450605346404263,
+    "top5_share": 1.0,
+    "asec_share": 0.6450605346404263,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 121109504.0,
+    "children_under_4": 60554.47265625,
+    "child_poverty_baseline": 6.372462272644043,
+    "child_poverty_reform": 5.423376560211182,
+    "young_poor_households": 35,
+    "young_poor_kish_ess": 5.458761986183195,
+    "children_lifted_net": 2748.596983909607,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.3072968935619254,
+    "top1_share": 0.5774405103434342,
+    "top5_share": 1.0,
+    "asec_share": 0.5774405103434342,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 155.5
+ },
+ {
+  "state": "ID",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 8,
+   "max_abs_rel_error": 5.395683899678261e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 9678,
+    "kish_ess": 331.5416190403025,
+    "top1pct_share": 0.4582752649950062,
+    "max_weight": 10940.3388671875,
+    "median_weight": 7.855132341384888,
+    "p99_weight": 1710.219825439452,
+    "child_kish_ess": 132.96840603255055,
+    "asec_households": 746,
+    "asec_weight_share": 0.6351292435675266,
+    "asec_child_weight_share": 0.6377464493603833,
+    "asec_kish_ess": 136.69816111907437,
+    "other_kish_ess": 2039.8590773487829
+   },
+   "reweighted": {
+    "n_households": 9678,
+    "kish_ess": 315.54541037789164,
+    "top1pct_share": 0.4794546593174737,
+    "max_weight": 8287.759938453706,
+    "median_weight": 8.506516743642777,
+    "p99_weight": 1706.419206810936,
+    "child_kish_ess": 115.12535596817547,
+    "asec_households": 746,
+    "asec_weight_share": 0.6226842426020301,
+    "asec_child_weight_share": 0.5682124733639896,
+    "asec_kish_ess": 127.06543088452446,
+    "other_kish_ess": 1210.076812413146
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 169592320.0,
+    "children_under_4": 84795.8125,
+    "child_poverty_baseline": 5.931939125061035,
+    "child_poverty_reform": 5.844036102294922,
+    "young_poor_households": 49,
+    "young_poor_kish_ess": 3.6795389799623894,
+    "children_lifted_net": 454.62481767797726,
+    "households_with_net_lift": 9,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.080714582610405,
+    "top1_share": 0.3370795984241885,
+    "top5_share": 0.9622774372551932,
+    "asec_share": 9.199990008358087e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 185574400.0,
+    "children_under_4": 92787.4375,
+    "child_poverty_baseline": 5.9897284507751465,
+    "child_poverty_reform": 5.82108211517334,
+    "young_poor_households": 49,
+    "young_poor_kish_ess": 15.039149386140567,
+    "children_lifted_net": 811.1655185937416,
+    "households_with_net_lift": 9,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.0783688814036205,
+    "top1_share": 0.3995160062526576,
+    "top5_share": 0.9559789737704172,
+    "asec_share": 5.168012340994285e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 156.5
+ },
+ {
+  "state": "IL",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 1.2878587085651816e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 59602,
+    "kish_ess": 440.1084587277985,
+    "top1pct_share": 0.73431579621846,
+    "max_weight": 49300.10546875,
+    "median_weight": 10.045057773590088,
+    "p99_weight": 290.04061248779016,
+    "child_kish_ess": 143.84744868575035,
+    "asec_households": 1668,
+    "asec_weight_share": 0.7120116518743309,
+    "asec_child_weight_share": 0.7035504392316754,
+    "asec_kish_ess": 223.72815040572098,
+    "other_kish_ess": 13376.442853557326
+   },
+   "reweighted": {
+    "n_households": 59602,
+    "kish_ess": 415.2755717873877,
+    "top1pct_share": 0.7352991405359351,
+    "max_weight": 47347.82576227464,
+    "median_weight": 9.950220679439104,
+    "p99_weight": 307.76620168130313,
+    "child_kish_ess": 148.64638086226694,
+    "asec_households": 1668,
+    "asec_weight_share": 0.7111109406290715,
+    "asec_child_weight_share": 0.6918630028956719,
+    "asec_kish_ess": 210.58157666385594,
+    "other_kish_ess": 12464.219220981355
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 1002938368.0,
+    "children_under_4": 501457.5,
+    "child_poverty_baseline": 16.72208023071289,
+    "child_poverty_reform": 14.529873847961426,
+    "young_poor_households": 275,
+    "young_poor_kish_ess": 8.461740364212282,
+    "children_lifted_net": 68158.03673005104,
+    "households_with_net_lift": 35,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.1630047605651428,
+    "top1_share": 0.9269409682782788,
+    "top5_share": 0.9689585069893766,
+    "asec_share": 0.9269409682782788,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 1055563776.0,
+    "children_under_4": 527784.0625,
+    "child_poverty_baseline": 18.314786911010742,
+    "child_poverty_reform": 15.28644847869873,
+    "young_poor_households": 275,
+    "young_poor_kish_ess": 8.070805601766217,
+    "children_lifted_net": 81740.27221059799,
+    "households_with_net_lift": 35,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.161940567765786,
+    "top1_share": 0.9273572682945735,
+    "top5_share": 0.9703176798355971,
+    "asec_share": 0.9273572682945735,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 281.3
+ },
+ {
+  "state": "IN",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 9.325873406851315e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 33243,
+    "kish_ess": 346.01089210573485,
+    "top1pct_share": 0.688306246804813,
+    "max_weight": 28841.10546875,
+    "median_weight": 10.51690673828125,
+    "p99_weight": 312.24249633789606,
+    "child_kish_ess": 145.7500063626263,
+    "asec_households": 1141,
+    "asec_weight_share": 0.6684752024744971,
+    "asec_child_weight_share": 0.66587926041924,
+    "asec_kish_ess": 155.34748924804381,
+    "other_kish_ess": 8099.819867222597
+   },
+   "reweighted": {
+    "n_households": 33243,
+    "kish_ess": 347.9404863527707,
+    "top1pct_share": 0.6827134027105368,
+    "max_weight": 25898.995678070336,
+    "median_weight": 11.000007147353246,
+    "p99_weight": 336.98735573326064,
+    "child_kish_ess": 152.03882895667783,
+    "asec_households": 1141,
+    "asec_weight_share": 0.6597267348647801,
+    "asec_child_weight_share": 0.6590986052096698,
+    "asec_kish_ess": 152.27150688118977,
+    "other_kish_ess": 7354.54149555226
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 747720704.0,
+    "children_under_4": 373860.34375,
+    "child_poverty_baseline": 10.97842788696289,
+    "child_poverty_reform": 10.29058837890625,
+    "young_poor_households": 220,
+    "young_poor_kish_ess": 6.5920306375863955,
+    "children_lifted_net": 12416.819376153348,
+    "households_with_net_lift": 24,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.4857732714786218,
+    "top1_share": 0.8178583348206855,
+    "top5_share": 0.9314663908232349,
+    "asec_share": 0.8178585025663022,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 654680064.0,
+    "children_under_4": 327338.9375,
+    "child_poverty_baseline": 11.627398490905762,
+    "child_poverty_reform": 11.001720428466797,
+    "young_poor_households": 220,
+    "young_poor_kish_ess": 8.3288441915185,
+    "children_lifted_net": 10075.177153879893,
+    "households_with_net_lift": 24,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.7909163548720297,
+    "top1_share": 0.7402280715437465,
+    "top5_share": 0.9293416538795708,
+    "asec_share": 0.7402283549605243,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 293.2
+ },
+ {
+  "state": "IA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 4.218847493575595e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 17112,
+    "kish_ess": 237.75882256436572,
+    "top1pct_share": 0.6811403654379339,
+    "max_weight": 17050.427734375,
+    "median_weight": 5.8464648723602295,
+    "p99_weight": 546.1837042236241,
+    "child_kish_ess": 95.038445251126,
+    "asec_households": 973,
+    "asec_weight_share": 0.6773843403902757,
+    "asec_child_weight_share": 0.6532360020070358,
+    "asec_kish_ess": 109.91923641236353,
+    "other_kish_ess": 3302.230968483082
+   },
+   "reweighted": {
+    "n_households": 17112,
+    "kish_ess": 234.51807039493937,
+    "top1pct_share": 0.6766698628382309,
+    "max_weight": 18274.706971288837,
+    "median_weight": 5.802337289467962,
+    "p99_weight": 610.2305586765652,
+    "child_kish_ess": 114.6061443918891,
+    "asec_households": 973,
+    "asec_weight_share": 0.6717022056376671,
+    "asec_child_weight_share": 0.6371189422271133,
+    "asec_kish_ess": 106.7158788601305,
+    "other_kish_ess": 2980.154953871831
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 328026112.0,
+    "children_under_4": 164013.40625,
+    "child_poverty_baseline": 7.041038513183594,
+    "child_poverty_reform": 6.827688217163086,
+    "young_poor_households": 80,
+    "young_poor_kish_ess": 4.720191957509824,
+    "children_lifted_net": 1719.2497839888965,
+    "households_with_net_lift": 14,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.468446943506895,
+    "top1_share": 0.43184720653571385,
+    "top5_share": 0.9608601485890559,
+    "asec_share": 7.540826408995294e-05,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 298502144.0,
+    "children_under_4": 149250.53125,
+    "child_poverty_baseline": 6.524827480316162,
+    "child_poverty_reform": 6.29569673538208,
+    "young_poor_households": 80,
+    "young_poor_kish_ess": 7.116497924817405,
+    "children_lifted_net": 1690.7155559732346,
+    "households_with_net_lift": 14,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.957972240863486,
+    "top1_share": 0.3121252386147944,
+    "top5_share": 0.9562976406637433,
+    "asec_share": 4.8989833398622616e-05,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 226.9
+ },
+ {
+  "state": "KS",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 5.773159728050814e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 15117,
+    "kish_ess": 288.4580439465295,
+    "top1pct_share": 0.6404278349793397,
+    "max_weight": 14446.9443359375,
+    "median_weight": 9.341639518737793,
+    "p99_weight": 1344.302661132814,
+    "child_kish_ess": 117.45549836149092,
+    "asec_households": 921,
+    "asec_weight_share": 0.6675361604871357,
+    "asec_child_weight_share": 0.6632279570262626,
+    "asec_kish_ess": 129.63879737170265,
+    "other_kish_ess": 3755.622065649654
+   },
+   "reweighted": {
+    "n_households": 15117,
+    "kish_ess": 284.86980650438903,
+    "top1pct_share": 0.6424977948180088,
+    "max_weight": 11961.249700780056,
+    "median_weight": 9.435108370233893,
+    "p99_weight": 1373.6734231941168,
+    "child_kish_ess": 122.49541964925066,
+    "asec_households": 921,
+    "asec_weight_share": 0.6677711606113932,
+    "asec_child_weight_share": 0.6615917845383562,
+    "asec_kish_ess": 128.2686347722653,
+    "other_kish_ess": 3252.602069955586
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 325791744.0,
+    "children_under_4": 162896.03125,
+    "child_poverty_baseline": 8.87087631225586,
+    "child_poverty_reform": 8.831433296203613,
+    "young_poor_households": 102,
+    "young_poor_kish_ess": 4.568080799798534,
+    "children_lifted_net": 309.13834100042004,
+    "households_with_net_lift": 8,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.874577777557403,
+    "top1_share": 0.4632137438290253,
+    "top5_share": 0.9998267123905251,
+    "asec_share": 0.00017328760947492254,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 280340480.0,
+    "children_under_4": 140171.234375,
+    "child_poverty_baseline": 9.221712112426758,
+    "child_poverty_reform": 9.133197784423828,
+    "young_poor_households": 102,
+    "young_poor_kish_ess": 8.114363998647121,
+    "children_lifted_net": 619.9124078947934,
+    "households_with_net_lift": 8,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.394129475316718,
+    "top1_share": 0.8421021500537506,
+    "top5_share": 0.9999448636504172,
+    "asec_share": 5.513634958279099e-05,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 222.1
+ },
+ {
+  "state": "KY",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 5.773159728050814e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 22707,
+    "kish_ess": 227.34347880536325,
+    "top1pct_share": 0.6738039488758597,
+    "max_weight": 37980.04296875,
+    "median_weight": 10.292885780334473,
+    "p99_weight": 335.48520751952344,
+    "child_kish_ess": 94.23509533162658,
+    "asec_households": 776,
+    "asec_weight_share": 0.6536134397950923,
+    "asec_child_weight_share": 0.6370346606353655,
+    "asec_kish_ess": 97.64163879573863,
+    "other_kish_ess": 5140.635309986933
+   },
+   "reweighted": {
+    "n_households": 22707,
+    "kish_ess": 220.59695216148143,
+    "top1pct_share": 0.6745032351846454,
+    "max_weight": 39175.785815811934,
+    "median_weight": 10.196790270988778,
+    "p99_weight": 371.0860521178994,
+    "child_kish_ess": 97.58938865839826,
+    "asec_households": 776,
+    "asec_weight_share": 0.6516256278306568,
+    "asec_child_weight_share": 0.6209760411916971,
+    "asec_kish_ess": 94.2059657222874,
+    "other_kish_ess": 4696.915179699933
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 437649408.0,
+    "children_under_4": 218824.484375,
+    "child_poverty_baseline": 10.826873779296875,
+    "child_poverty_reform": 10.652005195617676,
+    "young_poor_households": 170,
+    "young_poor_kish_ess": 5.037523093921564,
+    "children_lifted_net": 2026.802289916086,
+    "households_with_net_lift": 18,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.974448709213707,
+    "top1_share": 0.4342322132834769,
+    "top5_share": 0.8782950811614052,
+    "asec_share": 2.091430656893366e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 431327232.0,
+    "children_under_4": 215663.03125,
+    "child_poverty_baseline": 12.699201583862305,
+    "child_poverty_reform": 12.515889167785645,
+    "young_poor_households": 170,
+    "young_poor_kish_ess": 3.750593794526059,
+    "children_lifted_net": 1903.187214095873,
+    "households_with_net_lift": 18,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.807910665144249,
+    "top1_share": 0.42712629642088057,
+    "top5_share": 0.8964616147215506,
+    "asec_share": 2.325803292612445e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 225.7
+ },
+ {
+  "state": "LA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 7.882583474838611e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 22445,
+    "kish_ess": 389.70880372040773,
+    "top1pct_share": 0.6365467034874149,
+    "max_weight": 22321.8203125,
+    "median_weight": 10.76662540435791,
+    "p99_weight": 1979.141582031262,
+    "child_kish_ess": 186.8344888706054,
+    "asec_households": 1000,
+    "asec_weight_share": 0.6880513594004237,
+    "asec_child_weight_share": 0.6525399548513234,
+    "asec_kish_ess": 185.81617452887332,
+    "other_kish_ess": 5329.1397544788715
+   },
+   "reweighted": {
+    "n_households": 22445,
+    "kish_ess": 373.7471450447815,
+    "top1pct_share": 0.642454396862313,
+    "max_weight": 20222.046461447462,
+    "median_weight": 10.690795351421109,
+    "p99_weight": 1817.8303421335615,
+    "child_kish_ess": 188.86227720913485,
+    "asec_households": 1000,
+    "asec_weight_share": 0.6912555633860252,
+    "asec_child_weight_share": 0.660767485974997,
+    "asec_kish_ess": 179.86178605054923,
+    "other_kish_ess": 5035.282982681141
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 440104960.0,
+    "children_under_4": 220052.6875,
+    "child_poverty_baseline": 12.448936462402344,
+    "child_poverty_reform": 12.264883041381836,
+    "young_poor_households": 182,
+    "young_poor_kish_ess": 8.46604559302869,
+    "children_lifted_net": 2269.371292373038,
+    "households_with_net_lift": 27,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 9.246328213027153,
+    "top1_share": 0.215037477370834,
+    "top5_share": 0.611533918820593,
+    "asec_share": 5.113326277434646e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 455079936.0,
+    "children_under_4": 227539.75,
+    "child_poverty_baseline": 12.67976188659668,
+    "child_poverty_reform": 12.460820198059082,
+    "young_poor_households": 182,
+    "young_poor_kish_ess": 14.019167204864072,
+    "children_lifted_net": 2362.3850817579114,
+    "households_with_net_lift": 27,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 10.538845142181,
+    "top1_share": 0.17861439987521233,
+    "top5_share": 0.5779336310886801,
+    "asec_share": 2.7798763914964963e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 188.6
+ },
+ {
+  "state": "ME",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 4.218847493575595e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 8223,
+    "kish_ess": 194.31560092476616,
+    "top1pct_share": 0.575393665228573,
+    "max_weight": 12411.5908203125,
+    "median_weight": 7.847432613372803,
+    "p99_weight": 1726.3301855468726,
+    "child_kish_ess": 49.232337858671386,
+    "asec_households": 785,
+    "asec_weight_share": 0.6448603607739922,
+    "asec_child_weight_share": 0.6477638195253411,
+    "asec_kish_ess": 81.88852361416815,
+    "other_kish_ess": 1852.4659521909227
+   },
+   "reweighted": {
+    "n_households": 8223,
+    "kish_ess": 189.85578995488885,
+    "top1pct_share": 0.5760985136711668,
+    "max_weight": 13436.334716800384,
+    "median_weight": 8.186591239227559,
+    "p99_weight": 1502.1903334431472,
+    "child_kish_ess": 55.476715318915176,
+    "asec_households": 785,
+    "asec_weight_share": 0.6419327626610415,
+    "asec_child_weight_share": 0.6264842373632966,
+    "asec_kish_ess": 79.32705547335554,
+    "other_kish_ess": 1768.7304901509935
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 90606592.0,
+    "children_under_4": 45303.546875,
+    "child_poverty_baseline": 9.841480255126953,
+    "child_poverty_reform": 8.632573127746582,
+    "young_poor_households": 30,
+    "young_poor_kish_ess": 1.9195073433501233,
+    "children_lifted_net": 3323.8971957887406,
+    "households_with_net_lift": 10,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.6024749980021735,
+    "top1_share": 0.768176309437469,
+    "top5_share": 0.9947518365010017,
+    "asec_share": 0.7681777326686546,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 97530880.0,
+    "children_under_4": 48765.1953125,
+    "child_poverty_baseline": 11.095412254333496,
+    "child_poverty_reform": 9.852771759033203,
+    "young_poor_households": 30,
+    "young_poor_kish_ess": 1.5689317153712874,
+    "children_lifted_net": 3117.273407622226,
+    "households_with_net_lift": 10,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.228534945285027,
+    "top1_share": 0.8992879511822893,
+    "top5_share": 0.9956777908750803,
+    "asec_share": 0.8992898678233276,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 155.6
+ },
+ {
+  "state": "MD",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 8.215650382226158e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 28418,
+    "kish_ess": 251.74897210536116,
+    "top1pct_share": 0.6867447660954019,
+    "max_weight": 37577.53515625,
+    "median_weight": 12.662066459655762,
+    "p99_weight": 333.88874267577665,
+    "child_kish_ess": 89.4860666118118,
+    "asec_households": 1091,
+    "asec_weight_share": 0.6629011288681271,
+    "asec_child_weight_share": 0.6445702716644798,
+    "asec_kish_ess": 111.10946655051305,
+    "other_kish_ess": 6602.440616489299
+   },
+   "reweighted": {
+    "n_households": 28418,
+    "kish_ess": 248.63903601215398,
+    "top1pct_share": 0.6854350915583615,
+    "max_weight": 32379.09277941895,
+    "median_weight": 12.508624103270527,
+    "p99_weight": 355.40727117800145,
+    "child_kish_ess": 87.36184175414297,
+    "asec_households": 1091,
+    "asec_weight_share": 0.6599265254327926,
+    "asec_child_weight_share": 0.6435809011612706,
+    "asec_kish_ess": 108.78427614777931,
+    "other_kish_ess": 6240.91037622536
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 657274880.0,
+    "children_under_4": 328637.09375,
+    "child_poverty_baseline": 14.135991096496582,
+    "child_poverty_reform": 13.971665382385254,
+    "young_poor_households": 156,
+    "young_poor_kish_ess": 3.941513624055787,
+    "children_lifted_net": 2540.639033794403,
+    "households_with_net_lift": 20,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 11.070615989465049,
+    "top1_share": 0.15475910056043324,
+    "top5_share": 0.5870344036689684,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 560273408.0,
+    "children_under_4": 280136.09375,
+    "child_poverty_baseline": 14.752676010131836,
+    "child_poverty_reform": 14.52607536315918,
+    "young_poor_households": 156,
+    "young_poor_kish_ess": 3.5032364255285997,
+    "children_lifted_net": 3105.0084384679794,
+    "households_with_net_lift": 20,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 9.498724907825842,
+    "top1_share": 0.195032446635449,
+    "top5_share": 0.6437228585514282,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 236.2
+ },
+ {
+  "state": "MA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 8.215650382226158e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 36578,
+    "kish_ess": 477.08829017334585,
+    "top1pct_share": 0.6877627926692419,
+    "max_weight": 20728.61328125,
+    "median_weight": 13.74964427947998,
+    "p99_weight": 274.6578656005865,
+    "child_kish_ess": 161.06003518907318,
+    "asec_households": 1522,
+    "asec_weight_share": 0.6782565198314505,
+    "asec_child_weight_share": 0.6961873238985107,
+    "asec_kish_ess": 220.42158316782147,
+    "other_kish_ess": 11510.580827315136
+   },
+   "reweighted": {
+    "n_households": 36578,
+    "kish_ess": 462.69759149218964,
+    "top1pct_share": 0.6839408069137373,
+    "max_weight": 23516.48362360477,
+    "median_weight": 13.723522147674537,
+    "p99_weight": 311.3546526899397,
+    "child_kish_ess": 168.3150945928826,
+    "asec_households": 1522,
+    "asec_weight_share": 0.6721728102875598,
+    "asec_child_weight_share": 0.676512964742917,
+    "asec_kish_ess": 210.08338176576754,
+    "other_kish_ess": 10151.547799873184
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 607789056.0,
+    "children_under_4": 303895.8125,
+    "child_poverty_baseline": 17.829864501953125,
+    "child_poverty_reform": 17.678913116455078,
+    "young_poor_households": 185,
+    "young_poor_kish_ess": 6.735188971504141,
+    "children_lifted_net": 2379.6640194108368,
+    "households_with_net_lift": 24,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 10.93559768701553,
+    "top1_share": 0.15379898310251708,
+    "top5_share": 0.5936486120415818,
+    "asec_share": 4.3287368408516e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 565190656.0,
+    "children_under_4": 282595.0,
+    "child_poverty_baseline": 16.65705108642578,
+    "child_poverty_reform": 16.411977767944336,
+    "young_poor_households": 185,
+    "young_poor_kish_ess": 7.218210090571063,
+    "children_lifted_net": 3333.8977301868435,
+    "households_with_net_lift": 24,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 8.652063255053678,
+    "top1_share": 0.22815473758547142,
+    "top5_share": 0.6748651971835296,
+    "asec_share": 2.94058459953664e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 275.3
+ },
+ {
+  "state": "MI",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 1.199040866595169e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 48700,
+    "kish_ess": 421.0922358969275,
+    "top1pct_share": 0.7113683243770224,
+    "max_weight": 39132.7109375,
+    "median_weight": 9.976346969604492,
+    "p99_weight": 278.19164123535165,
+    "child_kish_ess": 162.77808483413065,
+    "asec_households": 1478,
+    "asec_weight_share": 0.6919004004949018,
+    "asec_child_weight_share": 0.6474848777945512,
+    "asec_kish_ess": 202.2426386402235,
+    "other_kish_ess": 12346.530363175769
+   },
+   "reweighted": {
+    "n_households": 48700,
+    "kish_ess": 422.3522138253058,
+    "top1pct_share": 0.7061626307758466,
+    "max_weight": 37531.73937367938,
+    "median_weight": 10.037256963515834,
+    "p99_weight": 300.77866465685895,
+    "child_kish_ess": 206.32624281823593,
+    "asec_households": 1478,
+    "asec_weight_share": 0.6835716281208517,
+    "asec_child_weight_share": 0.6086434794811734,
+    "asec_kish_ess": 198.1019304250681,
+    "other_kish_ess": 11179.844923286475
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 768335872.0,
+    "children_under_4": 384172.0,
+    "child_poverty_baseline": 6.126589298248291,
+    "child_poverty_reform": 4.5473761558532715,
+    "young_poor_households": 205,
+    "young_poor_kish_ess": 6.275779658198734,
+    "children_lifted_net": 35573.00770271351,
+    "households_with_net_lift": 25,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.836987198799626,
+    "top1_share": 0.3559469203414204,
+    "top5_share": 0.9064484721027666,
+    "asec_share": 0.867634567552096,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 835805184.0,
+    "children_under_4": 417905.375,
+    "child_poverty_baseline": 5.672201156616211,
+    "child_poverty_reform": 4.1926188468933105,
+    "young_poor_households": 205,
+    "young_poor_kish_ess": 7.41506163318276,
+    "children_lifted_net": 31318.62197615148,
+    "households_with_net_lift": 25,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.8913102491694342,
+    "top1_share": 0.3567760231259881,
+    "top5_share": 0.8977866772123235,
+    "asec_share": 0.8565025832333389,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 232.3
+ },
+ {
+  "state": "MN",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 9.43689570931383e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 28328,
+    "kish_ess": 274.17224179756096,
+    "top1pct_share": 0.6902506847902051,
+    "max_weight": 30900.705078125,
+    "median_weight": 6.764564514160156,
+    "p99_weight": 362.90320526123014,
+    "child_kish_ess": 93.86275680987765,
+    "asec_households": 1166,
+    "asec_weight_share": 0.6654186571374598,
+    "asec_child_weight_share": 0.6445087116633991,
+    "asec_kish_ess": 122.1409660621052,
+    "other_kish_ess": 5049.281465187234
+   },
+   "reweighted": {
+    "n_households": 28328,
+    "kish_ess": 269.63699532741873,
+    "top1pct_share": 0.6900451099395679,
+    "max_weight": 32384.890151845597,
+    "median_weight": 6.898114986798419,
+    "p99_weight": 381.89788019857684,
+    "child_kish_ess": 102.22628107619951,
+    "asec_households": 1166,
+    "asec_weight_share": 0.6642326397215471,
+    "asec_child_weight_share": 0.6259312217221046,
+    "asec_kish_ess": 119.70708738546891,
+    "other_kish_ess": 4904.928824818015
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 529903616.0,
+    "children_under_4": 264951.375,
+    "child_poverty_baseline": 4.827113151550293,
+    "child_poverty_reform": 4.659958362579346,
+    "young_poor_households": 95,
+    "young_poor_kish_ess": 3.536404526926072,
+    "children_lifted_net": 2284.494958614523,
+    "households_with_net_lift": 17,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.883142463672905,
+    "top1_share": 0.5697709198424833,
+    "top5_share": 0.8422712118065476,
+    "asec_share": 3.6724544077201297e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 521302016.0,
+    "children_under_4": 260650.953125,
+    "child_poverty_baseline": 4.64846658706665,
+    "child_poverty_reform": 4.489312171936035,
+    "young_poor_households": 95,
+    "young_poor_kish_ess": 4.023341108769014,
+    "children_lifted_net": 2088.8890824223636,
+    "households_with_net_lift": 17,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.996680984317835,
+    "top1_share": 0.5587813245202955,
+    "top5_share": 0.8066459486704155,
+    "asec_share": 2.5178070022132266e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 274.6
+ },
+ {
+  "state": "MS",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 9,
+   "max_abs_rel_error": 5.1600945738528026e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 14891,
+    "kish_ess": 315.1182356563922,
+    "top1pct_share": 0.570175483113932,
+    "max_weight": 20738.0390625,
+    "median_weight": 9.505806922912598,
+    "p99_weight": 2092.322680664064,
+    "child_kish_ess": 169.94295544553688,
+    "asec_households": 882,
+    "asec_weight_share": 0.6751197671148317,
+    "asec_child_weight_share": 0.6334794674153938,
+    "asec_kish_ess": 145.18454694416965,
+    "other_kish_ess": 3099.6732863483358
+   },
+   "reweighted": {
+    "n_households": 14891,
+    "kish_ess": 314.35782476846606,
+    "top1pct_share": 0.5788612779142704,
+    "max_weight": 17855.13963042221,
+    "median_weight": 9.196866543089564,
+    "p99_weight": 1981.0987458767531,
+    "child_kish_ess": 162.6015916655354,
+    "asec_households": 882,
+    "asec_weight_share": 0.6806126356731206,
+    "asec_child_weight_share": 0.6617288065994102,
+    "asec_kish_ess": 147.28932837879532,
+    "other_kish_ess": 2831.2225645385756
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 279098368.0,
+    "children_under_4": 139549.21875,
+    "child_poverty_baseline": 13.294916152954102,
+    "child_poverty_reform": 12.940207481384277,
+    "young_poor_households": 171,
+    "young_poor_kish_ess": 15.780412038084185,
+    "children_lifted_net": 2876.109756428981,
+    "households_with_net_lift": 19,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 7.477025651433372,
+    "top1_share": 0.2629523858729089,
+    "top5_share": 0.7164792277946402,
+    "asec_share": 4.751761999119866e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 281783296.0,
+    "children_under_4": 140891.921875,
+    "child_poverty_baseline": 12.908205032348633,
+    "child_poverty_reform": 12.21298599243164,
+    "young_poor_households": 171,
+    "young_poor_kish_ess": 18.08388743301638,
+    "children_lifted_net": 4717.215205025159,
+    "households_with_net_lift": 19,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 5.849691070484789,
+    "top1_share": 0.31278054124565446,
+    "top5_share": 0.7595313953576326,
+    "asec_share": 3.7218438371659043e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 118.9
+ },
+ {
+  "state": "MO",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 11,
+   "max_abs_rel_error": 6.439293542825908e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 31234,
+    "kish_ess": 292.32877802908723,
+    "top1pct_share": 0.7026088007266277,
+    "max_weight": 29865.18359375,
+    "median_weight": 9.037717819213867,
+    "p99_weight": 265.1750509643552,
+    "child_kish_ess": 91.08302038519261,
+    "asec_households": 1013,
+    "asec_weight_share": 0.6844832602065882,
+    "asec_child_weight_share": 0.6843267237486229,
+    "asec_kish_ess": 137.45192030933558,
+    "other_kish_ess": 8149.7503508075715
+   },
+   "reweighted": {
+    "n_households": 31234,
+    "kish_ess": 284.89437484042224,
+    "top1pct_share": 0.7005417554721193,
+    "max_weight": 30196.195302065807,
+    "median_weight": 9.290791970937342,
+    "p99_weight": 288.19776426694045,
+    "child_kish_ess": 127.59977717705151,
+    "asec_households": 1013,
+    "asec_weight_share": 0.6803007851871291,
+    "asec_child_weight_share": 0.6471535359680665,
+    "asec_kish_ess": 132.36152743663536,
+    "other_kish_ess": 7560.100790327967
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 497928192.0,
+    "children_under_4": 248965.0,
+    "child_poverty_baseline": 12.787817001342773,
+    "child_poverty_reform": 9.829710960388184,
+    "young_poor_households": 175,
+    "young_poor_kish_ess": 8.168030794761355,
+    "children_lifted_net": 44286.58946377759,
+    "households_with_net_lift": 29,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.3508572842138653,
+    "top1_share": 0.415546058041641,
+    "top5_share": 0.9569874591165197,
+    "asec_share": 0.9442028350677196,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 561377280.0,
+    "children_under_4": 280689.09375,
+    "child_poverty_baseline": 12.261375427246094,
+    "child_poverty_reform": 9.408174514770508,
+    "young_poor_households": 175,
+    "young_poor_kish_ess": 10.190084626225062,
+    "children_lifted_net": 39669.16719543775,
+    "households_with_net_lift": 29,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.293839583795235,
+    "top1_share": 0.37446586539749455,
+    "top5_share": 0.9080741286077871,
+    "asec_share": 0.865863572825147,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 245.2
+ },
+ {
+  "state": "MT",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 2.7622348852673895e-13,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 6055,
+    "kish_ess": 346.4996149560621,
+    "top1pct_share": 0.32919469915684774,
+    "max_weight": 4880.27734375,
+    "median_weight": 7.5973920822143555,
+    "p99_weight": 1579.5309765625002,
+    "child_kish_ess": 96.36055171174827,
+    "asec_households": 744,
+    "asec_weight_share": 0.6548028409139457,
+    "asec_child_weight_share": 0.6547293328482313,
+    "asec_kish_ess": 153.83500792941757,
+    "other_kish_ess": 1205.836977670437
+   },
+   "reweighted": {
+    "n_households": 6055,
+    "kish_ess": 322.6977045726726,
+    "top1pct_share": 0.3508197813925365,
+    "max_weight": 4376.131358385683,
+    "median_weight": 7.838984633729355,
+    "p99_weight": 1610.2033751963284,
+    "child_kish_ess": 103.07211189089104,
+    "asec_households": 744,
+    "asec_weight_share": 0.6570557942154632,
+    "asec_child_weight_share": 0.6403967361313286,
+    "asec_kish_ess": 144.63054685304994,
+    "other_kish_ess": 1032.809705907055
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 90820096.0,
+    "children_under_4": 45410.2421875,
+    "child_poverty_baseline": 4.4702887535095215,
+    "child_poverty_reform": 4.256913661956787,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 7.561186225337271,
+    "children_lifted_net": 557.4631224196637,
+    "households_with_net_lift": 6,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.8975940114905043,
+    "top1_share": 0.31041703758678385,
+    "top5_share": 0.999998896052254,
+    "asec_share": 0.0020628015162054243,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 91381248.0,
+    "children_under_4": 45690.30859375,
+    "child_poverty_baseline": 5.378726482391357,
+    "child_poverty_reform": 5.089563846588135,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 6.586718522805137,
+    "children_lifted_net": 686.7974992290838,
+    "households_with_net_lift": 6,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.3313835452724185,
+    "top1_share": 0.39502049414702556,
+    "top5_share": 0.9999984101760302,
+    "asec_share": 0.002902033390785075,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 141.2
+ },
+ {
+  "state": "NE",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 10,
+   "max_abs_rel_error": 5.784706047506916e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 10177,
+    "kish_ess": 285.449477656733,
+    "top1pct_share": 0.5298912718675182,
+    "max_weight": 9607.142578125,
+    "median_weight": 7.823398590087891,
+    "p99_weight": 2161.1961425781224,
+    "child_kish_ess": 88.9402129820549,
+    "asec_households": 884,
+    "asec_weight_share": 0.6450025004704715,
+    "asec_child_weight_share": 0.7032576688617205,
+    "asec_kish_ess": 120.8269963477188,
+    "other_kish_ess": 2097.7955227683324
+   },
+   "reweighted": {
+    "n_households": 10177,
+    "kish_ess": 282.4813183476615,
+    "top1pct_share": 0.528200298047813,
+    "max_weight": 11492.211660689907,
+    "median_weight": 8.219686693082535,
+    "p99_weight": 2005.6072035553052,
+    "child_kish_ess": 100.87276856003987,
+    "asec_households": 884,
+    "asec_weight_share": 0.6381039843855361,
+    "asec_child_weight_share": 0.6806738001168008,
+    "asec_kish_ess": 117.2543110973546,
+    "other_kish_ess": 1941.3574148529758
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 249820160.0,
+    "children_under_4": 124909.8515625,
+    "child_poverty_baseline": 8.027502059936523,
+    "child_poverty_reform": 7.967223167419434,
+    "young_poor_households": 50,
+    "young_poor_kish_ess": 3.3400153766338994,
+    "children_lifted_net": 323.1466369628906,
+    "households_with_net_lift": 6,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.500679647563291,
+    "top1_share": 0.3144010942056229,
+    "top5_share": 0.9651958314669867,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 201213952.0,
+    "children_under_4": 100607.3125,
+    "child_poverty_baseline": 7.216503620147705,
+    "child_poverty_reform": 7.14968204498291,
+    "young_poor_households": 50,
+    "young_poor_kish_ess": 4.836606560978729,
+    "children_lifted_net": 327.1127858161926,
+    "households_with_net_lift": 6,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.820675580000869,
+    "top1_share": 0.5369486736845344,
+    "top5_share": 0.9679930313301269,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 174.0
+ },
+ {
+  "state": "NV",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 2.4424906541753444e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 14335,
+    "kish_ess": 248.851663200548,
+    "top1pct_share": 0.6395690958839843,
+    "max_weight": 22136.986328125,
+    "median_weight": 12.35460376739502,
+    "p99_weight": 1838.61749023437,
+    "child_kish_ess": 103.64208738437688,
+    "asec_households": 952,
+    "asec_weight_share": 0.6790835398769264,
+    "asec_child_weight_share": 0.6679989384898297,
+    "asec_kish_ess": 115.58747255778037,
+    "other_kish_ess": 3575.8962277381415
+   },
+   "reweighted": {
+    "n_households": 14335,
+    "kish_ess": 260.4917966735969,
+    "top1pct_share": 0.6413549766825206,
+    "max_weight": 17367.43040278511,
+    "median_weight": 12.34924114534702,
+    "p99_weight": 1727.8520629699976,
+    "child_kish_ess": 117.80402239585587,
+    "asec_households": 952,
+    "asec_weight_share": 0.6788301631744078,
+    "asec_child_weight_share": 0.6401096374563905,
+    "asec_kish_ess": 121.02461288589083,
+    "other_kish_ess": 3293.7764528498333
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 255725568.0,
+    "children_under_4": 127863.0546875,
+    "child_poverty_baseline": 13.589215278625488,
+    "child_poverty_reform": 13.498491287231445,
+    "young_poor_households": 84,
+    "young_poor_kish_ess": 5.6974370387543205,
+    "children_lifted_net": 682.1914611547763,
+    "households_with_net_lift": 8,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.7956838392248993,
+    "top1_share": 0.5457642847552585,
+    "top5_share": 0.981940301802244,
+    "asec_share": 3.8314062945585437e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 272394240.0,
+    "children_under_4": 136197.75,
+    "child_poverty_baseline": 13.0892972946167,
+    "child_poverty_reform": 13.0067138671875,
+    "young_poor_households": 84,
+    "young_poor_kish_ess": 5.940401987230473,
+    "children_lifted_net": 575.8383152212045,
+    "households_with_net_lift": 8,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.651311394355109,
+    "top1_share": 0.2572562941542942,
+    "top5_share": 0.9595819816939579,
+    "asec_share": 8.358940585259561e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 161.1
+ },
+ {
+  "state": "NH",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 1.4876988529977098e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 7609,
+    "kish_ess": 257.2610075184494,
+    "top1pct_share": 0.4719363476823193,
+    "max_weight": 8336.9326171875,
+    "median_weight": 11.099754333496094,
+    "p99_weight": 2150.0051074218754,
+    "child_kish_ess": 86.3816627625497,
+    "asec_households": 840,
+    "asec_weight_share": 0.676632771587725,
+    "asec_child_weight_share": 0.6665428170416022,
+    "asec_kish_ess": 119.27310050559196,
+    "other_kish_ess": 2152.2281981882043
+   },
+   "reweighted": {
+    "n_households": 7609,
+    "kish_ess": 257.9592660857842,
+    "top1pct_share": 0.47990389308895587,
+    "max_weight": 7793.590110055484,
+    "median_weight": 11.32492961393526,
+    "p99_weight": 2033.4670538909368,
+    "child_kish_ess": 101.2016592523126,
+    "asec_households": 840,
+    "asec_weight_share": 0.6713785039895211,
+    "asec_child_weight_share": 0.6428246775307352,
+    "asec_kish_ess": 117.89112031448025,
+    "other_kish_ess": 2032.0069408745826
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 130142208.0,
+    "children_under_4": 65071.390625,
+    "child_poverty_baseline": 7.456801891326904,
+    "child_poverty_reform": 7.356839656829834,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 3.681654468831672,
+    "children_lifted_net": 279.9200851786227,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.231683468654842,
+    "top1_share": 0.8951420443616785,
+    "top5_share": 1.0,
+    "asec_share": 7.279762592147124e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 100133888.0,
+    "children_under_4": 50066.3046875,
+    "child_poverty_baseline": 9.117899894714355,
+    "child_poverty_reform": 9.016838073730469,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 4.056743545606848,
+    "children_lifted_net": 254.50537857047675,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.1564751922188754,
+    "top1_share": 0.9272877715487834,
+    "top5_share": 1.0,
+    "asec_share": 8.347843229346364e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 140.5
+ },
+ {
+  "state": "NJ",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 6.34980956704112e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 41000,
+    "kish_ess": 356.43423140048935,
+    "top1pct_share": 0.7198681873891846,
+    "max_weight": 35335.359375,
+    "median_weight": 13.400224685668945,
+    "p99_weight": 249.16334960937553,
+    "child_kish_ess": 167.64171884129507,
+    "asec_households": 1651,
+    "asec_weight_share": 0.7048052581501097,
+    "asec_child_weight_share": 0.6608204891525645,
+    "asec_kish_ess": 177.50898937515933,
+    "other_kish_ess": 12248.55816786629
+   },
+   "reweighted": {
+    "n_households": 41000,
+    "kish_ess": 352.1351971779532,
+    "top1pct_share": 0.71810154963776,
+    "max_weight": 34194.10224124975,
+    "median_weight": 12.972498866328934,
+    "p99_weight": 281.7391015505451,
+    "child_kish_ess": 170.44757260092854,
+    "asec_households": 1651,
+    "asec_weight_share": 0.7000613121413327,
+    "asec_child_weight_share": 0.643326446192681,
+    "asec_kish_ess": 173.08312943739548,
+    "other_kish_ess": 10822.22569986921
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 823689216.0,
+    "children_under_4": 411847.5,
+    "child_poverty_baseline": 9.43074893951416,
+    "child_poverty_reform": 9.298669815063477,
+    "young_poor_households": 262,
+    "young_poor_kish_ess": 6.92469483055871,
+    "children_lifted_net": 2823.64019331272,
+    "households_with_net_lift": 27,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 12.028393147697997,
+    "top1_share": 0.1694282994722304,
+    "top5_share": 0.5516056002468445,
+    "asec_share": 1.4061837688362317e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 850505728.0,
+    "children_under_4": 425252.5625,
+    "child_poverty_baseline": 10.810386657714844,
+    "child_poverty_reform": 10.589485168457031,
+    "young_poor_households": 262,
+    "young_poor_kish_ess": 7.305790565816194,
+    "children_lifted_net": 4496.656048737117,
+    "households_with_net_lift": 27,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 9.31900763769087,
+    "top1_share": 0.2599338185145799,
+    "top5_share": 0.5683595395667336,
+    "asec_share": 1.2893945544020103e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 356.3
+ },
+ {
+  "state": "NM",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 7.105427357601002e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 10436,
+    "kish_ess": 362.3054336696761,
+    "top1pct_share": 0.46101699506840615,
+    "max_weight": 9403.1787109375,
+    "median_weight": 12.312178611755371,
+    "p99_weight": 2082.397216796874,
+    "child_kish_ess": 126.44764244932833,
+    "asec_households": 902,
+    "asec_weight_share": 0.6539985188018879,
+    "asec_child_weight_share": 0.6302297670853337,
+    "asec_kish_ess": 157.5393829955141,
+    "other_kish_ess": 2652.352332662795
+   },
+   "reweighted": {
+    "n_households": 10436,
+    "kish_ess": 357.52895806592426,
+    "top1pct_share": 0.4686226824985941,
+    "max_weight": 8291.595236652487,
+    "median_weight": 12.42157872263008,
+    "p99_weight": 2021.4075567777456,
+    "child_kish_ess": 123.83599904012216,
+    "asec_households": 902,
+    "asec_weight_share": 0.6509407173747228,
+    "asec_child_weight_share": 0.6365308836181919,
+    "asec_kish_ess": 154.16052362948489,
+    "other_kish_ess": 2518.0341637508755
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 203693056.0,
+    "children_under_4": 101846.421875,
+    "child_poverty_baseline": 13.957855224609375,
+    "child_poverty_reform": 12.984180450439453,
+    "young_poor_households": 62,
+    "young_poor_kish_ess": 4.521035174195187,
+    "children_lifted_net": 5165.177469369082,
+    "households_with_net_lift": 11,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.2780871087299723,
+    "top1_share": 0.6430050799335232,
+    "top5_share": 0.9246160077162615,
+    "asec_share": 0.6430051216834803,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 173558784.0,
+    "children_under_4": 86778.9609375,
+    "child_poverty_baseline": 13.654330253601074,
+    "child_poverty_reform": 12.502506256103516,
+    "young_poor_households": 62,
+    "young_poor_kish_ess": 6.098019078299974,
+    "children_lifted_net": 5255.328880417397,
+    "households_with_net_lift": 11,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.6202792590127912,
+    "top1_share": 0.7795444015495887,
+    "top5_share": 0.9658041638321834,
+    "asec_share": 0.7795444338713274,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 161.4
+ },
+ {
+  "state": "NY",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 200,
+   "max_abs_rel_error": 1.0609624512269988e-08,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 98626,
+    "kish_ess": 627.127544614707,
+    "top1pct_share": 0.7355535059554063,
+    "max_weight": 53511.32421875,
+    "median_weight": 9.307579040527344,
+    "p99_weight": 267.67018127441406,
+    "child_kish_ess": 234.45768442049774,
+    "asec_households": 2166,
+    "asec_weight_share": 0.710348947452007,
+    "asec_child_weight_share": 0.6667426195057315,
+    "asec_kish_ess": 317.2415613756401,
+    "other_kish_ess": 20975.987817361707
+   },
+   "reweighted": {
+    "n_households": 98626,
+    "kish_ess": 615.369043147586,
+    "top1pct_share": 0.7330564391335104,
+    "max_weight": 62613.33733680802,
+    "median_weight": 9.241788008754584,
+    "p99_weight": 291.6709899923293,
+    "child_kish_ess": 279.8105197024737,
+    "asec_households": 2166,
+    "asec_weight_share": 0.7037406959680719,
+    "asec_child_weight_share": 0.6425158786662757,
+    "asec_kish_ess": 305.6574005291144,
+    "other_kish_ess": 18439.63838793253
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 1784553472.0,
+    "children_under_4": 892281.5,
+    "child_poverty_baseline": 16.38648223876953,
+    "child_poverty_reform": 16.005138397216797,
+    "young_poor_households": 570,
+    "young_poor_kish_ess": 10.124423593819127,
+    "children_lifted_net": 18220.751979760826,
+    "households_with_net_lift": 86,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 22.684536407680817,
+    "top1_share": 0.11252173140713848,
+    "top5_share": 0.3753170668498688,
+    "asec_share": 1.1540150007757167e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 1711718400.0,
+    "children_under_4": 855865.125,
+    "child_poverty_baseline": 17.79862403869629,
+    "child_poverty_reform": 17.375347137451172,
+    "young_poor_households": 570,
+    "young_poor_kish_ess": 11.988439760005154,
+    "children_lifted_net": 16964.292144515435,
+    "households_with_net_lift": 86,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 23.145611989527545,
+    "top1_share": 0.12629414029699673,
+    "top5_share": 0.3780951064793027,
+    "asec_share": 2.641516974554639e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 542.7
+ },
+ {
+  "state": "NC",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 1.1546319456101628e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 55403,
+    "kish_ess": 436.36096431661963,
+    "top1pct_share": 0.7148631205940631,
+    "max_weight": 38541.9765625,
+    "median_weight": 9.743415832519531,
+    "p99_weight": 256.6929864501951,
+    "child_kish_ess": 184.22437205457092,
+    "asec_households": 1337,
+    "asec_weight_share": 0.6955040552380526,
+    "asec_child_weight_share": 0.6754582736327379,
+    "asec_kish_ess": 211.69125739371802,
+    "other_kish_ess": 13990.912629276529
+   },
+   "reweighted": {
+    "n_households": 55403,
+    "kish_ess": 411.698971833394,
+    "top1pct_share": 0.7212842624478797,
+    "max_weight": 40073.96996250058,
+    "median_weight": 9.840245654806095,
+    "p99_weight": 276.60020436760703,
+    "child_kish_ess": 189.058321885042,
+    "asec_households": 1337,
+    "asec_weight_share": 0.699927888067948,
+    "asec_child_weight_share": 0.6621762789190319,
+    "asec_kish_ess": 202.26934100392216,
+    "other_kish_ess": 12963.670822077584
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 1099567104.0,
+    "children_under_4": 549785.5,
+    "child_poverty_baseline": 9.773791313171387,
+    "child_poverty_reform": 9.636605262756348,
+    "young_poor_households": 349,
+    "young_poor_kish_ess": 10.091029064896208,
+    "children_lifted_net": 3538.12976148312,
+    "households_with_net_lift": 40,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 13.501572608842626,
+    "top1_share": 0.16286927801340817,
+    "top5_share": 0.5132292449312004,
+    "asec_share": 6.056679687522217e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 1003356160.0,
+    "children_under_4": 501682.59375,
+    "child_poverty_baseline": 10.492060661315918,
+    "child_poverty_reform": 10.33218765258789,
+    "young_poor_households": 349,
+    "young_poor_kish_ess": 8.277308030519167,
+    "children_lifted_net": 3824.697298791929,
+    "households_with_net_lift": 40,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 10.812097114865287,
+    "top1_share": 0.22314885871563817,
+    "top5_share": 0.5603084301971359,
+    "asec_share": 6.250559592851097e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 397.6
+ },
+ {
+  "state": "ND",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 2.6645352591003757e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 4724,
+    "kish_ess": 289.0428549272036,
+    "top1pct_share": 0.3119277226289514,
+    "max_weight": 3795.156005859375,
+    "median_weight": 6.0179736614227295,
+    "p99_weight": 1399.9674291992187,
+    "child_kish_ess": 81.20336335633772,
+    "asec_households": 682,
+    "asec_weight_share": 0.6512415246495226,
+    "asec_child_weight_share": 0.6959595007314489,
+    "asec_kish_ess": 127.97779806420338,
+    "other_kish_ess": 834.715741732874
+   },
+   "reweighted": {
+    "n_households": 4724,
+    "kish_ess": 262.7022126348283,
+    "top1pct_share": 0.33660375149127586,
+    "max_weight": 5506.1468661449735,
+    "median_weight": 6.098156612418016,
+    "p99_weight": 1443.8462763944203,
+    "child_kish_ess": 94.13816027734985,
+    "asec_households": 682,
+    "asec_weight_share": 0.6535467000519906,
+    "asec_child_weight_share": 0.6700362898880833,
+    "asec_kish_ess": 116.66144971759894,
+    "other_kish_ess": 825.6798424897529
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 87794944.0,
+    "children_under_4": 43897.53125,
+    "child_poverty_baseline": 10.21466064453125,
+    "child_poverty_reform": 10.209866523742676,
+    "young_poor_households": 17,
+    "young_poor_kish_ess": 2.463901507662259,
+    "children_lifted_net": 9.78694212436676,
+    "households_with_net_lift": 2,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.2670369185415002,
+    "top1_share": 0.8802913259862769,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 78780672.0,
+    "children_under_4": 39390.08984375,
+    "child_poverty_baseline": 9.179280281066895,
+    "child_poverty_reform": 9.177000999450684,
+    "young_poor_households": 17,
+    "young_poor_kish_ess": 2.3139322699201874,
+    "children_lifted_net": 4.235624969005585,
+    "households_with_net_lift": 2,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.4033148336889738,
+    "top1_share": 0.8260356326894566,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 126.8
+ },
+ {
+  "state": "OH",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 5,
+   "max_abs_rel_error": 3.228528555609955e-13,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 57885,
+    "kish_ess": 465.85915407581,
+    "top1pct_share": 0.69856582800149,
+    "max_weight": 50246.8671875,
+    "median_weight": 12.635642051696777,
+    "p99_weight": 253.56948547363208,
+    "child_kish_ess": 183.1037684000998,
+    "asec_households": 1531,
+    "asec_weight_share": 0.6775091060078088,
+    "asec_child_weight_share": 0.6334845064267192,
+    "asec_kish_ess": 214.47864150687454,
+    "other_kish_ess": 16220.576440752766
+   },
+   "reweighted": {
+    "n_households": 57885,
+    "kish_ess": 452.85288367201827,
+    "top1pct_share": 0.7012273319555773,
+    "max_weight": 50681.2538179823,
+    "median_weight": 12.591596356731559,
+    "p99_weight": 259.3562342463902,
+    "child_kish_ess": 182.18941627161047,
+    "asec_households": 1531,
+    "asec_weight_share": 0.6796687932218501,
+    "asec_child_weight_share": 0.6389901260829158,
+    "asec_kish_ess": 209.8147402055602,
+    "other_kish_ess": 15738.009936084984
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 1145593856.0,
+    "children_under_4": 572794.9375,
+    "child_poverty_baseline": 7.173154354095459,
+    "child_poverty_reform": 6.968638896942139,
+    "young_poor_households": 315,
+    "young_poor_kish_ess": 6.4702790473278045,
+    "children_lifted_net": 5717.5409701162425,
+    "households_with_net_lift": 42,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 8.073397290315949,
+    "top1_share": 0.3121857017071156,
+    "top5_share": 0.5543116985455961,
+    "asec_share": 4.609133841652223e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 1051443200.0,
+    "children_under_4": 525720.625,
+    "child_poverty_baseline": 7.594635486602783,
+    "child_poverty_reform": 7.39118766784668,
+    "young_poor_households": 315,
+    "young_poor_kish_ess": 5.732161065568331,
+    "children_lifted_net": 5269.614626707858,
+    "households_with_net_lift": 42,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 6.570760493153404,
+    "top1_share": 0.3633193996678176,
+    "top5_share": 0.5511003541127459,
+    "asec_share": 6.229650305357177e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 249.3
+ },
+ {
+  "state": "OK",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 5,
+   "max_abs_rel_error": 3.1221691898508652e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 18643,
+    "kish_ess": 278.7149958598168,
+    "top1pct_share": 0.6770047044054419,
+    "max_weight": 24414.029296875,
+    "median_weight": 7.860147476196289,
+    "p99_weight": 1295.369360351467,
+    "child_kish_ess": 118.26055843525333,
+    "asec_households": 918,
+    "asec_weight_share": 0.693343589433498,
+    "asec_child_weight_share": 0.6692949158522705,
+    "asec_kish_ess": 134.88026163450473,
+    "other_kish_ess": 3950.3642428580056
+   },
+   "reweighted": {
+    "n_households": 18643,
+    "kish_ess": 272.2094430828943,
+    "top1pct_share": 0.6777540796453245,
+    "max_weight": 23332.093374351272,
+    "median_weight": 8.072883470996324,
+    "p99_weight": 1214.1960473038007,
+    "child_kish_ess": 118.20740792640751,
+    "asec_households": 918,
+    "asec_weight_share": 0.6941584983045739,
+    "asec_child_weight_share": 0.6610395689294049,
+    "asec_kish_ess": 132.06413903353985,
+    "other_kish_ess": 3743.0089353532567
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 414359552.0,
+    "children_under_4": 207178.625,
+    "child_poverty_baseline": 10.847296714782715,
+    "child_poverty_reform": 10.622687339782715,
+    "young_poor_households": 150,
+    "young_poor_kish_ess": 3.4256150312092557,
+    "children_lifted_net": 2259.0019569396973,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 11.686498643309898,
+    "top1_share": 0.16436946860193538,
+    "top5_share": 0.5638549634848257,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 396898304.0,
+    "children_under_4": 198448.75,
+    "child_poverty_baseline": 10.874603271484375,
+    "child_poverty_reform": 10.651532173156738,
+    "young_poor_households": 150,
+    "young_poor_kish_ess": 3.4755654633286874,
+    "children_lifted_net": 2183.0436465740204,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 10.52405406341578,
+    "top1_share": 0.20503950971253854,
+    "top5_share": 0.5680639996342717,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 191.0
+ },
+ {
+  "state": "OR",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 5,
+   "max_abs_rel_error": 9.9253938401489e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 21739,
+    "kish_ess": 317.6752687191059,
+    "top1pct_share": 0.6799764536226192,
+    "max_weight": 20466.78515625,
+    "median_weight": 12.832056045532227,
+    "p99_weight": 384.3604296874912,
+    "child_kish_ess": 103.28943472689487,
+    "asec_households": 1152,
+    "asec_weight_share": 0.6783350953319655,
+    "asec_child_weight_share": 0.6440557521870188,
+    "asec_kish_ess": 146.86750302996654,
+    "other_kish_ess": 6967.193740740856
+   },
+   "reweighted": {
+    "n_households": 21739,
+    "kish_ess": 311.74501607479704,
+    "top1pct_share": 0.6795529531128067,
+    "max_weight": 22441.955675704907,
+    "median_weight": 13.075439693596435,
+    "p99_weight": 375.7063826385797,
+    "child_kish_ess": 118.18911281276647,
+    "asec_households": 1152,
+    "asec_weight_share": 0.6777731221790986,
+    "asec_child_weight_share": 0.6316573587566502,
+    "asec_kish_ess": 143.88214806489162,
+    "other_kish_ess": 6911.480250551382
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 350064640.0,
+    "children_under_4": 175032.078125,
+    "child_poverty_baseline": 10.594267845153809,
+    "child_poverty_reform": 10.491899490356445,
+    "young_poor_households": 109,
+    "young_poor_kish_ess": 3.6148144820867687,
+    "children_lifted_net": 928.8531724392669,
+    "households_with_net_lift": 19,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.960716386121372,
+    "top1_share": 0.37685523693028505,
+    "top5_share": 0.7863499077003501,
+    "asec_share": 0.005711817288933485,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 322828288.0,
+    "children_under_4": 161414.890625,
+    "child_poverty_baseline": 11.231436729431152,
+    "child_poverty_reform": 11.13857650756836,
+    "young_poor_households": 109,
+    "young_poor_kish_ess": 3.3261428408038967,
+    "children_lifted_net": 777.1957949343487,
+    "households_with_net_lift": 19,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.7405682168734256,
+    "top1_share": 0.4098816714381627,
+    "top5_share": 0.7608594797240786,
+    "asec_share": 0.004377678224383398,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 206.5
+ },
+ {
+  "state": "PA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 1.0658141036401503e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 65026,
+    "kish_ess": 564.1909064798781,
+    "top1pct_share": 0.6977536974055124,
+    "max_weight": 34283.7578125,
+    "median_weight": 9.519591331481934,
+    "p99_weight": 332.1372299194336,
+    "child_kish_ess": 205.8117189057822,
+    "asec_households": 1999,
+    "asec_weight_share": 0.668981177012156,
+    "asec_child_weight_share": 0.6357389085078329,
+    "asec_kish_ess": 253.70735834893495,
+    "other_kish_ess": 12943.80192375273
+   },
+   "reweighted": {
+    "n_households": 65026,
+    "kish_ess": 553.2073047970401,
+    "top1pct_share": 0.6968274863791885,
+    "max_weight": 36552.35390059648,
+    "median_weight": 9.688899426706158,
+    "p99_weight": 340.49012466309273,
+    "child_kish_ess": 218.33604189661656,
+    "asec_households": 1999,
+    "asec_weight_share": 0.6667563966387906,
+    "asec_child_weight_share": 0.6279881908608624,
+    "asec_kish_ess": 247.15368652762194,
+    "other_kish_ess": 12470.38956561496
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 1005764608.0,
+    "children_under_4": 502889.84375,
+    "child_poverty_baseline": 11.467493057250977,
+    "child_poverty_reform": 11.242217063903809,
+    "young_poor_households": 293,
+    "young_poor_kish_ess": 8.508279483199601,
+    "children_lifted_net": 6547.626182000793,
+    "households_with_net_lift": 31,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 6.120747370354546,
+    "top1_share": 0.3146775539622106,
+    "top5_share": 0.7595734848242987,
+    "asec_share": 7.995331476584433e-05,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 1063665664.0,
+    "children_under_4": 531827.75,
+    "child_poverty_baseline": 11.145852088928223,
+    "child_poverty_reform": 10.917652130126953,
+    "young_poor_households": 293,
+    "young_poor_kish_ess": 9.044055149233905,
+    "children_lifted_net": 6014.4395084193675,
+    "households_with_net_lift": 31,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 5.910319605246893,
+    "top1_share": 0.2870903732074035,
+    "top5_share": 0.7947809390719802,
+    "asec_share": 6.433838017021506e-05,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 433.4
+ },
+ {
+  "state": "RI",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 1.5851764345597985e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 5817,
+    "kish_ess": 221.1500355690632,
+    "top1pct_share": 0.43609209804093013,
+    "max_weight": 8290.3505859375,
+    "median_weight": 13.359410285949707,
+    "p99_weight": 2116.4835058593762,
+    "child_kish_ess": 85.24919053981542,
+    "asec_households": 804,
+    "asec_weight_share": 0.6779681203078808,
+    "asec_child_weight_share": 0.662575523089359,
+    "asec_kish_ess": 103.095728109242,
+    "other_kish_ess": 1634.9729609399183
+   },
+   "reweighted": {
+    "n_households": 5817,
+    "kish_ess": 216.09136578570778,
+    "top1pct_share": 0.4491452197566783,
+    "max_weight": 8865.50627146044,
+    "median_weight": 13.857109732436951,
+    "p99_weight": 2242.770039037048,
+    "child_kish_ess": 88.53930386157094,
+    "asec_households": 804,
+    "asec_weight_share": 0.6703536765501318,
+    "asec_child_weight_share": 0.6484932366222227,
+    "asec_kish_ess": 98.77973477795203,
+    "other_kish_ess": 1385.7243566230807
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 90476544.0,
+    "children_under_4": 45238.4765625,
+    "child_poverty_baseline": 10.708789825439453,
+    "child_poverty_reform": 10.691914558410645,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 3.184915340367537,
+    "children_lifted_net": 38.82385038792563,
+    "households_with_net_lift": 3,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.0000165929675766,
+    "top1_share": 0.999991703601588,
+    "top5_share": 1.0,
+    "asec_share": 8.296398412087057e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 83560448.0,
+    "children_under_4": 41779.859375,
+    "child_poverty_baseline": 11.142577171325684,
+    "child_poverty_reform": 11.1320161819458,
+    "young_poor_households": 29,
+    "young_poor_kish_ess": 2.8863731037571854,
+    "children_lifted_net": 21.501906665180286,
+    "households_with_net_lift": 3,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.0000224680652945,
+    "top1_share": 0.9999887661207165,
+    "top5_share": 1.0,
+    "asec_share": 1.123387928344861e-05,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 136.9
+ },
+ {
+  "state": "SC",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 9,
+   "max_abs_rel_error": 8.549161378823555e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 27605,
+    "kish_ess": 342.7332612133734,
+    "top1pct_share": 0.6557494099230423,
+    "max_weight": 29729.146484375,
+    "median_weight": 9.15898609161377,
+    "p99_weight": 414.8086425781197,
+    "child_kish_ess": 154.18430165410476,
+    "asec_households": 955,
+    "asec_weight_share": 0.6406669421075059,
+    "asec_child_weight_share": 0.6126644637001797,
+    "asec_kish_ess": 141.79706853680318,
+    "other_kish_ess": 5598.803888706744
+   },
+   "reweighted": {
+    "n_households": 27605,
+    "kish_ess": 311.7080525168714,
+    "top1pct_share": 0.6621476292483314,
+    "max_weight": 37630.15850905055,
+    "median_weight": 9.625641452688015,
+    "p99_weight": 462.1183620132819,
+    "child_kish_ess": 162.64327955993838,
+    "asec_households": 955,
+    "asec_weight_share": 0.645436231038115,
+    "asec_child_weight_share": 0.6030468911318945,
+    "asec_kish_ess": 130.8238261862574,
+    "other_kish_ess": 5285.005252603406
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 539674624.0,
+    "children_under_4": 269837.4375,
+    "child_poverty_baseline": 9.529871940612793,
+    "child_poverty_reform": 9.106733322143555,
+    "young_poor_households": 197,
+    "young_poor_kish_ess": 9.206711445704897,
+    "children_lifted_net": 5574.951066035079,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 9.80753633490009,
+    "top1_share": 0.21282987047366206,
+    "top5_share": 0.6004944743957327,
+    "asec_share": 6.6780058606513505e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 478644224.0,
+    "children_under_4": 239321.890625,
+    "child_poverty_baseline": 9.897485733032227,
+    "child_poverty_reform": 9.43778133392334,
+    "young_poor_households": 197,
+    "young_poor_kish_ess": 14.958897670725525,
+    "children_lifted_net": 5364.613725082716,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 10.919369851027003,
+    "top1_share": 0.1655296599259219,
+    "top5_share": 0.5720685530198062,
+    "asec_share": 7.946713183533268e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 275.5
+ },
+ {
+  "state": "SD",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 3.1086244689504383e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 5278,
+    "kish_ess": 217.83955338242637,
+    "top1pct_share": 0.3884313562222,
+    "max_weight": 9658.220703125,
+    "median_weight": 6.238454818725586,
+    "p99_weight": 1626.2139257812462,
+    "child_kish_ess": 79.89095090080234,
+    "asec_households": 866,
+    "asec_weight_share": 0.6566699461818662,
+    "asec_child_weight_share": 0.6946848786769994,
+    "asec_kish_ess": 96.489859591597,
+    "other_kish_ess": 970.0779390880052
+   },
+   "reweighted": {
+    "n_households": 5278,
+    "kish_ess": 211.02556037797925,
+    "top1pct_share": 0.40330241519506327,
+    "max_weight": 10919.124151117776,
+    "median_weight": 6.775585858059148,
+    "p99_weight": 1598.3374729843572,
+    "child_kish_ess": 77.90741217999974,
+    "asec_households": 866,
+    "asec_weight_share": 0.650380888322178,
+    "asec_child_weight_share": 0.6581580855499422,
+    "asec_kish_ess": 91.74170329959226,
+    "other_kish_ess": 954.6323432424253
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 113529600.0,
+    "children_under_4": 56764.7578125,
+    "child_poverty_baseline": 8.592696189880371,
+    "child_poverty_reform": 8.484736442565918,
+    "young_poor_households": 36,
+    "young_poor_kish_ess": 3.283705159047652,
+    "children_lifted_net": 276.82187581469043,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.7701289544129075,
+    "top1_share": 0.40556334003503997,
+    "top5_share": 1.0,
+    "asec_share": 2.257650434185052e-05,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 92427776.0,
+    "children_under_4": 46213.80078125,
+    "child_poverty_baseline": 7.612893104553223,
+    "child_poverty_reform": 7.520772457122803,
+    "young_poor_households": 36,
+    "young_poor_kish_ess": 3.061931297987082,
+    "children_lifted_net": 206.89279935591549,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.5358139607305636,
+    "top1_share": 0.5195584990251959,
+    "top5_share": 1.0,
+    "asec_share": 2.3854107425902706e-05,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 94.2
+ },
+ {
+  "state": "TN",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 200,
+   "max_abs_rel_error": 2.179117108980222e-09,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 34751,
+    "kish_ess": 359.7299701399693,
+    "top1pct_share": 0.7074888058055994,
+    "max_weight": 26636.4453125,
+    "median_weight": 10.548154830932617,
+    "p99_weight": 300.5139617919922,
+    "child_kish_ess": 144.09414999990295,
+    "asec_households": 1082,
+    "asec_weight_share": 0.6930957813548365,
+    "asec_child_weight_share": 0.6557229494372887,
+    "asec_kish_ess": 173.48097857214862,
+    "other_kish_ess": 8730.72563317262
+   },
+   "reweighted": {
+    "n_households": 34751,
+    "kish_ess": 350.04599106193723,
+    "top1pct_share": 0.7070426990368351,
+    "max_weight": 34860.87494890344,
+    "median_weight": 11.292825537189719,
+    "p99_weight": 310.6408770686446,
+    "child_kish_ess": 159.23595696090405,
+    "asec_households": 1082,
+    "asec_weight_share": 0.6922688092773706,
+    "asec_child_weight_share": 0.6510207807443719,
+    "asec_kish_ess": 168.39287928409163,
+    "other_kish_ess": 8746.485229612254
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 686620672.0,
+    "children_under_4": 343310.71875,
+    "child_poverty_baseline": 17.262792587280273,
+    "child_poverty_reform": 17.110383987426758,
+    "young_poor_households": 264,
+    "young_poor_kish_ess": 9.691887080291592,
+    "children_lifted_net": 2656.4603741526917,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 7.102120225682681,
+    "top1_share": 0.31738642100111053,
+    "top5_share": 0.6443162483343036,
+    "asec_share": 2.225049006630813e-07,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 681504768.0,
+    "children_under_4": 340751.5625,
+    "child_poverty_baseline": 16.46640968322754,
+    "child_poverty_reform": 16.281654357910156,
+    "young_poor_households": 264,
+    "young_poor_kish_ess": 7.411646325250235,
+    "children_lifted_net": 2959.8382817383463,
+    "households_with_net_lift": 23,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 9.884792098212833,
+    "top1_share": 0.16847691706253162,
+    "top5_share": 0.6393517111943938,
+    "asec_share": 1.918285593119468e-07,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 249.4
+ },
+ {
+  "state": "TX",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 2.1094237467877974e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 125924,
+    "kish_ess": 913.1602319334804,
+    "top1pct_share": 0.7273376000304208,
+    "max_weight": 71814.890625,
+    "median_weight": 10.582873821258545,
+    "p99_weight": 323.1681164550814,
+    "child_kish_ess": 413.77805641139526,
+    "asec_households": 1875,
+    "asec_weight_share": 0.7043612325429611,
+    "asec_child_weight_share": 0.6694694691945873,
+    "asec_kish_ess": 454.3971418987272,
+    "other_kish_ess": 26750.04385954008
+   },
+   "reweighted": {
+    "n_households": 125924,
+    "kish_ess": 957.9158757522893,
+    "top1pct_share": 0.725409078918102,
+    "max_weight": 59381.28583151943,
+    "median_weight": 11.309446988418308,
+    "p99_weight": 330.46831573909844,
+    "child_kish_ess": 428.70896354801596,
+    "asec_households": 1875,
+    "asec_weight_share": 0.7020639386234303,
+    "asec_child_weight_share": 0.6577492970580897,
+    "asec_kish_ess": 473.66106252298175,
+    "other_kish_ess": 26667.385697328966
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 3135012864.0,
+    "children_under_4": 1567511.75,
+    "child_poverty_baseline": 14.297676086425781,
+    "child_poverty_reform": 13.919700622558594,
+    "young_poor_households": 1325,
+    "young_poor_kish_ess": 32.87347270335066,
+    "children_lifted_net": 31122.094302871337,
+    "households_with_net_lift": 154,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 9.014509957063229,
+    "top1_share": 0.3148872027499079,
+    "top5_share": 0.46537634403729217,
+    "asec_share": 0.31488776913144023,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 3213041664.0,
+    "children_under_4": 1606509.125,
+    "child_poverty_baseline": 16.496688842773438,
+    "child_poverty_reform": 16.056591033935547,
+    "young_poor_households": 1325,
+    "young_poor_kish_ess": 27.695571987730325,
+    "children_lifted_net": 33991.609878838106,
+    "households_with_net_lift": 154,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 10.273813974167416,
+    "top1_share": 0.2916987627893405,
+    "top5_share": 0.4432135993531236,
+    "asec_share": 0.2916993538223298,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 653.6
+ },
+ {
+  "state": "UT",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 7,
+   "max_abs_rel_error": 8.12261369276257e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 14551,
+    "kish_ess": 306.4845984594976,
+    "top1pct_share": 0.5870597244223255,
+    "max_weight": 16871.76953125,
+    "median_weight": 10.989022254943848,
+    "p99_weight": 1797.0502319335938,
+    "child_kish_ess": 126.54684867482767,
+    "asec_households": 861,
+    "asec_weight_share": 0.6446451765747879,
+    "asec_child_weight_share": 0.6925965037139441,
+    "asec_kish_ess": 129.18220730319607,
+    "other_kish_ess": 2751.271358692839
+   },
+   "reweighted": {
+    "n_households": 14551,
+    "kish_ess": 275.8894602633689,
+    "top1pct_share": 0.6081627323876444,
+    "max_weight": 15274.867296418095,
+    "median_weight": 11.332957004547495,
+    "p99_weight": 1685.153781203798,
+    "child_kish_ess": 104.14968589230432,
+    "asec_households": 861,
+    "asec_weight_share": 0.6627420892285362,
+    "asec_child_weight_share": 0.7142662830487926,
+    "asec_kish_ess": 122.59353026072519,
+    "other_kish_ess": 2717.9719364197135
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 431380480.0,
+    "children_under_4": 215691.25,
+    "child_poverty_baseline": 8.989250183105469,
+    "child_poverty_reform": 8.84447956085205,
+    "young_poor_households": 128,
+    "young_poor_kish_ess": 8.638391503153867,
+    "children_lifted_net": 1442.5120261967531,
+    "households_with_net_lift": 18,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 8.598866394495756,
+    "top1_share": 0.21215220319448894,
+    "top5_share": 0.6532723160629739,
+    "asec_share": 4.810565058320774e-06,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 371480576.0,
+    "children_under_4": 185740.5625,
+    "child_poverty_baseline": 10.710287094116211,
+    "child_poverty_reform": 10.584126472473145,
+    "young_poor_households": 128,
+    "young_poor_kish_ess": 7.694811949825207,
+    "children_lifted_net": 1196.9026544830558,
+    "households_with_net_lift": 18,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 6.3130355248452465,
+    "top1_share": 0.26924154541986467,
+    "top5_share": 0.756682092144463,
+    "asec_share": 6.678117457325774e-06,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 183.7
+ },
+ {
+  "state": "VT",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 8,
+   "max_abs_rel_error": 4.107825191113079e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 3893,
+    "kish_ess": 283.06619079999564,
+    "top1pct_share": 0.26817900005132167,
+    "max_weight": 2967.052734375,
+    "median_weight": 10.221192359924316,
+    "p99_weight": 1347.3583984374984,
+    "child_kish_ess": 86.02826793899837,
+    "asec_households": 496,
+    "asec_weight_share": 0.6689594571974259,
+    "asec_child_weight_share": 0.6312614418330104,
+    "asec_kish_ess": 130.83601339575114,
+    "other_kish_ess": 975.1638701320849
+   },
+   "reweighted": {
+    "n_households": 3893,
+    "kish_ess": 275.4806689164538,
+    "top1pct_share": 0.2793684079092838,
+    "max_weight": 3644.4698190887684,
+    "median_weight": 9.953208270740689,
+    "p99_weight": 1418.9238228320426,
+    "child_kish_ess": 94.40332723207051,
+    "asec_households": 496,
+    "asec_weight_share": 0.6530591611822183,
+    "asec_child_weight_share": 0.5577937007033995,
+    "asec_kish_ess": 122.57332359863959,
+    "other_kish_ess": 799.3574802474698
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 39425280.0,
+    "children_under_4": 19712.50390625,
+    "child_poverty_baseline": 10.438488006591797,
+    "child_poverty_reform": 10.404595375061035,
+    "young_poor_households": 11,
+    "young_poor_kish_ess": 2.642474067211271,
+    "children_lifted_net": 44.30964183807373,
+    "households_with_net_lift": 2,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.4395996648015628,
+    "top1_share": 0.8119595815309565,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 42726912.0,
+    "children_under_4": 21363.6171875,
+    "child_poverty_baseline": 8.205409049987793,
+    "child_poverty_reform": 8.157322883605957,
+    "young_poor_households": 11,
+    "young_poor_kish_ess": 3.8988366159095276,
+    "children_lifted_net": 54.68087387084961,
+    "households_with_net_lift": 2,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.8488376992377178,
+    "top1_share": 0.6429691571865257,
+    "top5_share": 1.0,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 139.0
+ },
+ {
+  "state": "VA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 200,
+   "max_abs_rel_error": 1.3324998882069394e-09,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 41729,
+    "kish_ess": 373.60490463609676,
+    "top1pct_share": 0.703440160176608,
+    "max_weight": 37135.7734375,
+    "median_weight": 11.794418334960938,
+    "p99_weight": 250.29509338378938,
+    "child_kish_ess": 166.15817467771203,
+    "asec_households": 1394,
+    "asec_weight_share": 0.6845373148453028,
+    "asec_child_weight_share": 0.68155372113259,
+    "asec_kish_ess": 175.6492029156431,
+    "other_kish_ess": 11236.803513804478
+   },
+   "reweighted": {
+    "n_households": 41729,
+    "kish_ess": 357.3488082713311,
+    "top1pct_share": 0.705805948696715,
+    "max_weight": 35479.776388037935,
+    "median_weight": 11.497443366017512,
+    "p99_weight": 282.3698161998802,
+    "child_kish_ess": 161.71203771399686,
+    "asec_households": 1394,
+    "asec_weight_share": 0.6829993245313914,
+    "asec_child_weight_share": 0.6699944596011035,
+    "asec_kish_ess": 167.32670135080082,
+    "other_kish_ess": 9571.856680036235
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 715153408.0,
+    "children_under_4": 357578.0625,
+    "child_poverty_baseline": 15.239073753356934,
+    "child_poverty_reform": 13.949544906616211,
+    "young_poor_households": 265,
+    "young_poor_kish_ess": 7.593556438579027,
+    "children_lifted_net": 26876.487066571077,
+    "households_with_net_lift": 25,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.2498221714618643,
+    "top1_share": 0.8940096708306247,
+    "top5_share": 0.9385921697236949,
+    "asec_share": 0.8940096948465175,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 780120064.0,
+    "children_under_4": 390061.625,
+    "child_poverty_baseline": 15.66739273071289,
+    "child_poverty_reform": 14.489928245544434,
+    "young_poor_households": 265,
+    "young_poor_kish_ess": 8.313893369650275,
+    "children_lifted_net": 22400.821422339184,
+    "households_with_net_lift": 25,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.361157016998214,
+    "top1_share": 0.8559561385703199,
+    "top5_share": 0.9327856752507842,
+    "asec_share": 0.8559561891898682,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 275.0
+ },
+ {
+  "state": "WA",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 7.105427357601002e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 37953,
+    "kish_ess": 417.99609371255184,
+    "top1pct_share": 0.6869129904310136,
+    "max_weight": 20889.765625,
+    "median_weight": 12.741275787353516,
+    "p99_weight": 260.4229956054711,
+    "child_kish_ess": 138.79991259010316,
+    "asec_households": 1305,
+    "asec_weight_share": 0.6718946886273843,
+    "asec_child_weight_share": 0.6848270511984799,
+    "asec_kish_ess": 189.45115418382184,
+    "other_kish_ess": 11367.25300478198
+   },
+   "reweighted": {
+    "n_households": 37953,
+    "kish_ess": 390.61938788970565,
+    "top1pct_share": 0.6847314977740635,
+    "max_weight": 30164.41776256964,
+    "median_weight": 13.162878407449044,
+    "p99_weight": 277.35259992134456,
+    "child_kish_ess": 142.8038689401662,
+    "asec_households": 1305,
+    "asec_weight_share": 0.6693612520709911,
+    "asec_child_weight_share": 0.6646864396646205,
+    "asec_kish_ess": 175.68339472336044,
+    "other_kish_ess": 11221.989091297635
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 656785408.0,
+    "children_under_4": 328391.5625,
+    "child_poverty_baseline": 10.567346572875977,
+    "child_poverty_reform": 9.69742488861084,
+    "young_poor_households": 203,
+    "young_poor_kish_ess": 10.822161685236521,
+    "children_lifted_net": 16008.557136500138,
+    "households_with_net_lift": 32,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.1795764248954197,
+    "top1_share": 0.4432132165980878,
+    "top5_share": 0.8490920679528444,
+    "asec_share": 0.7821357375495981,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 681754624.0,
+    "children_under_4": 340880.65625,
+    "child_poverty_baseline": 9.909873008728027,
+    "child_poverty_reform": 9.295083045959473,
+    "young_poor_households": 203,
+    "young_poor_kish_ess": 12.712466269518183,
+    "children_lifted_net": 10261.33150419683,
+    "households_with_net_lift": 32,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.1778686640797282,
+    "top1_share": 0.5156253298358267,
+    "top5_share": 0.8041826970872111,
+    "asec_share": 0.725072374611367,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 264.5
+ },
+ {
+  "state": "WV",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 1.3111733920823099e-12,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 9619,
+    "kish_ess": 421.2571854333815,
+    "top1pct_share": 0.3938190429434224,
+    "max_weight": 7042.1494140625,
+    "median_weight": 11.304522514343262,
+    "p99_weight": 1729.3498022460922,
+    "child_kish_ess": 116.5578212978034,
+    "asec_households": 845,
+    "asec_weight_share": 0.6371539115775,
+    "asec_child_weight_share": 0.6219872959710823,
+    "asec_kish_ess": 174.81570755801872,
+    "other_kish_ess": 2551.4690524022217
+   },
+   "reweighted": {
+    "n_households": 9619,
+    "kish_ess": 407.83462788231907,
+    "top1pct_share": 0.40659057031175405,
+    "max_weight": 7131.913917517042,
+    "median_weight": 11.201480628195362,
+    "p99_weight": 1711.078310366197,
+    "child_kish_ess": 128.69779578676946,
+    "asec_households": 845,
+    "asec_weight_share": 0.6369539732650936,
+    "asec_child_weight_share": 0.6108816276803312,
+    "asec_kish_ess": 169.08145933873328,
+    "other_kish_ess": 2511.5857035824047
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 142133248.0,
+    "children_under_4": 71066.59375,
+    "child_poverty_baseline": 13.728652954101562,
+    "child_poverty_reform": 13.555386543273926,
+    "young_poor_households": 67,
+    "young_poor_kish_ess": 4.097423711230327,
+    "children_lifted_net": 698.6646664142609,
+    "households_with_net_lift": 9,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 4.177204872815876,
+    "top1_share": 0.41454484827637744,
+    "top5_share": 0.8688372050263969,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   },
+   "reweighted": {
+    "cost": 139000832.0,
+    "children_under_4": 69500.625,
+    "child_poverty_baseline": 14.514062881469727,
+    "child_poverty_reform": 14.331571578979492,
+    "young_poor_households": 67,
+    "young_poor_kish_ess": 4.560353344768529,
+    "children_lifted_net": 645.1154541969299,
+    "households_with_net_lift": 9,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 3.795124050166985,
+    "top1_share": 0.4525823922033737,
+    "top5_share": 0.880630754336724,
+    "asec_share": 0.0,
+    "top_household_spine": "acs_2024_1yr"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 151.3
+ },
+ {
+  "state": "WI",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 5.662137425588298e-15,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 30578,
+    "kish_ess": 281.2599760593654,
+    "top1pct_share": 0.7209838204230001,
+    "max_weight": 26539.35546875,
+    "median_weight": 7.654549837112427,
+    "p99_weight": 323.9991937255856,
+    "child_kish_ess": 100.73489082095469,
+    "asec_households": 1232,
+    "asec_weight_share": 0.7015186794548353,
+    "asec_child_weight_share": 0.6664632285015786,
+    "asec_kish_ess": 138.96745472687113,
+    "other_kish_ess": 6315.032392041691
+   },
+   "reweighted": {
+    "n_households": 30578,
+    "kish_ess": 279.3703026970034,
+    "top1pct_share": 0.7178292266999727,
+    "max_weight": 27034.60151376405,
+    "median_weight": 7.6647358310013445,
+    "p99_weight": 350.83980031860585,
+    "child_kish_ess": 119.69131205544743,
+    "asec_households": 1232,
+    "asec_weight_share": 0.6964110961264021,
+    "asec_child_weight_share": 0.6380936451640058,
+    "asec_kish_ess": 136.08443535070165,
+    "other_kish_ess": 5908.140172809616
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 467546112.0,
+    "children_under_4": 233772.640625,
+    "child_poverty_baseline": 6.004737377166748,
+    "child_poverty_reform": 4.410697937011719,
+    "young_poor_households": 120,
+    "young_poor_kish_ess": 2.3917154798169267,
+    "children_lifted_net": 21610.56126856804,
+    "households_with_net_lift": 17,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.3224375032841917,
+    "top1_share": 0.8680770748784468,
+    "top5_share": 0.9611985816565201,
+    "asec_share": 0.8680770748784468,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 492666880.0,
+    "children_under_4": 246332.671875,
+    "child_poverty_baseline": 5.798717021942139,
+    "child_poverty_reform": 4.0354743003845215,
+    "young_poor_households": 120,
+    "young_poor_kish_ess": 2.195701268723376,
+    "children_lifted_net": 22166.727734804153,
+    "households_with_net_lift": 17,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.378079576869626,
+    "top1_share": 0.8497933003062813,
+    "top5_share": 0.9626843806778815,
+    "asec_share": 0.8497933003062813,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 300.0
+ },
+ {
+  "state": "WY",
+  "slice_tag": "592ae5d6",
+  "versions": {
+   "policyengine-us": "1.825.2",
+   "policyengine-core": "3.34.7",
+   "numpy": "2.4.6",
+   "pandas": "3.1.1"
+  },
+  "balance": {
+   "iterations": 6,
+   "max_abs_rel_error": 2.2426505097428162e-14,
+   "converged": true
+  },
+  "spine_available": true,
+  "weights_2024": {
+   "production": {
+    "n_households": 3358,
+    "kish_ess": 239.3419014940281,
+    "top1pct_share": 0.27922868484203345,
+    "max_weight": 3634.58056640625,
+    "median_weight": 8.373091220855713,
+    "p99_weight": 1342.332933349607,
+    "child_kish_ess": 79.30841794554277,
+    "asec_households": 557,
+    "asec_weight_share": 0.6803286827335412,
+    "asec_child_weight_share": 0.6806625416306347,
+    "asec_kish_ess": 115.63336492906478,
+    "other_kish_ess": 582.573579649653
+   },
+   "reweighted": {
+    "n_households": 3358,
+    "kish_ess": 242.8313599027245,
+    "top1pct_share": 0.2747662813880753,
+    "max_weight": 3779.5299974675017,
+    "median_weight": 8.320075369717237,
+    "p99_weight": 1399.7812005447954,
+    "child_kish_ess": 102.05045240695864,
+    "asec_households": 557,
+    "asec_weight_share": 0.6688490805105476,
+    "asec_child_weight_share": 0.6496827191663171,
+    "asec_kish_ess": 113.88951221962276,
+    "other_kish_ess": 576.9359759151444
+   }
+  },
+  "universal_under4_2000": {
+   "year": 2026,
+   "production": {
+    "cost": 57833472.0,
+    "children_under_4": 28916.837890625,
+    "child_poverty_baseline": 8.744180679321289,
+    "child_poverty_reform": 7.661899089813232,
+    "young_poor_households": 37,
+    "young_poor_kish_ess": 4.309586276240497,
+    "children_lifted_net": 1591.254810333252,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 1.6808284401902265,
+    "top1_share": 0.746977532497101,
+    "top5_share": 1.0,
+    "asec_share": 0.746977532497101,
+    "top_household_spine": "asec_puf"
+   },
+   "reweighted": {
+    "cost": 49801728.0,
+    "children_under_4": 24901.009765625,
+    "child_poverty_baseline": 8.86355972290039,
+    "child_poverty_reform": 7.790678977966309,
+    "young_poor_households": 37,
+    "young_poor_kish_ess": 7.500140070083265,
+    "children_lifted_net": 1411.4113183021545,
+    "households_with_net_lift": 5,
+    "households_with_net_entry": 0,
+    "lifters_kish_ess": 2.13734687930759,
+    "top1_share": 0.6331985592664251,
+    "top5_share": 1.0,
+    "asec_share": 0.6331985592664251,
+    "top_household_spine": "asec_puf"
+   }
+  },
+  "status": "ok",
+  "runtime_s": 123.4
+ }
+]

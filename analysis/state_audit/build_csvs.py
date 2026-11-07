@@ -2,7 +2,9 @@
 
 Inputs
   output/state_audit_raw.json          - per-state PE values (from Modal)
-  <pe-us-data>/.../population_by_state.csv, age_state.csv  - population targets
+  targets/census_pep_v2025_state_single_age.csv - Census Vintage 2025 resident
+                                         population by state and single year of
+                                         age, July 1 2024 and 2025
   targets/census_child_spm.csv         - Census SPM child poverty by state (3-yr)
   targets/state_credit_costs.csv       - hand-compiled state EITC/CTC cost targets
 
@@ -11,7 +13,10 @@ Outputs
   output/state_credit_costs.csv
 
 Each output carries a pct_diff = (pe - target) / target * 100 wherever a
-target is available; blank otherwise.
+target is available; blank otherwise. Population targets come from the Census
+estimates for the audit's year, or for ``--target-year``; an audit of a year
+the file does not cover compares against its latest year, 2025, and the
+``target_year`` column records which year each row used.
 
 Optional args, for auditing a different dataset against the same targets
 (e.g. the production Populace slices from state_audit_populace_modal.py)
@@ -27,19 +32,14 @@ import csv
 import json
 import os
 
+from census_age_fit import load_census
+
 HERE = os.path.dirname(__file__)
 OUT = os.path.join(HERE, "output")
 TARGETS = os.path.join(HERE, "targets")
 
-# Local checkout of the data repo's calibration targets.
-CALIB = os.path.normpath(
-    os.path.join(
-        HERE,
-        "..", "..", "..",
-        "policyengine-us-data", "policyengine_us_data",
-        "storage", "calibration_targets",
-    )
-)
+#: Years the Census Vintage 2025 targets file covers.
+CENSUS_YEARS = (2024, 2025)
 
 
 def _pct(pe, target):
@@ -64,28 +64,17 @@ def load_pe(raw_name: str = "state_audit_raw.json"):
     return {r["state"].upper(): r for r in rows}
 
 
-def load_pop_targets():
-    """total + under-5 (exact) and under-18 (approx from 5-yr brackets)."""
-    pop = {}
-    for r in _read_csv(os.path.join(CALIB, "population_by_state.csv")):
-        pop[r["state"].upper()] = {
-            "total": float(r["population"]),
-            "under_5": float(r["population_under_5"]),
-        }
-    for r in _read_csv(os.path.join(CALIB, "age_state.csv")):
-        st = r.get("GEO_NAME", "").upper()
-        if st not in pop:
-            pop[st] = {}
-        # under-18 ~ 0-4 + 5-9 + 10-14 + 15-19 (overcounts 18-19yo).
-        try:
-            pop[st]["under_18_approx"] = sum(
-                float(r[b]) for b in ("0-4", "5-9", "10-14", "15-19")
-            )
-            # under-6 ~ 0-4 + 1/5 * 5-9 (approx).
-            pop[st]["under_6_approx"] = float(r["0-4"]) + float(r["5-9"]) / 5
-        except (KeyError, ValueError):
-            pass
-    return pop
+def pop_target_year(pe: dict, requested: int | None = None) -> int:
+    """The Census year to compare against: requested, the audit's, or 2025."""
+    if requested is not None:
+        if requested not in CENSUS_YEARS:
+            raise SystemExit(f"--target-year must be one of {CENSUS_YEARS}")
+        return requested
+    years = {r.get("year") for r in pe.values()}
+    if len(years) == 1 and next(iter(years)) in CENSUS_YEARS:
+        return next(iter(years))
+    print(f"audit years {sorted(map(str, years))}: comparing with Census {max(CENSUS_YEARS)}")
+    return max(CENSUS_YEARS)
 
 
 def load_spm_targets():
@@ -102,9 +91,10 @@ def load_cost_targets():
     return out
 
 
-def build(raw_name: str = "state_audit_raw.json", suffix: str = ""):
+def build(raw_name: str = "state_audit_raw.json", suffix: str = "", target_year: int | None = None):
     pe = load_pe(raw_name)
-    pop_t = load_pop_targets()
+    year = pop_target_year(pe, target_year)
+    pop_t = load_census(year)
     spm_t = load_spm_targets()
     cost_t = load_cost_targets()
     states = sorted(pe)
@@ -115,34 +105,24 @@ def build(raw_name: str = "state_audit_raw.json", suffix: str = ""):
         w = csv.writer(f)
         w.writerow([
             "state",
+            "target_year",
             "pe_pop_total", "target_pop_total", "pop_total_pct_diff",
-            "pe_pop_under_1",
+            "pe_pop_under_1", "target_pop_under_1", "pop_under_1_pct_diff",
             "pe_pop_under_5", "target_pop_under_5", "pop_under_5_pct_diff",
-            "pe_pop_under_6", "target_pop_under_6_approx", "pop_under_6_pct_diff",
-            "pe_pop_under_18", "target_pop_under_18_approx", "pop_under_18_pct_diff",
+            "pe_pop_under_6", "target_pop_under_6", "pop_under_6_pct_diff",
+            "pe_pop_under_18", "target_pop_under_18", "pop_under_18_pct_diff",
             "pe_child_poverty_spm", "target_child_poverty_spm", "child_poverty_pct_diff",
             "pe_young_child_poverty_spm", "pe_under_1_poverty_spm",
             "pe_deep_child_poverty_spm", "pe_all_poverty_spm",
         ])
         for st in states:
             r = pe[st]
-            pt = pop_t.get(st, {})
-            tgt_total = pt.get("total")
-            tgt_u5 = pt.get("under_5")
-            tgt_u6 = pt.get("under_6_approx")
-            tgt_u18 = pt.get("under_18_approx")
+            pt = pop_t[st]
             tgt_pov = spm_t.get(st, "")
-            w.writerow([
-                st,
-                round(r["pop_total"]), tgt_total and round(tgt_total),
-                _pct(r["pop_total"], tgt_total),
-                round(r["pop_under_1"]),
-                round(r["pop_under_5"]), tgt_u5 and round(tgt_u5),
-                _pct(r["pop_under_5"], tgt_u5),
-                round(r["pop_under_6"]), tgt_u6 and round(tgt_u6),
-                _pct(r["pop_under_6"], tgt_u6),
-                round(r["pop_under_18"]), tgt_u18 and round(tgt_u18),
-                _pct(r["pop_under_18"], tgt_u18),
+            row = [st, year]
+            for group in ("total", "under_1", "under_5", "under_6", "under_18"):
+                row += [round(r[f"pop_{group}"]), round(pt[group]), _pct(r[f"pop_{group}"], pt[group])]
+            w.writerow(row + [
                 round(r["poverty_child"], 2), tgt_pov,
                 _pct(r["poverty_child"], tgt_pov),
                 round(r["poverty_young_child"], 2),
@@ -184,5 +164,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw", default="state_audit_raw.json")
     parser.add_argument("--suffix", default="")
+    parser.add_argument("--target-year", type=int, default=None,
+                        help="Census year for population targets (default: the audit's year)")
     args = parser.parse_args()
-    build(raw_name=args.raw, suffix=args.suffix)
+    build(raw_name=args.raw, suffix=args.suffix, target_year=args.target_year)
