@@ -56,9 +56,9 @@ slice's own 2024 aggregates at their current values: SNAP units and dollars,
 Medicaid enrollment, filers' AGI, filers in six AGI brackets, EITC claims by
 number of qualifying children, and CTC and refundable CTC claims. The script
 writes the new weights into a copy of the slice and simulates it under the
-same policyengine-us pin at 2024 and 2026. Every reweighted figure below comes
-from that simulation (`output/census_age_reweight_buildp_18252.json`, by state
-in `output/census_age_reweight_buildp_18252_by_state.csv`).
+same policyengine-us pin at 2024 and 2026.
+`output/census_age_reweight_buildp_18252.json` holds the results, by state in
+`output/census_age_reweight_buildp_18252_by_state.csv`.
 
 | Ages, 2024 | Census | Build P | Reweighted |
 |---|---:|---:|---:|
@@ -161,15 +161,15 @@ Build P, and one household accounts for 92.7% of them. In Arizona it cuts child
 SPM poverty 7.09 points, from 16.11% to 9.03%, against 0.22 points in the median
 state, and five households account for 97.0% of that lift.
 
-The balance moves the 51-state lift 3.6% and individual states' lifts far more:
-among the 36 states with a lift of at least 1,000 children on Build P, it moves
-the lift by more than a fifth in 10, from a 36% fall in Washington to a 64% rise
-in Mississippi. Build O's lift exceeds Build P's by 25% across the 51 states, and
-among those 36 states it falls below half of Build P's or exceeds double in 6.
-Indiana's falls from 12,417 to 2,356, and Minnesota's rises from 2,284 to 9,476.
-We ran both builds under policyengine-us 1.825.2, so these differences come from
-the data. PolicyEngine/child-poverty-impact-dashboard#127 runs Build O under
-2.2.1, which this section does not cover.
+The balance moves the 51-state lift 3.6% and individual states' lifts far more.
+Among the 36 states with a lift of at least 1,000 children on Build P, the
+balance moves the lift in 10 by more than a fifth, from a 36% fall in Washington
+to a 64% rise in Mississippi. Build O's lift exceeds Build P's by 25% across the
+51 states, and among those 36 states it falls below half of Build P's or exceeds
+double in 6. Indiana's falls from 12,417 on Build P to 2,356 on Build O, and
+Minnesota's rises from 2,284 to 9,476. We ran both builds under policyengine-us
+1.825.2, so these differences come from the data, while
+PolicyEngine/child-poverty-impact-dashboard#127 runs Build O under 2.2.1.
 
 `output/weight_concentration_buildp_18252_summary.md` and
 `output/weight_concentration_buildo_18252_summary.md` hold more measures, and
