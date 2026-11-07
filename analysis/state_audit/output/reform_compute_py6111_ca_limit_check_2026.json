@@ -1,0 +1,156 @@
+[
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_ctc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.529870986938477,
+    "children_lifted": 1214.9920654296875,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -85731490.05252075,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 85731492.03200996,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": -85731490.05252075
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 399.0,
+    "peak_memory_gb": 32.0
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_eitc"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.539886474609375,
+    "children_lifted": 263.9732360839844,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -7029115.487609863,
+    "state_eitc_change": 7029117.192448139,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": -7029115.487609863
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 563.3,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_dependent_exemption"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.577129364013672,
+    "children_lifted": 0.0,
+    "children_entering": 3271.771484375,
+    "total_budgetary_impact": 2523255364.333313,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "state_ctc",
+        "federal": 0.0,
+        "state": 2523255364.333313
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 412.1,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "snap_reform"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 20.47869300842285,
+    "children_lifted": 6073.265625,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -758317056.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 52,
+    "runtime_s": 429.7,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "child_allowance"
+    ],
+    "kind": "single-edited",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 17.652751922607422,
+    "children_lifted": 274354.125,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -9644113920.0,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [],
+    "districts": 52,
+    "runtime_s": 416.8,
+    "peak_memory_gb": 31.99
+  },
+  {
+    "state": "CA",
+    "year": 2026,
+    "ids": [
+      "ca_ctc",
+      "ca_eitc",
+      "ca_dependent_exemption",
+      "snap_reform",
+      "child_allowance",
+      "federal_ctc_expanded"
+    ],
+    "kind": "combo",
+    "status": "ok",
+    "child_baseline_rate": 20.542667388916016,
+    "child_reform_rate": 13.692758560180664,
+    "children_lifted": 650295.9375,
+    "children_entering": 0.0,
+    "total_budgetary_impact": -19238031753.413147,
+    "state_eitc_change": 0.0,
+    "state_ctc_change": 0.0,
+    "stacked_rows": [
+      {
+        "key": "federal_ctc",
+        "federal": -9743749513.413147,
+        "state": 0.0
+      },
+      {
+        "key": "state_eitc",
+        "federal": 0.0,
+        "state": 0.0
+      }
+    ],
+    "districts": 52,
+    "runtime_s": 728.1,
+    "peak_memory_gb": 30.79
+  }
+]
