@@ -197,8 +197,8 @@ class PublicApiReference:
     fails with the same reason without sending anything: a new token would be refused
     too, and Auth0 counts every token it issues. A scenario already sending its own
     request in another thread may still get one more answer (``--concurrency``). The
-    reasons name variables, HTTP statuses and exception types only, never the client
-    secret.
+    reasons never include the client secret: they name missing variables, an HTTP
+    status, Auth0's error code, urllib's error text or an exception type.
     """
 
     def __init__(self) -> None:
@@ -231,9 +231,10 @@ class PublicApiReference:
                 except (PublicApiSettingsError, PublicApiTokenError) as error:
                     self._stop_locked(f"Public API reference column skipped: {error}")
                 except (OSError, http.client.HTTPException) as error:
-                    # The template converts urllib's errors and timeouts, but not a
-                    # connection Auth0 drops before answering, which http.client raises
-                    # as it reads the answer's status.
+                    # The template converts urllib's errors and timeouts, but not the
+                    # OSError or http.client.HTTPException raised while reading the
+                    # answer, for example when Auth0 drops the connection first. Only
+                    # the exception's type is recorded.
                     self._stop_locked(
                         "Public API reference column skipped: the Auth0 token request"
                         f" failed ({type(error).__name__})"

@@ -428,7 +428,7 @@ def test_requests_use_the_template_timeouts(
 def test_dropped_token_connection_is_not_retried_by_later_scenarios(
     network: FakeNetwork, scorecard_folder: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    network.token_connection_error = ConnectionResetError("Connection reset by peer")
+    network.token_connection_error = ConnectionResetError("reset while sending the token request")
     set_settings(monkeypatch)
     scenario_ids = write_scenarios(scorecard_folder, 3)
 
@@ -440,6 +440,7 @@ def test_dropped_token_connection_is_not_retried_by_later_scenarios(
         assert "the Auth0 token request failed (ConnectionResetError)" in (
             results[scenario_id]["api"]["error"]
         )
+        assert "reset while sending" not in results[scenario_id]["api"]["error"]
 
 
 def test_public_api_401_on_the_economy_read_stops_the_run(
