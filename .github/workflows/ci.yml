@@ -126,3 +126,16 @@ jobs:
       # generosity bump must actually raise a household's net income).
       - name: Full compute + behavior (shard ${{ matrix.shard }} of 16)
         run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py -q -k "computes_all or test_option_moves_household or national_reform_computes"
+
+  scorecard-scripts:
+    name: Reform scorecard scripts (Public API credential)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pyyaml pytest
+      # Every HTTP request in these tests is answered by a fake; nothing is sent.
+      - name: Score script and "Reform scores" workflow tests
+        run: pytest tests/analysis/test_score_reforms_public_api.py tests/analysis/test_reform_scores_workflow.py -q
