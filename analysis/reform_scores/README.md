@@ -40,9 +40,11 @@ job's own Auth0 client-credentials token (`public_api_token.py`, copied from the
 `POLICYENGINE_API_AUTH0_AUDIENCE`, `POLICYENGINE_API_AUTH0_CLIENT_ID` and
 `POLICYENGINE_API_AUTH0_CLIENT_SECRET`. The `reform-scores` workflow passes them
 in from the repository's Actions variables and secret, the secret only when it is
-dispatched with `with_api`. The script requests one token per run. A missing
-setting, a refused token request or a 401 from the Public API turns the API column
-into an error for every scenario, and nothing more is sent. The client secret
+dispatched with `with_api`. The script requests one token per run. After a
+missing setting, a failed token request or a 401 from the Public API, it requests no
+new token, and every scenario that reaches the Public API afterwards records the
+same error without sending anything (a scenario already in another thread may get
+one more answer). The client secret
 belongs to that workflow only, so don't copy it to your machine; without the
 settings, `--with-api` reports which ones are missing and scores the dashboard
 column as usual.

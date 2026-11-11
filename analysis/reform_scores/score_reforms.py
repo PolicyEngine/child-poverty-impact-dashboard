@@ -35,6 +35,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import threading
@@ -165,8 +166,10 @@ def read_economy(tokens: PublicApiTokenProvider, path: str) -> dict:
     """One read of the economy comparison.
 
     The Public API answers a failed comparison with an error status (502) whose JSON
-    body has ``status: "error"`` and a message; that answer is returned like any other,
-    so the message reaches the scorecard. Any other error status is raised.
+    body has ``status: "error"`` and a message. Any error answer with that body, except
+    a 401, is returned like any other, so its message reaches the scorecard as it did
+    with the earlier ``requests`` code (a 503 "Authentication is unavailable" too). A
+    401 and any other error status are raised.
     """
     try:
         return call_public_api(tokens, "GET", path, timeout_seconds=120)
@@ -189,10 +192,13 @@ class PublicApiReference:
     Public API, so a run answered entirely from cache sends nothing. The token is then
     reused for every request (tokens last 24 hours; a run lasts at most 90 minutes).
 
-    After a missing setting, a refused token request or a 401 from the Public API, the
-    remaining scenarios fail with the same reason and send nothing: a new token would
-    be refused too, and Auth0 counts every token it issues. The reasons name variables
-    and HTTP statuses only, never the client secret.
+    After a missing setting, a failed token request or a 401 from the Public API, no
+    new token is requested, and every scenario that reaches the Public API afterwards
+    fails with the same reason without sending anything: a new token would be refused
+    too, and Auth0 counts every token it issues. A scenario already sending its own
+    request in another thread may still get one more answer (``--concurrency``). The
+    reasons name variables, HTTP statuses and exception types only, never the client
+    secret.
     """
 
     def __init__(self) -> None:
@@ -224,6 +230,14 @@ class PublicApiReference:
                     tokens.access_token()
                 except (PublicApiSettingsError, PublicApiTokenError) as error:
                     self._stop_locked(f"Public API reference column skipped: {error}")
+                except (OSError, http.client.HTTPException) as error:
+                    # The template converts urllib's errors and timeouts, but not a
+                    # connection Auth0 drops before answering, which http.client raises
+                    # as it reads the answer's status.
+                    self._stop_locked(
+                        "Public API reference column skipped: the Auth0 token request"
+                        f" failed ({type(error).__name__})"
+                    )
                 else:
                     self._tokens = tokens
             if self._stop_reason is not None:
