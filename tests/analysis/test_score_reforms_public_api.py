@@ -121,6 +121,9 @@ class FakeNetwork:
     economy_answer: FakeAnswer = field(
         default_factory=lambda: FakeAnswer(200, {"status": "ok", "result": PUBLIC_API_RESULT})
     )
+    # Raised for the token request after it is recorded, as when Auth0 drops the
+    # connection before answering (http.client raises it unconverted from getresponse).
+    token_connection_error: Exception | None = None
     requests_sent: list[RecordedRequest] = field(default_factory=list)
 
     def answer(self, request: RecordedRequest) -> FakeAnswer:
@@ -159,6 +162,8 @@ class FakeNetwork:
             request.get_method(), request.full_url, dict(request.header_items()), body, timeout
         )
         answer = self.answer(recorded)
+        if recorded.url == TOKEN_URL and self.token_connection_error is not None:
+            raise self.token_connection_error
         if answer.status_code >= 300:
             raise urllib.error.HTTPError(
                 request.full_url, answer.status_code, "error", {}, io.BytesIO(answer.encoded_body())
@@ -404,3 +409,55 @@ def test_cached_public_api_results_need_no_token(
     assert network.token_requests == []
     assert network.public_api_requests == []
     assert results[scenario_id]["api"]["child_poverty_rel_reduction"] == pytest.approx(0.2)
+
+
+def test_requests_use_the_template_timeouts(
+    network: FakeNetwork, scorecard_folder: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    set_settings(monkeypatch)
+    write_scenarios(scorecard_folder, 1)
+
+    run_scorecard(monkeypatch, "--with-api")
+
+    assert [request.timeout for request in network.token_requests] == [10]
+    assert [
+        (request.method, request.timeout) for request in network.public_api_requests
+    ] == [("POST", 60), ("GET", 120)]
+
+
+def test_dropped_token_connection_is_not_retried_by_later_scenarios(
+    network: FakeNetwork, scorecard_folder: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    network.token_connection_error = ConnectionResetError("Connection reset by peer")
+    set_settings(monkeypatch)
+    scenario_ids = write_scenarios(scorecard_folder, 3)
+
+    results = run_scorecard(monkeypatch, "--with-api", "--concurrency", "1")
+
+    assert len(network.token_requests) == 1
+    assert network.public_api_requests == []
+    for scenario_id in scenario_ids:
+        assert "the Auth0 token request failed (ConnectionResetError)" in (
+            results[scenario_id]["api"]["error"]
+        )
+
+
+def test_public_api_401_on_the_economy_read_stops_the_run(
+    network: FakeNetwork, scorecard_folder: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    network.economy_answer = FakeAnswer(
+        401, {"status": "error", "message": "Authentication is required"}
+    )
+    set_settings(monkeypatch)
+    scenario_ids = write_scenarios(scorecard_folder, 3)
+
+    results = run_scorecard(monkeypatch, "--with-api", "--concurrency", "1")
+
+    # The first scenario's policy request and economy read; nothing after the 401.
+    assert len(network.token_requests) == 1
+    assert [request.method for request in network.public_api_requests] == ["POST", "GET"]
+    for scenario_id in scenario_ids:
+        error = results[scenario_id]["api"]["error"]
+        assert "401" in error
+        # A refused credential is not reported as a failed comparison.
+        assert error != "RuntimeError: Authentication is required"
