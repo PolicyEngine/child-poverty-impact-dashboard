@@ -33,6 +33,20 @@ published estimates*.
 Optional: `--with-api` adds a PolicyEngine-API column (`api.policyengine.org`) as
 a *dashboard-vs-PolicyEngine consistency* reference at the same geography.
 
+The Public API serves only PolicyEngine's servers, so `--with-api` sends this
+job's own Auth0 client-credentials token (`public_api_token.py`, copied from the
+`policyengine-api-access` skill's template). It reads five settings:
+`POLICYENGINE_API_URL`, `POLICYENGINE_API_AUTH0_DOMAIN`,
+`POLICYENGINE_API_AUTH0_AUDIENCE`, `POLICYENGINE_API_AUTH0_CLIENT_ID` and
+`POLICYENGINE_API_AUTH0_CLIENT_SECRET`. The `reform-scores` workflow passes them
+in from the repository's Actions variables and secret, the secret only when it is
+dispatched with `with_api`. The script requests one token per run. A missing
+setting, a refused token request or a 401 from the Public API turns the API column
+into an error for every scenario, and nothing more is sent. The client secret
+belongs to that workflow only, so don't copy it to your machine; without the
+settings, `--with-api` reports which ones are missing and scores the dashboard
+column as usual.
+
 ## Run it
 
 ```bash

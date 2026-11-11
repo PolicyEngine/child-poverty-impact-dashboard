@@ -50,9 +50,20 @@ jobs:
       - name: Score reforms (dashboard backend)
         env:
           NEXT_PUBLIC_MODAL_CPID_URL: ${{ vars.NEXT_PUBLIC_MODAL_CPID_URL || 'https://policyengine--cpid-backend-web.modal.run' }}
+          ONLY_SCENARIOS: ${{ github.event.inputs.only }}
+          # The Public API reference column (with_api) sends this workflow's own Auth0
+          # client-credentials token: client "child-poverty-impact-dashboard Reform
+          # scores" on the Public API's production tenant. Scheduled runs call only the
+          # Modal backend, so the secret is passed in only for a with_api dispatch.
+          POLICYENGINE_API_URL: ${{ vars.POLICYENGINE_API_URL || 'https://api.policyengine.org' }}
+          POLICYENGINE_API_AUTH0_DOMAIN: ${{ vars.POLICYENGINE_API_AUTH0_DOMAIN }}
+          POLICYENGINE_API_AUTH0_AUDIENCE: ${{ vars.POLICYENGINE_API_AUTH0_AUDIENCE }}
+          POLICYENGINE_API_AUTH0_CLIENT_ID: ${{ vars.POLICYENGINE_API_AUTH0_CLIENT_ID }}
+          POLICYENGINE_API_AUTH0_CLIENT_SECRET: ${{ github.event.inputs.with_api == 'true' && secrets.POLICYENGINE_API_AUTH0_CLIENT_SECRET || '' }}
+        # Dispatch inputs arrive through the environment, not pasted into the script.
         run: |
           python analysis/reform_scores/score_reforms.py \
-            ${{ github.event.inputs.only && format('--only {0}', github.event.inputs.only) || '' }} \
+            ${ONLY_SCENARIOS:+--only "$ONLY_SCENARIOS"} \
             ${{ github.event.inputs.with_api == 'true' && '--with-api' || '' }}
       - name: Upload scorecard
         if: always()

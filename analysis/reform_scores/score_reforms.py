@@ -8,7 +8,11 @@ dashboard produces line up with PolicyEngine's published / think-tank estimates?
 
 Optionally, a PolicyEngine-API run (`--with-api`) is shown as a same-engine
 reference column (api.policyengine.org) for a dashboard-vs-PolicyEngine
-consistency check.
+consistency check. It sends this job's own Auth0 client-credentials token, so it
+needs POLICYENGINE_API_URL, POLICYENGINE_API_AUTH0_DOMAIN,
+POLICYENGINE_API_AUTH0_AUDIENCE, POLICYENGINE_API_AUTH0_CLIENT_ID and
+POLICYENGINE_API_AUTH0_CLIENT_SECRET (the "Reform scores" workflow passes them in
+from the repository's Actions variables and secret; see PublicApiReference).
 
 Pipeline:
 1. `npm run score-scenarios` (frontend) -> score-scenarios.json (reform-dicts +
@@ -33,11 +37,21 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import threading
 import time
+import urllib.error
+import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import requests
+from public_api_token import (
+    PublicApiSettings,
+    PublicApiSettingsError,
+    PublicApiTokenError,
+    PublicApiTokenProvider,
+    call_public_api,
+)
 
 try:
     import yaml
@@ -53,7 +67,7 @@ API_DIR = HERE / "results_api"
 DEFAULT_MODAL_URL = os.environ.get(
     "NEXT_PUBLIC_MODAL_CPID_URL", "https://policyengine--cpid-backend-web.modal.run"
 )
-API_BASE = "https://api.policyengine.org/us"
+API_COUNTRY = "us"  # The address is POLICYENGINE_API_URL (see PublicApiReference).
 API_BASELINE = 2
 DATASET = "enhanced_cps_2024"
 
@@ -124,20 +138,106 @@ def to_policy(reform: dict, year: int) -> dict:
     return {p: {span: v} for p, v in reform.items()}
 
 
-def run_api(scenario: dict) -> dict:
-    pr = requests.post(f"{API_BASE}/policy", json={"data": to_policy(scenario["reform"], scenario["year"])}, timeout=60)
-    pr.raise_for_status()
-    pid = pr.json()["result"]["policy_id"]
-    url = f"{API_BASE}/economy/{pid}/over/{API_BASELINE}"
-    params = {"region": scenario["region"], "time_period": str(scenario["year"]), "dataset": DATASET}
+def run_api(tokens: PublicApiTokenProvider, scenario: dict) -> dict:
+    policy_answer = call_public_api(
+        tokens,
+        "POST",
+        f"/{API_COUNTRY}/policy",
+        {"data": to_policy(scenario["reform"], scenario["year"])},
+        timeout_seconds=60,
+    )
+    pid = policy_answer["result"]["policy_id"]
+    query = urllib.parse.urlencode(
+        {"region": scenario["region"], "time_period": str(scenario["year"]), "dataset": DATASET}
+    )
+    path = f"/{API_COUNTRY}/economy/{pid}/over/{API_BASELINE}?{query}"
     for _ in range(MAX_POLLS):
-        body = requests.get(url, params=params, timeout=120).json()
+        body = read_economy(tokens, path)
         if body.get("status") == "ok":
             return body["result"]
         if body.get("status") == "error":
             raise RuntimeError(body.get("message", "api economy job failed"))
         time.sleep(POLL_INTERVAL_S)
     raise TimeoutError("api job timed out")
+
+
+def read_economy(tokens: PublicApiTokenProvider, path: str) -> dict:
+    """One read of the economy comparison.
+
+    The Public API answers a failed comparison with an error status (502) whose JSON
+    body has ``status: "error"`` and a message; that answer is returned like any other,
+    so the message reaches the scorecard. Any other error status is raised.
+    """
+    try:
+        return call_public_api(tokens, "GET", path, timeout_seconds=120)
+    except urllib.error.HTTPError as error:
+        if error.code == 401:
+            raise
+        try:
+            answer = json.loads(error.read())
+        except ValueError:
+            answer = None
+        if isinstance(answer, dict) and answer.get("status") == "error":
+            return answer
+        raise
+
+
+class PublicApiReference:
+    """Runs scenarios on the Public API with one Auth0 token for the whole run.
+
+    The settings are read, and the token requested, when the first scenario needs the
+    Public API, so a run answered entirely from cache sends nothing. The token is then
+    reused for every request (tokens last 24 hours; a run lasts at most 90 minutes).
+
+    After a missing setting, a refused token request or a 401 from the Public API, the
+    remaining scenarios fail with the same reason and send nothing: a new token would
+    be refused too, and Auth0 counts every token it issues. The reasons name variables
+    and HTTP statuses only, never the client secret.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._tokens: PublicApiTokenProvider | None = None
+        self._stop_reason: str | None = None
+
+    def run(self, scenario: dict) -> dict:
+        tokens = self._token_provider()
+        try:
+            return run_api(tokens, scenario)
+        except PublicApiTokenError as error:
+            self._stop(f"Public API reference column stopped: {error}")
+            raise
+        except urllib.error.HTTPError as error:
+            if error.code == 401:
+                self._stop(
+                    "Public API reference column stopped: the Public API refused this"
+                    " job's credential (HTTP 401). Check that the client is on its allow"
+                    " list and that the Auth0 domain and audience are its production ones."
+                )
+            raise
+
+    def _token_provider(self) -> PublicApiTokenProvider:
+        with self._lock:
+            if self._tokens is None and self._stop_reason is None:
+                try:
+                    tokens = PublicApiTokenProvider(PublicApiSettings.from_environment())
+                    tokens.access_token()
+                except (PublicApiSettingsError, PublicApiTokenError) as error:
+                    self._stop_locked(f"Public API reference column skipped: {error}")
+                else:
+                    self._tokens = tokens
+            if self._stop_reason is not None:
+                raise RuntimeError(self._stop_reason)
+            return self._tokens
+
+    def _stop(self, reason: str) -> None:
+        with self._lock:
+            self._stop_locked(reason)
+
+    def _stop_locked(self, reason: str) -> None:
+        if self._stop_reason is None:
+            self._stop_reason = reason
+            print(reason, flush=True)
 
 
 def summarize_api(raw: dict) -> dict:
@@ -164,7 +264,7 @@ def _cached(path: Path, runner, scenario, refresh, offline):
     return raw, None
 
 
-def score_one(scenario, args) -> dict:
+def score_one(scenario, args, public_api: PublicApiReference | None = None) -> dict:
     sid = scenario["id"]
     t0 = time.time()
     raw, err = _cached(DASH_DIR / f"{sid}.json", lambda s: run_dashboard(args.modal_url, s), scenario, args.refresh, args.offline)
@@ -173,8 +273,8 @@ def score_one(scenario, args) -> dict:
         out["error"] = err
         return out
     out["dashboard"] = summarize_dashboard(raw)
-    if args.with_api:
-        api_raw, api_err = _cached(API_DIR / f"{sid}.json", run_api, scenario, args.refresh, args.offline)
+    if public_api is not None:
+        api_raw, api_err = _cached(API_DIR / f"{sid}.json", public_api.run, scenario, args.refresh, args.offline)
         out["api"] = summarize_api(api_raw) if api_raw else {"error": api_err}
     return out
 
@@ -351,10 +451,11 @@ def main():
     if PRIORS_PATH.exists() and yaml is not None:
         priors = yaml.safe_load(PRIORS_PATH.read_text(encoding="utf-8")) or {}
 
+    public_api = PublicApiReference() if args.with_api else None
     print(f"Scoring {len(scenarios)} scenario(s) on the dashboard backend "
           f"({'+API ' if args.with_api else ''}{args.concurrency}x)…", flush=True)
     with ThreadPoolExecutor(max_workers=args.concurrency) as ex:
-        results = list(ex.map(lambda s: score_one(s, args), scenarios))
+        results = list(ex.map(lambda s: score_one(s, args, public_api), scenarios))
     by_id = {r["id"]: r for r in results}
 
     rows = []
