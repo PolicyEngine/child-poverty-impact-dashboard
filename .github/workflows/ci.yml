@@ -72,7 +72,7 @@ jobs:
       # 1.825.2 was removed from PyPI; install it from its release commit
       # (9f77bffb6b, the "Update PolicyEngine US" commit that set 1.825.2).
       - name: Install policyengine-us (pinned to match Modal)
-        run: pip install "policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip" "spm-calculator==0.3.1" pytest
+        run: pip install "policyengine-us @ https://github.com/PolicyEngine/policyengine-us/archive/9f77bffb6b41221001dc9b97e0afb411f11db82f.zip" "spm-calculator==0.3.1" pytest requests pyyaml
       # Fast gate: resolve every option's parameter paths against pinned PE-US
       # (all entries) + a representative end-to-end compute per dispatch branch
       # + one behavioral (net-income-moves) check per option category
@@ -81,8 +81,10 @@ jobs:
       # regenerate it after a pin bump via scripts/generate_current_law_defaults.py).
       # The exhaustive per-entry compute and full behavioral matrix run in
       # reform-compute-full below.
-      - name: Validate reform paths + representative computes + behavior + anchors
-        run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py tests/calculations/test_default_anchors.py -q
+      # The scorecard script and "Reform scores" workflow tests answer every HTTP
+      # request with a fake, so they send nothing; they need requests and pyyaml.
+      - name: Validate reform paths + representative computes + behavior + anchors + scorecard scripts
+        run: pytest tests/calculations/test_reform_computes.py tests/calculations/test_household_behavior.py tests/calculations/test_default_anchors.py tests/analysis/test_score_reforms_public_api.py tests/analysis/test_reform_scores_workflow.py -q
 
   reform-compute-full:
     name: Reform compute (full, shard ${{ matrix.shard }})

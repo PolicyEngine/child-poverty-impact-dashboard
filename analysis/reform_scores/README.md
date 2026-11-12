@@ -31,7 +31,27 @@ published estimates*.
    `results_dashboard/` (git-ignored).
 
 Optional: `--with-api` adds a PolicyEngine-API column (`api.policyengine.org`) as
-a *dashboard-vs-PolicyEngine consistency* reference at the same geography.
+a *dashboard-vs-PolicyEngine consistency* reference at the same geography. The
+Public API chooses the dataset for the comparison itself (it has not taken a
+`dataset` parameter since 2026-09-18), so its data or data revision may differ
+from the dashboard's. API results cached locally before that date came from
+`enhanced_cps_2024`; rerun with `--refresh` to replace them.
+
+The Public API serves only PolicyEngine's servers, so `--with-api` sends this
+job's own Auth0 client-credentials token (`public_api_token.py`, copied from the
+`policyengine-api-access` skill's template). It reads five settings:
+`POLICYENGINE_API_URL`, `POLICYENGINE_API_AUTH0_DOMAIN`,
+`POLICYENGINE_API_AUTH0_AUDIENCE`, `POLICYENGINE_API_AUTH0_CLIENT_ID` and
+`POLICYENGINE_API_AUTH0_CLIENT_SECRET`. The `reform-scores` workflow passes them
+in from the repository's Actions variables and secret, the secret only when it is
+dispatched with `with_api`. The script requests one token per run. After a
+missing setting, a failed token request or a 401 from the Public API, it requests no
+new token, and every scenario that reaches the Public API afterwards records the
+same error without sending anything (a scenario already in another thread may get
+one more answer). The client secret
+belongs to that workflow only, so don't copy it to your machine; without the
+settings, `--with-api` reports which ones are missing and scores the dashboard
+column as usual.
 
 ## Run it
 
