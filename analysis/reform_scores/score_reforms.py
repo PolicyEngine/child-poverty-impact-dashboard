@@ -70,7 +70,6 @@ DEFAULT_MODAL_URL = os.environ.get(
 )
 API_COUNTRY = "us"  # The address is POLICYENGINE_API_URL (see PublicApiReference).
 API_BASELINE = 2
-DATASET = "enhanced_cps_2024"
 
 TRIVIAL_DOLLARS = 1_000_000
 TRIVIAL_POV = 1e-4
@@ -148,9 +147,8 @@ def run_api(tokens: PublicApiTokenProvider, scenario: dict) -> dict:
         timeout_seconds=60,
     )
     pid = policy_answer["result"]["policy_id"]
-    query = urllib.parse.urlencode(
-        {"region": scenario["region"], "time_period": str(scenario["year"]), "dataset": DATASET}
-    )
+    # The Public API chooses the dataset itself and refuses unknown query parameters.
+    query = urllib.parse.urlencode({"region": scenario["region"], "time_period": str(scenario["year"])})
     path = f"/{API_COUNTRY}/economy/{pid}/over/{API_BASELINE}?{query}"
     for _ in range(MAX_POLLS):
         body = read_economy(tokens, path)

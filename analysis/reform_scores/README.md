@@ -31,7 +31,9 @@ published estimates*.
    `results_dashboard/` (git-ignored).
 
 Optional: `--with-api` adds a PolicyEngine-API column (`api.policyengine.org`) as
-a *dashboard-vs-PolicyEngine consistency* reference at the same geography.
+a *dashboard-vs-PolicyEngine consistency* reference at the same geography. The
+Public API runs the comparison on its own default dataset (it has not taken a
+`dataset` parameter since 2026-09-18), not on the dashboard's Populace slices.
 
 The Public API serves only PolicyEngine's servers, so `--with-api` sends this
 job's own Auth0 client-credentials token (`public_api_token.py`, copied from the
