@@ -462,3 +462,18 @@ def test_public_api_401_on_the_economy_read_stops_the_run(
         assert "401" in error
         # A refused credential is not reported as a failed comparison.
         assert error != "RuntimeError: Authentication is required"
+
+
+def test_economy_read_sends_only_the_query_parameters_the_public_api_accepts(
+    network: FakeNetwork, scorecard_folder: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The Public API refuses unknown query parameters with 400, and has chosen the
+    # dataset itself since 2026-09-18 (PolicyEngine/policyengine-api d116021e6).
+    set_settings(monkeypatch)
+    write_scenarios(scorecard_folder, 1)
+
+    run_scorecard(monkeypatch, "--with-api")
+
+    (economy_read,) = [request for request in network.public_api_requests if request.method == "GET"]
+    query = urllib.parse.parse_qs(urllib.parse.urlsplit(economy_read.url).query)
+    assert query == {"region": ["state/ny"], "time_period": ["2026"]}
