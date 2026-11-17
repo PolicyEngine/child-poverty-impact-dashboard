@@ -60,7 +60,7 @@ Modal-Dict behavior, so an unreachable Supabase never breaks a report.
 - The service-role key bypasses RLS; the table has RLS enabled with no
   policies so an anon key can read nothing. Keep the service key only in
   the Modal secret — never in Vercel env or the frontend.
-- Rows are keyed by build rev. After a pin bump (PE-US, Populace
+- Rows are keyed by build rev. After a pin bump (PE-US, Microcosm
   revision, or compute-code change bumps `CPID_BUILD_REV`), old rows are
   simply never read again; prune them whenever convenient:
   `delete from cpid_impact_results where build_rev <> '<current>';`

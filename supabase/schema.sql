@@ -2,7 +2,7 @@
 --
 -- One row per computed result, keyed by the same cache key the Modal
 -- backend already uses: sha256(CPID_BUILD_REV | kind | canonical payload).
--- The build rev pins policyengine-us, the Populace revision, and the
+-- The build rev pins policyengine-us, the Microcosm revision, and the
 -- compute code, so rows are immutable — a new build starts a fresh
 -- keyspace and old rows just age out unused.
 --
