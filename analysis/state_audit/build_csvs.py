@@ -19,7 +19,7 @@ the file does not cover compares against its latest year, 2025, and the
 ``target_year`` column records which year each row used.
 
 Optional args, for auditing a different dataset against the same targets
-(e.g. the production Populace slices from state_audit_populace_modal.py)
+(e.g. the production Microcosm slices from state_audit_populace_modal.py)
 without clobbering an earlier run's deliverables::
 
     python build_csvs.py --raw state_audit_populace_raw.json --suffix _populace

@@ -67,7 +67,7 @@ image = (
 )
 
 # Dataset: Build P of Microcosm's ACS-local arm (the dense local-area
-# artifact, née Populace) — 1.59M households on a hybrid spine (ASEC PUF
+# artifact) — 1.59M households on a hybrid spine (ASEC PUF
 # 57k households / 69% of weight + ACS 2024 1-yr 1.53M / 31%), calibrated
 # to 4,459 targets including the full IRS SOI surface (federal CTC/ACTC/
 # EITC essentially exact by state), USDA FY2024 SNAP, Medicaid enrollment,
@@ -78,11 +78,11 @@ image = (
 # after a release bump). Slices are exact partitions — no unit straddles a
 # state boundary. Runtime: big states now run minutes (CA ~5-10 min), small
 # states ~1-2 min; the result cache + Supabase pre-warm cover the gap.
-POPULACE_REPO = "policyengine/populace-us"
-POPULACE_FILE = "populace_us_2024_acs_local.h5"
-POPULACE_RELEASE = "populace-us-2024-buildp-acs-local-592ae5d6-20260819T020303Z"
+MICROCOSM_REPO = "policyengine/populace-us"
+MICROCOSM_FILE = "populace_us_2024_acs_local.h5"
+MICROCOSM_RELEASE = "populace-us-2024-buildp-acs-local-592ae5d6-20260819T020303Z"
 # Short tag used for the slice directory on the Volume.
-POPULACE_REVISION = "592ae5d6"
+MICROCOSM_REVISION = "592ae5d6"
 
 slices_volume = modal.Volume.from_name(
     "cpid-populace-slices", create_if_missing=True
@@ -90,7 +90,7 @@ slices_volume = modal.Volume.from_name(
 
 
 # Results cache: identical (payload, build) pairs return the stored result
-# instead of re-simulating. The build rev pins policyengine-us, the Populace
+# instead of re-simulating. The build rev pins policyengine-us, the Microcosm
 # revision, and the compute code, so entries are immutable — a new deploy
 # with a bumped CPID_BUILD_REV starts a fresh keyspace and old entries just
 # age out unused. This is what makes shared deep links populate instantly
@@ -368,11 +368,11 @@ def _progress_put(stage: str) -> None:
 def _state_slice_path(state: str) -> str:
     import os
 
-    path = f"/slices/{POPULACE_REVISION[:8]}/{state}.h5"
+    path = f"/slices/{MICROCOSM_REVISION[:8]}/{state}.h5"
     if not os.path.exists(path):
         raise RuntimeError(
-            f"No Populace slice for {state} at revision "
-            f"{POPULACE_REVISION[:8]} — run "
+            f"No Microcosm slice for {state} at revision "
+            f"{MICROCOSM_REVISION[:8]} — run "
             "`modal run scripts/build_populace_state_slices.py` after a "
             "revision bump."
         )
@@ -966,7 +966,7 @@ def compute_economy(payload: dict) -> dict:
     if not state_code:
         raise ValueError("`state` is required.")
 
-    # Pre-built per-state slice of the pinned Populace revision (verified to
+    # Pre-built per-state slice of the pinned Microcosm revision (verified to
     # reproduce the national state-masked values exactly). The masks below are
     # trivially all-true on a slice; they stay as a guard so a mis-built slice
     # (wrong state's households) fails loudly instead of silently.
@@ -983,7 +983,7 @@ def compute_economy(payload: dict) -> dict:
     reform = Reform.from_dict(reform_dict) if reform_dict else None
     _log(
         f"reform loaded (params={len(reform_dict) if reform_dict else 0}) "
-        f"on slice {state}@{POPULACE_REVISION[:8]}"
+        f"on slice {state}@{MICROCOSM_REVISION[:8]}"
     )
 
     sim_baseline = Microsimulation(dataset=_dataset())
@@ -1466,7 +1466,7 @@ def compute_economy(payload: dict) -> dict:
     # baseline-vs-(dependent-only) sub-simulation. Reported as a benefit-value
     # delta (baseline tax - reform tax) to match the sign of the credit rows.
     # Runs last, after the baseline/reform sims are released — three
-    # concurrent national Populace sims would strain the container.
+    # concurrent national Microcosm sims would strain the container.
     if dep_dict:
         import gc
 
@@ -1741,10 +1741,10 @@ def web():
             "ok": True,
             "policyengine_us": pe_us,
             "dataset": (
-                f"{POPULACE_REPO}/{POPULACE_FILE}@{POPULACE_REVISION[:8]}"
+                f"{MICROCOSM_REPO}/{MICROCOSM_FILE}@{MICROCOSM_REVISION[:8]}"
                 " (per-state slices)"
             ),
-            "dataset_release": POPULACE_RELEASE,
+            "dataset_release": MICROCOSM_RELEASE,
             "build_rev": os.environ.get("CPID_BUILD_REV"),
             "supabase": "enabled" if _supabase_cfg() else "disabled",
         }

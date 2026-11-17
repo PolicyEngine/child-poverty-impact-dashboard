@@ -80,7 +80,7 @@ production on the same yardstick. Results from the 2026-10-20 run are in
 
 ```bash
 # 1. Slice the release on Modal (scripts/build_populace_state_slices.py: set
-#    POPULACE_REVISION / SLICE_TAG, deploy, then spawn build_slices server-side).
+#    MICROCOSM_REVISION / SLICE_TAG, deploy, then spawn build_slices server-side).
 # 2. One audit app per policyengine-us pin:
 AUDIT_PE_US=2.30.1 modal deploy analysis/state_audit/state_audit_sweep_modal.py
 # 3. Spawn 51 states x years per (pin, slice set), then collect:

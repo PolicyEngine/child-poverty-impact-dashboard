@@ -50,10 +50,10 @@ image = image.apt_install("ca-certificates").pip_install(
     "certifi>=2026.10.19", "hf-xet>=1.4.3"
 )
 
-POPULACE_REPO = "policyengine/populace-us"
-POPULACE_FILE = "populace_us_2024_acs_local.h5"
+MICROCOSM_REPO = "policyengine/populace-us"
+MICROCOSM_FILE = "populace_us_2024_acs_local.h5"
 # HF release tag; slices land under the short hash from the release id.
-POPULACE_REVISION = "populace-us-2024-buildo-acs-local-766b7c7-20261017T030317Z"
+MICROCOSM_REVISION = "populace-us-2024-buildo-acs-local-766b7c7-20261017T030317Z"
 SLICE_TAG = "766b7c7"
 # Other slices on the Volume (kept, untouched):
 #   buildp-acs-local-592ae5d6-20260819T020303Z -> /592ae5d6 (production)
@@ -85,7 +85,7 @@ def build_slices() -> dict:
     from policyengine_us.data import USSingleYearDataset
 
     path = hf_hub_download(
-        POPULACE_REPO, POPULACE_FILE, repo_type="dataset", revision=POPULACE_REVISION
+        MICROCOSM_REPO, MICROCOSM_FILE, repo_type="dataset", revision=MICROCOSM_REVISION
     )
     ds = USSingleYearDataset(file_path=path)
     if hasattr(ds, "load"):
@@ -249,7 +249,7 @@ def national_metrics() -> dict:
     from policyengine_us import Microsimulation
 
     path = hf_hub_download(
-        POPULACE_REPO, POPULACE_FILE, repo_type="dataset", revision=POPULACE_REVISION
+        MICROCOSM_REPO, MICROCOSM_FILE, repo_type="dataset", revision=MICROCOSM_REVISION
     )
     base = Microsimulation(dataset=path)
     reform = Microsimulation(
@@ -273,7 +273,7 @@ def slice_metrics(st: str) -> tuple:
     from policyengine_us import Microsimulation
     from policyengine_us.data import USSingleYearDataset
 
-    path = f"/slices/{POPULACE_REVISION[:8]}/{st}.h5"
+    path = f"/slices/{MICROCOSM_REVISION[:8]}/{st}.h5"
     base = Microsimulation(dataset=USSingleYearDataset(file_path=path))
     reform = Microsimulation(
         dataset=USSingleYearDataset(file_path=path),
